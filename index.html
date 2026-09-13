@@ -59,9 +59,19 @@ button,.btn{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .t{font-size:15px}
 .t2{font-size:12px;color:var(--tx3)}
 input,select,textarea{
-  width:100%;font:inherit;background:var(--s2);color:var(--tx);
+  width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+  font:inherit;background:var(--s2);color:var(--tx);
   border:1px solid var(--br2);border-radius:10px;padding:12px;outline:none;
+  -webkit-appearance:none;appearance:none;
 }
+/* iOS dá largura própria aos campos de data e hora, ignorando o width */
+input[type="date"],input[type="time"],input[type="tel"],input[type="number"]{display:block}
+input[type="date"]::-webkit-date-and-time-value{text-align:left;width:100%;margin:0}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.45;margin:0}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+select{background-image:none;padding-right:12px}
+textarea{resize:vertical}
 input:focus,textarea:focus,select:focus{border-color:var(--ac)}
 label{display:block;font-size:12px;color:var(--tx2);margin:14px 0 6px}
 nav{
