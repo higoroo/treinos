@@ -287,12 +287,26 @@ body.limpo{padding-bottom:0}
 <body>
 <div id="app"></div>
 <nav id="nav"></nav>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer onerror="window.SB_FALHOU=1"></script>
+<script>
+window.SB_PRONTO=new Promise(function(ok){
+  var t=document.createElement('script');
+  t.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  t.onload=function(){ok(true)};
+  t.onerror=function(){window.SB_FALHOU=1;ok(false)};
+  document.head.appendChild(t);
+  setTimeout(function(){ok(!!window.supabase)},4000);   // rede lenta não trava o app
+});
+</script>
 
 <script>
 /* ---------- armazenamento: funciona no claude.ai e como arquivo local ---------- */
 var KEY_LEGADO='treinos:db';
-function chaveDb(){return SB&&SB.user?'treinos:db:'+SB.user.id:KEY_LEGADO}
+function uidLocal(){try{return localStorage.getItem('treinos:uid')||''}catch(e){return ''}}
+function chaveDb(){
+  if(SB&&SB.user)return 'treinos:db:'+SB.user.id;
+  var u=uidLocal();
+  return u?'treinos:db:'+u:KEY_LEGADO;
+}
 var store={
   async get(k){
     k=k||chaveDb();
@@ -1820,6 +1834,7 @@ async function entrar(email,senha,criar){
 }
 async function sair(){
   if(!confirm('Sair da conta?\n\nSeus treinos ficam salvos na nuvem e voltam quando você entrar de novo.'))return;
+  try{localStorage.removeItem('treinos:uid')}catch(e){}
   if(SB.cli)await SB.cli.auth.signOut();
   SB.user=null;SB.msg='';db=vazio();view='landing';ctx={};render();
 }
@@ -1995,6 +2010,7 @@ function fazLogin(criar){
 
 /* ---------- boot ---------- */
 async function aposLogin(){
+  try{if(SB.user)localStorage.setItem('treinos:uid',SB.user.id)}catch(e){}
   db=await store.get();
   if(!db){
     // primeiro login neste aparelho: aproveita dados locais anteriores, se houver
@@ -2029,9 +2045,26 @@ function migrar(){
 (async function(){
   db=vazio();
   var recuperando=/type=recovery/.test(location.hash||'')||/type=recovery/.test(location.search||'');
+  try{await window.SB_PRONTO}catch(e){}      // só decide a tela depois que a biblioteca chegou
   await iniciarSB();
   if(recuperando){view='novasenha';render();return}
   if(SB.user){await aposLogin();return}
+  // sem internet ou biblioteca indisponível: se este aparelho já tem conta, abre assim mesmo
+  var u=uidLocal();
+  if(u){
+    var local=await store.get('treinos:db:'+u);
+    if(local&&local.perfil&&local.perfil.nome){
+      db=local;migrar();view='home';render();
+      // quando a rede voltar, o app se reconecta sozinho
+      var tentar=async function(){
+        if(!navigator.onLine)return;
+        if(await iniciarSB()&&SB.user){render();sincronizar(true)}
+      };
+      setTimeout(tentar,3000);
+      window.addEventListener('online',tentar);
+      return;
+    }
+  }
   view='landing';render();
 })();
 
