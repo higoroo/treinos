@@ -1337,6 +1337,11 @@ function vLanding(){
   var h='<div class="lp"><div class="lp-top"><div class="wm">Treinos</div>'+
     '<button class="b3" onclick="irAuth(false)">Entrar</button></div>';
 
+  if(ultimoEmail()){
+    h+='<div class="card an" style="margin-top:26px;border-color:var(--ac)"><div class="lb">Continuar como</div>'+
+      '<div class="t" style="font-weight:700;margin:3px 0 12px">'+esc(ultimoEmail())+'</div>'+
+      '<button class="b1" onclick="irAuth(false)">Entrar</button></div>';
+  }
   h+='<h1 class="an"><span class="rot" id="rot">Todo treino</span><br><em>conta.</em></h1>'+
     '<p class="lead an" style="animation-delay:80ms">Musculação, corrida e jiu-jitsu no mesmo lugar. '+
     'Você registra em dois toques e o app lembra da carga, das aulas e do quanto você evoluiu.</p>'+
@@ -1517,8 +1522,8 @@ function vAuth(){
     '<p class="lead an" style="animation-delay:60ms;font-size:15px">'+
     (c?'Sua conta guarda os treinos na nuvem. Dá para usar no celular e no computador.':'Use o e-mail e a senha que você cadastrou.')+'</p>'+
     '<div class="card an" style="animation-delay:120ms;margin-top:24px">'+
-    '<label>E-mail</label><input id="em" type="email" inputmode="email" autocomplete="username" autocapitalize="none">'+
-    '<label>Senha</label><input id="sn" type="password" autocomplete="'+(c?'new-password':'current-password')+'">'+
+    '<label>E-mail</label><input id="em" type="email" inputmode="email" autocomplete="username" autocapitalize="none" value="'+esc(c?'':ultimoEmail())+'">'+
+    '<label>Senha</label><input id="sn" type="password" autocomplete="'+(c?'new-password':'current-password')+'" '+(!c&&ultimoEmail()?'autofocus':'')+'>'+
     (c?'<p class="t2" style="margin:10px 0 0">Mínimo de 6 caracteres.</p>':'')+
     '<div style="height:16px"></div><button class="b1" onclick="fazLogin('+c+')">'+(c?'Criar conta':'Entrar')+'</button>'+
     '<div style="height:10px"></div><button class="b2" onclick="irAuth('+(!c)+')">'+(c?'Já tenho conta':'Criar uma conta')+'</button>'+
@@ -1802,9 +1807,11 @@ async function salvarChave(){
   try{localStorage.setItem(KKEY,k)}catch(e){}
   SB.key=k;await iniciarSB();render();
 }
+function ultimoEmail(){try{return localStorage.getItem('treinos:email')||''}catch(e){return ''}}
 function fazLogin(criar){
   var e=(document.getElementById('em').value||'').trim(),s=document.getElementById('sn').value||'';
   if(!e||!s){alert('Preencha e-mail e senha.');return}
+  try{localStorage.setItem('treinos:email',e)}catch(x){}
   entrar(e,s,criar);
 }
 
