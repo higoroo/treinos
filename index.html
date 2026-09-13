@@ -237,6 +237,16 @@ body.limpo{padding-bottom:0}
 .cc.bronze{background:#33220F;color:#D08A55}
 .cc.participou{background:var(--s2);color:var(--tx2)}
 .cc.pend{background:var(--ac);color:#fff}
+
+.inst{background:var(--ac-d);border:1px solid var(--ac);border-radius:20px;padding:16px;margin-bottom:12px}
+.inst .tt{font-size:16px;font-weight:800;letter-spacing:-.02em}
+.inst .dd{font-size:13.5px;color:var(--ac-t);line-height:1.5;margin-top:3px}
+.pss{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--br)}
+.pss:last-child{border-bottom:0}
+.pss .nn{flex:0 0 30px;height:30px;border-radius:9px;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.pss .tx{font-size:14.5px;line-height:1.5}
+.pss .tx b{font-weight:700}
+.pss .ii{display:inline-flex;vertical-align:-5px;margin:0 3px;color:var(--ac-t)}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1!important;transform:none!important}.an,.ap,.al,.live{animation:none!important}}
 .hero{background:var(--s1);border:1px solid var(--br);border-radius:22px;padding:22px 18px 18px;margin-bottom:12px}
 .big{font-size:64px;font-weight:800;letter-spacing:-.05em;line-height:.9;color:var(--ac)}
@@ -562,7 +572,8 @@ function vHome(){
   var h='<header class="an"><div><div class="wm">Treinos</div><h1 style="font-weight:800;letter-spacing:-.03em;margin-top:2px">Olá, '+esc(db.perfil.nome)+'</h1>'+
     '<p class="sub">'+diaSem(hoje())+', '+dtBr(hoje())+'</p></div></header>';
 
-  h+='<div class="hero an" style="animation-delay:60ms"><div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">'+
+  h+=blocoInstalar();
+  h+='<div class="hero an" style="animation-delay:100ms"><div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">'+
     '<div><div class="gg" data-cnt="'+sq+'">0</div><div class="lb" style="margin-top:10px">'+(sq===1?'dia seguido':'dias seguidos')+'</div></div>'+
     '<div style="text-align:right;padding-bottom:4px"><div style="font-size:30px;font-weight:800;letter-spacing:-.04em" class="num">'+
       '<span data-cnt="'+sm+'">0</span><span style="color:var(--tx3);font-weight:600">/'+m+'</span></div>'+
@@ -1278,6 +1289,54 @@ function faixaConquistas(){
 }
 
 
+
+/* ---------- instalar na tela de início ---------- */
+function ehStandalone(){
+  return (window.navigator&&window.navigator.standalone===true)||
+    (window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+}
+function ehIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent||'')}
+function instalarDispensado(){try{return localStorage.getItem('treinos:instalar')==='nao'}catch(e){return false}}
+function dispensarInstalar(){
+  try{localStorage.setItem('treinos:instalar','nao')}catch(e){}
+  render();
+}
+function blocoInstalar(){
+  if(ehStandalone()||instalarDispensado())return '';
+  return '<div class="inst an" style="animation-delay:90ms">'+
+    '<div class="tt">Deixe o Treinos na tela de início</div>'+
+    '<div class="dd">Abre em tela cheia, funciona sem internet e você não precisa entrar de novo.</div>'+
+    '<div style="height:13px"></div>'+
+    '<button class="b1" onclick="comoInstalar()">Como faço</button>'+
+    '<div style="height:8px"></div>'+
+    '<button class="b3" style="width:100%" onclick="dispensarInstalar()">Agora não</button></div>';
+}
+function comoInstalar(){
+  var ios=ehIOS();
+  var compartilhar='<span class="ii"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" '+
+    'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M8.5 6.5L12 3l3.5 3.5"/>'+
+    '<path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg></span>';
+  var menu='<span class="ii"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">'+
+    '<circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></span>';
+  var passos=ios
+    ? [['1','Abra este endereço no <b>Safari</b>. Não funciona pelo Chrome no iPhone.'],
+       ['2','Toque no botão de compartilhar '+compartilhar+' na barra de baixo.'],
+       ['3','Role a lista e escolha <b>Adicionar à Tela de Início</b>.'],
+       ['4','Confirme em <b>Adicionar</b>. Pronto: abra sempre por esse ícone.']]
+    : [['1','Toque no menu '+menu+' do navegador, no canto superior.'],
+       ['2','Escolha <b>Instalar aplicativo</b> ou <b>Adicionar à tela inicial</b>.'],
+       ['3','Confirme. Pronto: abra sempre por esse ícone.']];
+  var el=document.createElement('div');el.className='sheet';el.id='sheet';
+  el.innerHTML='<div><div class="top"><h1 style="font-size:18px">Instalar o Treinos</h1>'+
+    '<button class="x" onclick="fechar()">✕</button></div>'+
+    '<p class="t2" style="margin:2px 0 8px">Leva dez segundos e resolve o login toda hora.</p>'+
+    passos.map(function(x){return '<div class="pss"><div class="nn">'+x[0]+'</div><div class="tx">'+x[1]+'</div></div>'}).join('')+
+    '<div style="height:16px"></div><button class="b1" onclick="fechar()">Entendi</button>'+
+    '<div style="height:10px"></div><button class="b2" style="color:var(--tx3)" onclick="dispensarInstalar();fechar()">Não mostrar de novo</button>'+
+    '<div style="height:10px"></div></div>';
+  document.body.appendChild(el);
+}
+
 /* ---------- campeonatos ---------- */
 var COLOC=[['ouro','Ouro'],['prata','Prata'],['bronze','Bronze'],['participou','Participou']];
 function campsOrdem(){return (db.campeonatos||[]).filter(function(c){return !c.arquivado})
@@ -1710,6 +1769,7 @@ async function obFim(pular){
     db.graduacoes=[{id:uid(),faixa:t.faixa||'Branca',grau:t.grau||0,data:t.graduacao||hoje(),professor:'',academia:db.perfil.academia||''}];
   }
   await salvar();view='home';ctx={};render();checarConquistas(true);sincronizar(true);
+  if(!ehStandalone()&&!instalarDispensado())setTimeout(comoInstalar,700);
 }
 
 /* ---------- nuvem (Supabase) ---------- */
