@@ -24,7 +24,9 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
+html{height:-webkit-fill-available}
 body{
+  min-height:100vh;min-height:100dvh;
   background:var(--bg);color:var(--tx);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   font-size:16px;line-height:1.5;
@@ -32,7 +34,7 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-#app{max-width:520px;margin:0 auto;padding:0 16px}
+#app{max-width:520px;margin:0 auto;padding:0 16px;min-height:calc(100dvh - 104px)}
 header{padding:calc(14px + env(safe-area-inset-top)) 0 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 h1{font-size:21px;font-weight:600;margin:0;letter-spacing:-.02em}
 h2{font-size:13px;font-weight:600;color:var(--tx2);margin:22px 0 8px;text-transform:uppercase;letter-spacing:.07em}
@@ -298,16 +300,16 @@ function semente(){
   ];
   return {
     v:1,
-    perfil:{nome:'Higor',meta:5,descanso:90,principal:'musculacao'},
+    perfil:{nome:'',meta:4,descanso:90,principal:'musculacao'},
     exercicios:ex, treinos:tr, sessoes:[], series:[],
-    graduacoes:[{id:uid(),faixa:'Azul',grau:2,data:'2026-01-12',professor:'',academia:''}],
+    graduacoes:[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}],
     tecnicas:[], objetivos:[]
   };
 }
 
 function vazio(){
   return {v:1,
-    perfil:{nome:'',meta:4,descanso:90,principal:'musculacao'},
+    perfil:{nome:'',meta:4,descanso:90,principal:'musculacao',whatsapp:'',academia:'',nascimento:'',peso:''},
     exercicios:[],treinos:[],sessoes:[],series:[],
     graduacoes:[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}],
     tecnicas:[],objetivos:[]};
@@ -929,6 +931,10 @@ function vPerfil(){
     '<label>Nome</label><input value="'+esc(db.perfil.nome)+'" oninput="perfil(\'nome\',this.value)">'+
     '<label>Meta de treinos por semana</label><input class="num" type="number" inputmode="numeric" value="'+db.perfil.meta+'" oninput="perfil(\'meta\',+this.value)">'+
     '<label>Descanso padrão (segundos)</label><input class="num" type="number" inputmode="numeric" value="'+db.perfil.descanso+'" oninput="perfil(\'descanso\',+this.value)">'+
+    '<label>WhatsApp</label><input type="tel" inputmode="tel" placeholder="opcional" value="'+esc(db.perfil.whatsapp||'')+'" oninput="perfil(\'whatsapp\',this.value)">'+
+    '<label>Academia ou equipe</label><input placeholder="opcional" value="'+esc(db.perfil.academia||'')+'" oninput="perfil(\'academia\',this.value)" autocapitalize="words">'+
+    '<label>Data de nascimento</label><input type="date" value="'+esc(db.perfil.nascimento||'')+'" oninput="perfil(\'nascimento\',this.value)">'+
+    '<label>Peso (kg)</label><input class="num" type="number" inputmode="decimal" placeholder="opcional" value="'+esc(db.perfil.peso||'')+'" oninput="perfil(\'peso\',this.value)">'+
     '<p class="t2" style="margin:12px 0 0">Salvo automaticamente.</p></div>';
     '<p class="t2" style="margin:12px 0 0">Salvo automaticamente.</p></div>';
   h+='<h2>Esporte principal</h2><div class="card">'+
@@ -1001,7 +1007,7 @@ function importar(inp){
     if(!confirm('O backup tem '+fe+' sessões e '+fs+' séries.\n\nIsso vai substituir os dados deste aparelho. Continuar?')){inp.value='';return}
     // rede de segurança: guarda o estado atual antes de trocar
     try{await store.set(db)}catch(e){}
-    d.perfil=d.perfil||{nome:'Higor',meta:5,descanso:90};
+    d.perfil=d.perfil||{nome:'',meta:4,descanso:90,principal:'musculacao'};
     d.treinos=d.treinos||[];d.graduacoes=d.graduacoes&&d.graduacoes.length?d.graduacoes:[{id:uid(),faixa:'Branca',grau:0,data:hoje()}];
     d.tecnicas=d.tecnicas||[];
     db=d;await salvar();ir('home');
@@ -1365,7 +1371,7 @@ function vOnboard(){
   var p=ctx.passo||1,t=ctx.tmp||{};
   var h='<div class="lp"><div class="lp-top"><div class="wm">Primeiro acesso</div>'+
     (p>1?'<button class="b3" onclick="obVolta()">← Voltar</button>':'<span></span>')+'</div>'+
-    '<div class="prog">'+[1,2,3].map(function(i){return '<i class="'+(i<=p?'on':'')+'"></i>'}).join('')+'</div>';
+    '<div class="prog">'+[1,2,3,4].map(function(i){return '<i class="'+(i<=p?'on':'')+'"></i>'}).join('')+'</div>';
 
   if(p===1){
     h+='<h1 style="font-size:clamp(32px,8.5vw,42px)">Como você<br>quer ser chamado?</h1>'+
@@ -1392,7 +1398,7 @@ function vOnboard(){
         '<label>Grau</label><select id="ob-g">'+[0,1,2,3,4].map(function(n){return '<option>'+n+'</option>'}).join('')+'</select>'+
         '<label>Desde quando</label><input id="ob-d" type="date" value="'+hoje()+'">'+
         '<label>Meta de treinos por semana</label><input id="ob-m" class="num" type="number" inputmode="numeric" value="4">'+
-        '<div style="height:16px"></div><button class="b1" onclick="obFim()">Concluir</button></div>';
+        '<div style="height:16px"></div><button class="b1" onclick="obPasso3()">Continuar</button></div>';
     }else if(t.principal==='musculacao'){
       h+='<h1 style="font-size:clamp(32px,8.5vw,42px)">Quer começar<br>com treinos prontos?</h1>'+
         '<p class="lead" style="font-size:15px">Um A/B/C básico que você edita depois do jeito que treina. Se preferir, monte do zero.</p>'+
@@ -1402,16 +1408,38 @@ function vOnboard(){
         '<button class="ob-sel '+(t.modelo===false?'on':'')+'" onclick="obModelo(false)"><span class="ii">'+svg('hist',20)+'</span>'+
         '<span><span class="nn">Não, vou montar o meu</span><br><span class="dd">Começa vazio, do seu jeito</span></span></button></div>'+
         '<div class="card"><label>Meta de treinos por semana</label><input id="ob-m" class="num" type="number" inputmode="numeric" value="4">'+
-        '<div style="height:16px"></div><button class="b1" onclick="obFim()">Concluir</button></div>';
+        '<div style="height:16px"></div><button class="b1" onclick="obPasso3()">Continuar</button></div>';
     }else{
       h+='<h1 style="font-size:clamp(32px,8.5vw,42px)">Quantas vezes<br>por semana?</h1>'+
         '<p class="lead" style="font-size:15px">É a meta que aparece na tela inicial. Pode mudar quando quiser.</p>'+
         '<div class="card" style="margin-top:20px"><label>Meta de treinos por semana</label>'+
         '<input id="ob-m" class="num" type="number" inputmode="numeric" value="4">'+
-        '<div style="height:16px"></div><button class="b1" onclick="obFim()">Concluir</button></div>';
+        '<div style="height:16px"></div><button class="b1" onclick="obPasso3()">Continuar</button></div>';
     }
   }
+  if(p===4){
+    h+='<h1 style="font-size:clamp(32px,8.5vw,42px)">Só mais<br>algumas coisas.</h1>'+
+      '<p class="lead" style="font-size:15px">Tudo opcional. Serve para calcular sua categoria de campeonato e para eu conseguir falar com você se algo quebrar.</p>'+
+      '<div class="card" style="margin-top:20px">'+
+      '<label>WhatsApp</label><input id="ob-w" type="tel" inputmode="tel" placeholder="(19) 99999-9999" value="'+esc(t.whatsapp||'')+'">'+
+      '<label>Academia ou equipe</label><input id="ob-a" placeholder="Nome da academia" value="'+esc(t.academia||'')+'" autocapitalize="words">'+
+      '<label>Data de nascimento</label><input id="ob-dn" type="date" value="'+esc(t.nascimento||'')+'">'+
+      '<label>Peso (kg)</label><input id="ob-p" class="num" type="number" inputmode="decimal" placeholder="82" value="'+esc(t.peso||'')+'">'+
+      '<p class="t2" style="margin:10px 0 0;line-height:1.5">Idade e peso definem a categoria no jiu. O app não acompanha nem cobra peso corporal.</p>'+
+      '<div style="height:16px"></div><button class="b1" onclick="obFim()">Concluir</button>'+
+      '<div style="height:10px"></div><button class="b2" onclick="obFim(true)">Pular por enquanto</button></div>';
+  }
   return h+'<div style="height:30px"></div></div>';
+}
+function obPasso3(){
+  var m=document.getElementById('ob-m');
+  ctx.tmp.meta=Math.max(1,+(m?m.value:4)||4);
+  if(ctx.tmp.principal==='jiujitsu'){
+    ctx.tmp.faixa=document.getElementById('ob-f').value;
+    ctx.tmp.grau=+document.getElementById('ob-g').value;
+    ctx.tmp.graduacao=document.getElementById('ob-d').value;
+  }
+  ctx.passo=4;render();
 }
 function obVolta(){ctx.passo=(ctx.passo||1)-1;render()}
 function obNome(){
@@ -1421,22 +1449,28 @@ function obNome(){
 }
 function obPrincipal(p){ctx.tmp.principal=p;ctx.passo=3;render()}
 function obModelo(v){ctx.tmp.modelo=v;render()}
-async function obFim(){
-  var t=ctx.tmp,m=document.getElementById('ob-m');
+async function obFim(pular){
+  var t=ctx.tmp;
   db=vazio();
   db.perfil.nome=t.nome;
   db.perfil.principal=t.principal;
-  db.perfil.meta=Math.max(1,+(m?m.value:4)||4);
+  db.perfil.meta=t.meta||4;
+  if(!pular){
+    var g=function(id){var e=document.getElementById(id);return e?(e.value||'').trim():''};
+    db.perfil.whatsapp=g('ob-w');
+    db.perfil.academia=g('ob-a');
+    db.perfil.nascimento=g('ob-dn');
+    db.perfil.peso=g('ob-p');
+  }
   db.exercicios=semente().exercicios;
   if(t.principal==='musculacao'&&t.modelo!==false){
     var base=semente();
     db.exercicios=base.exercicios;db.treinos=base.treinos;
   }
   if(t.principal==='jiujitsu'){
-    db.graduacoes=[{id:uid(),faixa:document.getElementById('ob-f').value,
-      grau:+document.getElementById('ob-g').value,data:document.getElementById('ob-d').value,professor:'',academia:''}];
+    db.graduacoes=[{id:uid(),faixa:t.faixa||'Branca',grau:t.grau||0,data:t.graduacao||hoje(),professor:'',academia:db.perfil.academia||''}];
   }
-  await salvar();view='home';ctx={};render();sincronizar(true);
+  await salvar();view='home';ctx={};render();checarConquistas(true);sincronizar(true);
 }
 
 /* ---------- nuvem (Supabase) ---------- */
@@ -1551,8 +1585,12 @@ async function sincronizar(silencioso){
         }
       }
     }
+    var nn=function(v){return v===''||v==null?null:v};
     var rp=await SB.cli.from('tr_perfis').upsert({user_id:u,nome:db.perfil.nome,meta:db.perfil.meta,
-      descanso:db.perfil.descanso,principal:db.perfil.principal,atualizado_em:new Date().toISOString()},{onConflict:'user_id'});
+      descanso:db.perfil.descanso,principal:db.perfil.principal,
+      whatsapp:nn(db.perfil.whatsapp),academia:nn(db.perfil.academia),
+      nascimento:nn(db.perfil.nascimento),peso:nn(db.perfil.peso)===null?null:Number(db.perfil.peso),
+      atualizado_em:new Date().toISOString()},{onConflict:'user_id'});
     if(rp.error)throw new Error('perfil: '+rp.error.message);
 
     // 2. puxa o estado completo de volta
@@ -1563,7 +1601,9 @@ async function sincronizar(silencioso){
       remoto[TABELAS[k]]=q.data||[];
     }
     var qp=await SB.cli.from('tr_perfis').select('*').eq('user_id',u).maybeSingle();
-    if(qp.data)db.perfil={nome:qp.data.nome,meta:qp.data.meta,descanso:qp.data.descanso,principal:qp.data.principal};
+    if(qp.data)db.perfil={nome:qp.data.nome,meta:qp.data.meta,descanso:qp.data.descanso,principal:qp.data.principal,
+      whatsapp:qp.data.whatsapp||'',academia:qp.data.academia||'',nascimento:qp.data.nascimento||'',
+      peso:qp.data.peso==null?'':String(qp.data.peso)};
     aplicarRemoto(remoto);
     await salvar();
 
@@ -1622,6 +1662,7 @@ async function aposLogin(){
 function migrar(){
   if(!db.perfil)db.perfil={nome:'',meta:4,descanso:90,principal:'musculacao'};
   if(!db.perfil.principal)db.perfil.principal='musculacao';
+  ['whatsapp','academia','nascimento','peso'].forEach(function(c){if(db.perfil[c]==null)db.perfil[c]=''});
   if(!db.objetivos)db.objetivos=[];
   if(!db.tecnicas)db.tecnicas=[];
   if(!db.graduacoes||!db.graduacoes.length)db.graduacoes=[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}];
