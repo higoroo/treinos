@@ -469,6 +469,7 @@ function render(){
   if(view==='landing')h=vLanding();
   else if(view==='auth')h=vAuth();
   else if(view==='onboard')h=vOnboard();
+  else if(view==='novasenha')h=vNovaSenha();
   else if(view==='home')h=vHome();
   else if(view==='sessao')h=vSessao();
   else if(view==='treinos')h=vTreinos();
@@ -551,8 +552,11 @@ function mesPorTipo(){
   sessoesOk().forEach(function(s){if(s.data.slice(0,7)===m)c[s.tipo]=(c[s.tipo]||0)+1});
   return c;
 }
+function horasAberta(s){return (Date.now()-new Date(s.inicio).getTime())/3600000}
 function vHome(){
   var ab=db.sessoes.find(function(s){return s.aberta});
+  var esquecida=ab&&horasAberta(ab)>6?ab:null;
+  if(esquecida)ab=null;
   var pt=proximoTreino(),sq=sequencia(),sm=semanaAtual(),m=db.perfil.meta,mt=mesPorTipo();
   var ult=sessoesOk().slice(0,6),d=0;
   var h='<header class="an"><div><div class="wm">Treinos</div><h1 style="font-weight:800;letter-spacing:-.03em;margin-top:2px">Olá, '+esc(db.perfil.nome)+'</h1>'+
@@ -567,6 +571,17 @@ function vHome(){
       return '<div><div class="d ap '+(x.n?'on':'')+(x.hj?' hj':'')+'" style="animation-delay:'+(220+i*55)+'ms">'+(x.n?x.n:'')+'</div><div class="l">'+x.l+'</div></div>'
     }).join('')+'</div></div>';
 
+  if(esquecida){
+    h+='<div class="card an" style="animation-delay:110ms;border-color:var(--ac);margin-bottom:12px">'+
+      '<div class="lb" style="color:var(--ac-t)">Ficou aberto</div>'+
+      '<div class="t" style="font-weight:700;margin:4px 0 2px">'+nomeTipo(esquecida.tipo)+' de '+dtBr(esquecida.data)+'</div>'+
+      '<p class="t2" style="margin:0 0 12px">Você começou às '+(esquecida.inicio||'').slice(11,16)+' e não fechou. Quanto durou?</p>'+
+      '<div class="grid2" style="margin-bottom:8px">'+
+      '<button class="b2" onclick="fecharEsquecida(\''+esquecida.id+'\',60)">1 hora</button>'+
+      '<button class="b2" onclick="fecharEsquecida(\''+esquecida.id+'\',90)">1h30</button></div>'+
+      '<div class="grid2"><button class="b2" onclick="fecharEsquecida(\''+esquecida.id+'\',120)">2 horas</button>'+
+      '<button class="b2" style="color:var(--tx3)" onclick="descartar(\''+esquecida.id+'\')">Não aconteceu</button></div></div>';
+  }
   if(ab){
     h+='<div class="card an" style="animation-delay:120ms;border-color:var(--ac);margin-bottom:12px"><div class="t"><span class="live"></span>'+nomeTipo(ab.tipo)+' em andamento</div>'+
       '<p class="t2" style="margin:2px 0 11px">Começou '+(ab.inicio||'').slice(11,16)+'</p>'+
@@ -590,7 +605,8 @@ function vHome(){
 /* ---------- musculação ---------- */
 function vTreinos(){
   var h='<header><div><h1>Treinos</h1><p class="sub">Monte do seu jeito</p></div>'+
-    '<button class="b3" onclick="novoTreino()">+ Novo</button></header>';
+    '<button class="b3" onclick="novoTreino()">+ Novo</button></header>'+
+    '<button class="b2" style="margin-bottom:14px" onclick="treinoAnterior()">Registrar treino de outro dia</button>';
   var ts=db.treinos.filter(function(t){return t.ativo});
   if(!ts.length)h+='<div class="empty">Nenhum treino montado.<br>Toque em Novo para criar o primeiro.</div>';
   h+=ts.map(function(t){
@@ -680,9 +696,30 @@ async function novoExercicio(){
   db.exercicios.push(e);await salvar();await addItem(e.id);
 }
 
-async function iniciarTreino(tid){
+function treinoAnterior(){
+  var ts=db.treinos.filter(function(t){return t.ativo});
+  if(!ts.length){alert('Monte um treino primeiro.');return}
+  var el=document.createElement('div');el.className='sheet';el.id='sheet';
+  el.innerHTML='<div><div class="top"><h1 style="font-size:18px">Treino de outro dia</h1>'+
+    '<button class="x" onclick="fechar()">✕</button></div>'+
+    '<p class="t2">As cargas continuam vindo preenchidas. Você só ajusta o que fez.</p>'+
+    '<label>Data</label><input id="ta-d" type="date" value="'+hoje()+'" max="'+hoje()+'">'+
+    '<label>Treino</label><select id="ta-t">'+ts.map(function(t){
+      return '<option value="'+t.id+'">'+esc(t.nome)+' — '+esc(t.foco)+'</option>'}).join('')+'</select>'+
+    '<div style="height:16px"></div><button class="b1" onclick="abrirTreinoAnterior()">Continuar</button>'+
+    '<div style="height:10px"></div></div>';
+  document.body.appendChild(el);
+}
+function abrirTreinoAnterior(){
+  var d=document.getElementById('ta-d').value,t=document.getElementById('ta-t').value;
+  if(!d){alert('Escolha a data.');return}
+  var el=document.getElementById('sheet');if(el)el.remove();
+  iniciarTreino(t,d);
+}
+async function iniciarTreino(tid,dataAlvo){
   var t=treino(tid);
-  var s={id:uid(),tipo:'musculacao',data:hoje(),inicio:new Date().toISOString(),fim:null,duracao:null,
+  var dt=dataAlvo||hoje();
+  var s={id:uid(),tipo:'musculacao',data:dt,inicio:(dataAlvo?new Date(dt+'T19:00:00'):new Date()).toISOString(),fim:null,duracao:null,
     notas:'',treino_id:tid,detalhes:{},aberta:true,arquivada:false};
   db.sessoes.push(s);
   t.itens.forEach(function(it){
@@ -731,6 +768,14 @@ function vSessao(){
      '<div style="height:10px"></div><button class="b2" style="color:var(--tx3)" onclick="descartar(\''+s.id+'\')">Descartar este treino</button><div style="height:14px"></div>';
   return h;
 }
+async function fecharEsquecida(id,min){
+  var s=db.sessoes.find(function(x){return x.id===id});
+  s.duracao=min;s.aberta=false;
+  s.fim=new Date(new Date(s.inicio).getTime()+min*60000).toISOString();
+  await salvar();
+  if(s.tipo==='jiujitsu'){render();abrirDetalhe(s.id)}else render();
+  checarConquistas();sincronizar(true);
+}
 async function descartar(id){
   var s=db.sessoes.find(function(x){return x.id===id});
   var f=db.series.filter(function(x){return x.sessao_id===id&&x.feita}).length;
@@ -758,8 +803,14 @@ async function acordar(){try{if(navigator.wakeLock)wl=await navigator.wakeLock.r
 function dormir(){try{if(wl){wl.release();wl=null}}catch(e){}}
 async function finalizar(){
   var s=db.sessoes.find(function(x){return x.id===ctx.sid});
-  s.fim=new Date().toISOString();
-  s.duracao=Math.max(1,Math.round((new Date(s.fim)-new Date(s.inicio))/60000));
+  var agora=new Date();
+  if(s.data===hoje()){
+    s.fim=agora.toISOString();
+    s.duracao=Math.max(1,Math.round((agora-new Date(s.inicio))/60000));
+  }else{
+    s.duracao=s.duracao||60;
+    s.fim=new Date(new Date(s.inicio).getTime()+s.duracao*60000).toISOString();
+  }
   s.aberta=false;pararRest();dormir();await salvar();ir('home');checarConquistas();sincronizar(true);
 }
 
@@ -826,7 +877,8 @@ function vJiu(){
       '<div style="height:10px"></div><button class="b2" style="color:var(--tx3)" onclick="descartar(\''+ab.id+'\')">Descartar check-in</button></div>';
   }else{
     h+='<div style="height:14px"></div><button class="b1" onclick="checkin()">Check-in</button>'+
-      '<p class="t2" style="text-align:center;margin-top:8px">Detalhe o treino depois, no vestiário</p>';
+      '<p class="t2" style="text-align:center;margin-top:8px">Detalhe o treino depois, no vestiário</p>'+
+      '<div style="height:10px"></div><button class="b2" onclick="aulaAnterior()">Registrar aula de outro dia</button>';
   }
   var ss=sessoesOk().filter(function(s){return s.tipo==='jiujitsu'});
   h+='<h2>Aulas registradas</h2>';
@@ -841,6 +893,25 @@ function vJiu(){
     }).join('')
     :'<div class="empty">Nenhuma aula registrada.</div>';
   return h;
+}
+function aulaAnterior(){
+  var el=document.createElement('div');el.className='sheet';el.id='sheet';
+  el.innerHTML='<div><div class="top"><h1 style="font-size:18px">Aula de outro dia</h1>'+
+    '<button class="x" onclick="fechar()">✕</button></div>'+
+    '<label>Data</label><input id="aa-d" type="date" value="'+hoje()+'" max="'+hoje()+'">'+
+    '<label>Duração (minutos)</label><input id="aa-m" class="num" type="number" inputmode="numeric" value="80">'+
+    '<div style="height:16px"></div><button class="b1" onclick="salvarAulaAnterior()">Registrar</button>'+
+    '<div style="height:10px"></div></div>';
+  document.body.appendChild(el);
+}
+async function salvarAulaAnterior(){
+  var d=document.getElementById('aa-d').value,m=+document.getElementById('aa-m').value||80;
+  if(!d){alert('Escolha a data.');return}
+  var ini=new Date(d+'T19:00:00');
+  var s={id:uid(),tipo:'jiujitsu',data:d,inicio:ini.toISOString(),
+    fim:new Date(ini.getTime()+m*60000).toISOString(),duracao:m,notas:'',treino_id:null,
+    detalhes:{tipo:'',kimono:true,tecnicas:[]},aberta:false,arquivada:false};
+  db.sessoes.push(s);await salvar();fechar();checarConquistas();sincronizar(true);abrirDetalhe(s.id);
 }
 async function checkin(){
   var s={id:uid(),tipo:'jiujitsu',data:hoje(),inicio:new Date().toISOString(),fim:null,duracao:null,
@@ -903,6 +974,7 @@ function vCorrida(){
   var ss=sessoesOk().filter(function(s){return s.tipo==='corrida'});
   var h='<header><h1>Corrida</h1></header>'+
     '<div class="card"><p class="t2" style="margin:0 0 4px">Registro manual. O GPS entra depois do teste de campo.</p>'+
+    '<label>Data</label><input id="cdt" type="date" value="'+hoje()+'" max="'+hoje()+'">'+
     '<label>Distância (km)</label><input id="ckm" class="num" type="number" inputmode="decimal" placeholder="6,4">'+
     '<label>Tempo (minutos)</label><input id="cmin" class="num" type="number" inputmode="numeric" placeholder="34">'+
     '<label>Como foi</label><input id="cnt" placeholder="opcional">'+
@@ -918,8 +990,9 @@ async function salvarCorrida(){
   var km=parseFloat((document.getElementById('ckm').value||'').replace(',','.'));
   var mi=parseInt(document.getElementById('cmin').value,10);
   if(!km||!mi){alert('Preencha distância e tempo.');return}
-  var f=new Date();
-  db.sessoes.push({id:uid(),tipo:'corrida',data:hoje(),inicio:new Date(f-mi*60000).toISOString(),
+  var dt=(document.getElementById('cdt').value||hoje());
+  var f=new Date(dt+'T18:00:00');
+  db.sessoes.push({id:uid(),tipo:'corrida',data:dt,inicio:new Date(f-mi*60000).toISOString(),
     fim:f.toISOString(),duracao:mi,notas:document.getElementById('cnt').value,treino_id:null,
     detalhes:{km:km,fonte:'manual'},aberta:false,arquivada:false});
   await salvar();ir('home');checarConquistas();sincronizar(true);
@@ -1332,7 +1405,7 @@ async function apagarCamp(id){
 }
 
 /* ---------- landing ---------- */
-function semNav(){return view==='landing'||view==='auth'||view==='onboard'}
+function semNav(){return view==='landing'||view==='auth'||view==='onboard'||view==='novasenha'}
 function vLanding(){
   var h='<div class="lp"><div class="lp-top"><div class="wm">Treinos</div>'+
     '<button class="b3" onclick="irAuth(false)">Entrar</button></div>';
@@ -1527,6 +1600,7 @@ function vAuth(){
     (c?'<p class="t2" style="margin:10px 0 0">Mínimo de 6 caracteres.</p>':'')+
     '<div style="height:16px"></div><button class="b1" onclick="fazLogin('+c+')">'+(c?'Criar conta':'Entrar')+'</button>'+
     '<div style="height:10px"></div><button class="b2" onclick="irAuth('+(!c)+')">'+(c?'Já tenho conta':'Criar uma conta')+'</button>'+
+    (c?'':'<div style="height:14px"></div><button class="b3" style="width:100%" onclick="esqueci()">Esqueci minha senha</button>')+
     '</div><div style="height:30px"></div></div>';
   return h;
 }
@@ -1645,6 +1719,18 @@ var SB={
   cli:null, user:null, ocupado:false, msg:'', ultima:null
 };
 var KKEY='treinos:anon';
+function erroPt(m){
+  m=(m||'').toLowerCase();
+  if(m.indexOf('invalid login')>=0)return 'E-mail ou senha incorretos.';
+  if(m.indexOf('email not confirmed')>=0)return 'Confirme seu e-mail antes de entrar. Procure a mensagem na caixa de entrada.';
+  if(m.indexOf('user already registered')>=0||m.indexOf('already been registered')>=0)return 'Esse e-mail já tem conta. Tente entrar, ou use "Esqueci minha senha".';
+  if(m.indexOf('password should be')>=0||m.indexOf('at least 6')>=0)return 'A senha precisa ter pelo menos 6 caracteres.';
+  if(m.indexOf('unable to validate email')>=0||m.indexOf('invalid email')>=0)return 'Esse e-mail não parece válido.';
+  if(m.indexOf('rate limit')>=0||m.indexOf('too many')>=0)return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.';
+  if(m.indexOf('failed to fetch')>=0||m.indexOf('network')>=0)return 'Sem conexão agora. Seus treinos continuam salvos no aparelho.';
+  if(m.indexOf('for security purposes')>=0)return 'Aguarde alguns segundos antes de tentar de novo.';
+  return m?('Não deu certo: '+m):'Não deu certo. Tente de novo.';
+}
 function chaveSnap(){return 'treinos:snapshot:'+(SB.user?SB.user.id:'x')}
 
 function chaveSalva(){try{return localStorage.getItem(KKEY)||''}catch(e){return ''}}
@@ -1665,7 +1751,7 @@ async function entrar(email,senha,criar){
     ? await SB.cli.auth.signUp({email:email,password:senha})
     : await SB.cli.auth.signInWithPassword({email:email,password:senha});
   SB.ocupado=false;
-  if(r.error){SB.msg='';render();alert('Não deu: '+r.error.message);return}
+  if(r.error){SB.msg='';render();alert(erroPt(r.error.message));return}
   SB.user=r.data.user;
   if(!SB.user){SB.msg='';render();alert('Conta criada. Agora entre com esse e-mail e senha.');return}
   SB.msg='';await aposLogin();
@@ -1807,6 +1893,36 @@ async function salvarChave(){
   try{localStorage.setItem(KKEY,k)}catch(e){}
   SB.key=k;await iniciarSB();render();
 }
+async function esqueci(){
+  var e=(document.getElementById('em').value||'').trim();
+  if(!e){alert('Escreva seu e-mail no campo acima primeiro.');return}
+  if(!await iniciarSB()){alert('Sem conexão agora.');return}
+  var base=location.origin+location.pathname;
+  var r=await SB.cli.auth.resetPasswordForEmail(e,{redirectTo:base});
+  if(r.error){alert(erroPt(r.error.message));return}
+  alert('Enviamos um link para '+e+'.\n\nAbra o e-mail no mesmo aparelho e toque no link para criar uma senha nova.');
+}
+function vNovaSenha(){
+  return '<div class="lp"><div class="lp-top"><div class="wm">Treinos</div></div>'+
+    '<h1 class="an" style="font-size:clamp(34px,9vw,44px);margin-top:30px">Nova senha</h1>'+
+    '<p class="lead an" style="animation-delay:60ms;font-size:15px">Escolha uma senha nova para sua conta. Mínimo de 6 caracteres.</p>'+
+    '<div class="card an" style="animation-delay:120ms;margin-top:24px">'+
+    '<label>Nova senha</label><input id="ns1" type="password" autocomplete="new-password">'+
+    '<label>Repita a senha</label><input id="ns2" type="password" autocomplete="new-password">'+
+    '<div style="height:16px"></div><button class="b1" onclick="salvarSenha()">Salvar senha</button></div>'+
+    '<div style="height:30px"></div></div>';
+}
+async function salvarSenha(){
+  var a=document.getElementById('ns1').value,b=document.getElementById('ns2').value;
+  if(a.length<6){alert('A senha precisa ter pelo menos 6 caracteres.');return}
+  if(a!==b){alert('As duas senhas estão diferentes.');return}
+  var r=await SB.cli.auth.updateUser({password:a});
+  if(r.error){alert(erroPt(r.error.message));return}
+  alert('Senha alterada.');
+  history.replaceState(null,'',location.pathname);
+  await iniciarSB();
+  if(SB.user)await aposLogin();else{view='auth';ctx={criar:false};render()}
+}
 function ultimoEmail(){try{return localStorage.getItem('treinos:email')||''}catch(e){return ''}}
 function fazLogin(criar){
   var e=(document.getElementById('em').value||'').trim(),s=document.getElementById('sn').value||'';
@@ -1844,12 +1960,21 @@ function migrar(){
 }
 (async function(){
   db=vazio();
+  var recuperando=/type=recovery/.test(location.hash||'')||/type=recovery/.test(location.search||'');
   await iniciarSB();
+  if(recuperando){view='novasenha';render();return}
   if(SB.user){await aposLogin();return}
   view='landing';render();
 })();
 
 window.addEventListener('online',function(){if(SB.user)sincronizar(true)});
+
+// abre sem internet: registra o service worker, se ele estiver publicado junto
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
 document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='visible'&&view==='sessao')acordar();
 });
