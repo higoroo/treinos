@@ -1105,6 +1105,7 @@ function checarConquistas(silencioso){
   });
   db.conqIniciado=true;
   salvar();
+  if(novas.length&&SB.user)sincronizar(true);
   if(!silencioso&&novas.length)mostrarToast(novas);
 }
 var FILA=[],TOAST=null;
@@ -1478,7 +1479,7 @@ async function sair(){
 
 /* --- conversão entre o formato local e as tabelas --- */
 function hashId(s){var h=0,i;for(i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0}return 't'+Math.abs(h).toString(36)}
-var TABELAS=['tr_exercicios','tr_treinos','tr_treino_exercicios','tr_sessoes','tr_series','tr_graduacoes','tr_tecnicas','tr_objetivos'];
+var TABELAS=['tr_exercicios','tr_treinos','tr_treino_exercicios','tr_sessoes','tr_series','tr_graduacoes','tr_tecnicas','tr_objetivos','tr_conquistas'];
 function linhasLocais(u){
   var tex=[];
   db.treinos.forEach(function(t){(t.itens||[]).forEach(function(i,ix){
@@ -1496,7 +1497,8 @@ function linhasLocais(u){
       numero:+x.numero,carga:n(x.carga),reps:n(x.reps),tipo:x.tipo||'normal',feita:!!x.feita}}),
     tr_graduacoes:db.graduacoes.map(function(g){return {id:g.id,user_id:u,faixa:g.faixa,grau:+g.grau||0,data:g.data,professor:g.professor||'',academia:g.academia||''}}),
     tr_tecnicas:db.tecnicas.map(function(t){return {id:hashId(t),user_id:u,nome:t}}),
-    tr_objetivos:db.objetivos.map(function(o){return {id:o.id,user_id:u,nome:o.nome,data:o.data,criado:o.criado||hoje(),tipo:o.tipo||'jiujitsu',arquivado:!!o.arquivado}})
+    tr_objetivos:db.objetivos.map(function(o){return {id:o.id,user_id:u,nome:o.nome,data:o.data,criado:o.criado||hoje(),tipo:o.tipo||'jiujitsu',arquivado:!!o.arquivado}}),
+    tr_conquistas:Object.keys(db.conq||{}).map(function(c){return {id:c+'@'+u,user_id:u,codigo:c,data:db.conq[c]}})
   };
 }
 function aplicarRemoto(r){
@@ -1516,6 +1518,12 @@ function aplicarRemoto(r){
   if(!db.graduacoes.length)db.graduacoes=[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}];
   db.tecnicas=r.tr_tecnicas.map(function(t){return t.nome});
   db.objetivos=r.tr_objetivos.map(function(o){return {id:o.id,nome:o.nome,data:o.data,criado:o.criado,tipo:o.tipo,arquivado:o.arquivado}});
+  // conquista é imutável: vale sempre a data mais antiga entre aparelho e nuvem
+  var cq=db.conq||{};
+  (r.tr_conquistas||[]).forEach(function(c){
+    if(!cq[c.codigo]||c.data<cq[c.codigo])cq[c.codigo]=c.data;
+  });
+  db.conq=cq;
 }
 
 /* --- sincronização: envia só o que mudou, depois puxa tudo --- */
@@ -1536,7 +1544,9 @@ async function sincronizar(silencioso){
       });
       if(mudou.length){
         for(var p=0;p<mudou.length;p+=400){
-          var r=await SB.cli.from(t).upsert(mudou.slice(p,p+400),{onConflict:'id'});
+          var op={onConflict:'id'};
+          if(t==='tr_conquistas')op.ignoreDuplicates=true;   // a primeira data vence
+          var r=await SB.cli.from(t).upsert(mudou.slice(p,p+400),op);
           if(r.error)throw new Error(t+': '+r.error.message);
         }
       }
