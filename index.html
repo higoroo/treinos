@@ -1594,14 +1594,14 @@ function vAuth(){
     '<h1 class="an" style="font-size:clamp(34px,9vw,44px);margin-top:30px">'+(c?'Criar conta':'Entrar')+'</h1>'+
     '<p class="lead an" style="animation-delay:60ms;font-size:15px">'+
     (c?'Sua conta guarda os treinos na nuvem. Dá para usar no celular e no computador.':'Use o e-mail e a senha que você cadastrou.')+'</p>'+
-    '<div class="card an" style="animation-delay:120ms;margin-top:24px">'+
-    '<label>E-mail</label><input id="em" type="email" inputmode="email" autocomplete="username" autocapitalize="none" value="'+esc(c?'':ultimoEmail())+'">'+
-    '<label>Senha</label><input id="sn" type="password" autocomplete="'+(c?'new-password':'current-password')+'" '+(!c&&ultimoEmail()?'autofocus':'')+'>'+
+    '<form class="card an" style="animation-delay:120ms;margin-top:24px" onsubmit="event.preventDefault();fazLogin('+c+');return false">'+
+    '<label>E-mail</label><input id="em" name="username" type="email" inputmode="email" autocomplete="username" autocapitalize="none" value="'+esc(c?'':ultimoEmail())+'">'+
+    '<label>Senha</label><input id="sn" name="password" type="password" autocomplete="'+(c?'new-password':'current-password')+'" '+(!c&&ultimoEmail()?'autofocus':'')+'>'+
     (c?'<p class="t2" style="margin:10px 0 0">Mínimo de 6 caracteres.</p>':'')+
-    '<div style="height:16px"></div><button class="b1" onclick="fazLogin('+c+')">'+(c?'Criar conta':'Entrar')+'</button>'+
-    '<div style="height:10px"></div><button class="b2" onclick="irAuth('+(!c)+')">'+(c?'Já tenho conta':'Criar uma conta')+'</button>'+
-    (c?'':'<div style="height:14px"></div><button class="b3" style="width:100%" onclick="esqueci()">Esqueci minha senha</button>')+
-    '</div><div style="height:30px"></div></div>';
+    '<div style="height:16px"></div><button class="b1" type="submit">'+(c?'Criar conta':'Entrar')+'</button>'+
+    '<div style="height:10px"></div><button class="b2" type="button" onclick="irAuth('+(!c)+')">'+(c?'Já tenho conta':'Criar uma conta')+'</button>'+
+    (c?'':'<div style="height:14px"></div><button class="b3" type="button" style="width:100%" onclick="esqueci()">Esqueci minha senha</button>')+
+    '</form><div style="height:30px"></div></div>';
   return h;
 }
 
@@ -1746,7 +1746,9 @@ async function iniciarSB(){
 }
 async function entrar(email,senha,criar){
   if(!await iniciarSB()){alert('Cole a chave anon primeiro.');return}
-  SB.ocupado=true;SB.msg='Conectando...';render();
+  SB.ocupado=true;SB.msg='Conectando...';
+  var bt=document.querySelector('.lp .b1');
+  if(bt){bt.textContent='Entrando...';bt.style.opacity='.7'}
   var r=criar
     ? await SB.cli.auth.signUp({email:email,password:senha})
     : await SB.cli.auth.signInWithPassword({email:email,password:senha});
@@ -1852,10 +1854,10 @@ async function sincronizar(silencioso){
 
     // 2. puxa o estado completo de volta
     var remoto={};
+    var respostas=await Promise.all(TABELAS.map(function(t){return SB.cli.from(t).select('*')}));
     for(var k=0;k<TABELAS.length;k++){
-      var q=await SB.cli.from(TABELAS[k]).select('*');
-      if(q.error)throw new Error(TABELAS[k]+': '+q.error.message);
-      remoto[TABELAS[k]]=q.data||[];
+      if(respostas[k].error)throw new Error(TABELAS[k]+': '+respostas[k].error.message);
+      remoto[TABELAS[k]]=respostas[k].data||[];
     }
     var qp=await SB.cli.from('tr_perfis').select('*').eq('user_id',u).maybeSingle();
     if(qp.data)db.perfil={nome:qp.data.nome,meta:qp.data.meta,descanso:qp.data.descanso,principal:qp.data.principal,
@@ -1942,11 +1944,17 @@ async function aposLogin(){
   migrar();
   await salvar();
   checarConquistas(true);
+  // sem dados locais, precisamos da nuvem antes de decidir a tela
+  var vazioLocal=!db.perfil||!db.perfil.nome;
+  if(vazioLocal){
+    await sincronizar(true);
+    checarConquistas(true);
+    if(!db.perfil||!db.perfil.nome){view='onboard';ctx={passo:1,tmp:{}}}else view='home';
+    render();return;
+  }
+  // já temos tudo no aparelho: abre na hora e sincroniza por trás
   view='home';render();
-  await sincronizar(true);
-  checarConquistas(true);
-  if(!db.perfil||!db.perfil.nome){view='onboard';ctx={passo:1,tmp:{}}}
-  render();
+  sincronizar(true).then(function(){checarConquistas(true);render()});
 }
 function migrar(){
   if(!db.perfil)db.perfil={nome:'',meta:4,descanso:90,principal:'musculacao'};
