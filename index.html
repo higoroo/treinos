@@ -34,7 +34,7 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-#app{max-width:520px;margin:0 auto;padding:0 16px;min-height:calc(100dvh - 104px)}
+#app{max-width:520px;margin:0 auto;padding:0 16px;min-height:calc(100dvh - 30px)}
 header{padding:calc(14px + env(safe-area-inset-top)) 0 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 h1{font-size:21px;font-weight:600;margin:0;letter-spacing:-.02em}
 h2{font-size:13px;font-weight:600;color:var(--tx2);margin:22px 0 8px;text-transform:uppercase;letter-spacing:.07em}
@@ -207,6 +207,26 @@ body.limpo{padding-bottom:0}
 .cqr .b{flex:0 0 auto;display:flex;align-items:center;gap:9px;background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:10px 13px}
 .cqr .b .ii{width:30px;height:30px;border-radius:9px;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center}
 .cqr .b .nn{font-size:13px;font-weight:700;white-space:nowrap}
+
+.seg{display:flex;gap:6px;background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:4px;margin-bottom:16px}
+.seg button{flex:1;padding:9px;border-radius:11px;font-size:14px;font-weight:600;color:var(--tx3)}
+.seg button.on{background:var(--ac);color:#fff}
+.med{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--br);border-radius:16px;overflow:hidden;margin-bottom:14px}
+.med>div{background:var(--s1);padding:13px 8px;text-align:center}
+.med .v{font-size:25px;font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.med .l{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-top:5px}
+.med .o{color:#F5C451}.med .p{color:#CFD3DA}.med .b{color:#D08A55}
+.cmp{background:var(--s1);border:1px solid var(--br);border-radius:18px;padding:15px;margin-bottom:10px}
+.cmp.prox{border-color:var(--ac);background:var(--ac-d)}
+.cmp .nm{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.cmp .mt{font-size:12.5px;color:var(--tx3);margin-top:2px}
+.cmp .cc{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:5px 11px;border-radius:12px;margin-top:11px}
+.cc.ouro{background:#3A2E0E;color:#F5C451}
+.cc.prata{background:#292C33;color:#CFD3DA}
+.cc.bronze{background:#33220F;color:#D08A55}
+.cc.participou{background:var(--s2);color:var(--tx2)}
+.cc.pend{background:var(--ac);color:#fff}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1!important;transform:none!important}.an,.ap,.al,.live{animation:none!important}}
 .hero{background:var(--s1);border:1px solid var(--br);border-radius:22px;padding:22px 18px 18px;margin-bottom:12px}
 .big{font-size:64px;font-weight:800;letter-spacing:-.05em;line-height:.9;color:var(--ac)}
@@ -303,7 +323,7 @@ function semente(){
     perfil:{nome:'',meta:4,descanso:90,principal:'musculacao'},
     exercicios:ex, treinos:tr, sessoes:[], series:[],
     graduacoes:[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}],
-    tecnicas:[], objetivos:[]
+    tecnicas:[], objetivos:[], campeonatos:[]
   };
 }
 
@@ -312,7 +332,7 @@ function vazio(){
     perfil:{nome:'',meta:4,descanso:90,principal:'musculacao',whatsapp:'',academia:'',nascimento:'',peso:''},
     exercicios:[],treinos:[],sessoes:[],series:[],
     graduacoes:[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}],
-    tecnicas:[],objetivos:[]};
+    tecnicas:[],objetivos:[],campeonatos:[]};
 }
 
 /* ---------- estado ---------- */
@@ -362,6 +382,15 @@ function sequencia(){
   if(!dias[d.toISOString().slice(0,10)])d.setDate(d.getDate()-1);
   while(dias[d.toISOString().slice(0,10)]){n++;d.setDate(d.getDate()-1)}
   return n;
+}
+function graduacoesReais(){
+  // só conta graduação registrada como nova E com histórico de aulas antes dela.
+  // corrigir o cadastro no primeiro acesso não é graduação.
+  return (db.graduacoes||[]).filter(function(g,i){
+    if(i===0||g.tipo!=='graduacao')return false;
+    var antes=sessoesOk().filter(function(s){return s.tipo==='jiujitsu'&&s.data<g.data}).length;
+    return antes>=10;
+  }).length;
 }
 function mesesDesde(d){
   var a=new Date(d+'T12:00:00'),b=new Date();
@@ -495,10 +524,10 @@ function kmMes(){
 function tilesSecundarios(){
   var p=db.perfil.principal,t=[],g=db.graduacoes[db.graduacoes.length-1];
   var pt=proximoTreino();
+  var mt=mesPorTipo();
   var defs={
-    musculacao:{k:'musculacao',n:'Musculação',v:db.treinos.filter(function(x){return x.ativo}).length,u:'treinos montados',
-      go:'ir(\'treinos\')'},
-    jiujitsu:{k:'jiujitsu',n:'Jiu-jitsu',v:aulasJiu(),u:'aulas na faixa '+g.faixa.toLowerCase(),go:'ir(\'jiu\')'},
+    musculacao:{k:'musculacao',n:'Musculação',v:mt.musculacao||0,u:'treinos no mês',go:'ir(\'treinos\')'},
+    jiujitsu:{k:'jiujitsu',n:'Jiu-jitsu',v:mt.jiujitsu||0,u:'aulas no mês',go:'ir(\'jiu\')'},
     corrida:{k:'corrida',n:'Corrida',v:kmMes().toFixed(1).replace('.',','),u:'km no mês',go:'ir(\'corrida\')'}
   };
   ['musculacao','jiujitsu','corrida'].forEach(function(k){if(k!==p)t.push(defs[k])});
@@ -536,13 +565,6 @@ function vHome(){
     h+=ctaPrincipal(pt);
   }
   h+=tilesSecundarios();
-
-  h+='<div class="mes an" style="animation-delay:170ms">'+
-    [['musculacao','Musculação'],['jiujitsu','Jiu-jitsu'],['corrida','Corrida']].map(function(t){
-      var n=mt[t[0]]||0;
-      return '<div><div class="v num '+(n?'':'z')+'" '+(n?'data-cnt="'+n+'"':'')+'>'+(n?0:'—')+'</div><div class="l">'+t[1]+'</div></div>';
-    }).join('')+'</div>'+
-    '<p class="lb" style="text-align:center;margin:0 0 4px">no mês</p>';
 
   h+=faixaConquistas();
   h+='<h2 class="an" style="animation-delay:270ms">Últimas atividades</h2>';
@@ -770,7 +792,12 @@ async function encerrarObjetivo(id){
 function vJiu(){
   var g=db.graduacoes[db.graduacoes.length-1],au=aulasJiu(),mm=mesesDesde(g.data);
   var ab=db.sessoes.find(function(s){return s.aberta&&s.tipo==='jiujitsu'});
-  var h='<header><h1>Jiu-jitsu</h1></header>';
+  var aba=ctx.aba||'aulas';
+  var h='<header><h1>Jiu-jitsu</h1></header>'+
+    '<div class="seg"><button class="'+(aba==='aulas'?'on':'')+'" onclick="abaJiu(\'aulas\')">Aulas</button>'+
+    '<button class="'+(aba==='camp'?'on':'')+'" onclick="abaJiu(\'camp\')">Campeonatos'+
+    (pendentes().length?' ·':'')+'</button></div>';
+  if(aba==='camp')return h+vCampeonatos();
   h+='<div class="card"><div style="display:flex;align-items:center;gap:12px"><div class="ic" style="background:var(--bl-d)">◆</div>'+
     '<div class="f1"><div class="t" style="font-weight:600">Faixa '+esc(g.faixa)+' · '+g.grau+'º grau</div>'+
     '<div class="t2">desde '+dtBr(g.data)+'</div></div></div>'+
@@ -779,7 +806,7 @@ function vJiu(){
     '<div class="lb" style="margin-top:4px">aulas na faixa</div></div>'+
     '<div><div style="font-size:28px;font-weight:800;letter-spacing:-.04em" class="num">'+mm+'</div>'+
     '<div class="lb" style="margin-top:4px">'+(mm===1?'mês na faixa':'meses na faixa')+'</div></div></div></div>';
-  h+='<div style="height:12px"></div>'+blocoObjetivo();
+
   if(ab){
     var min=Math.round((Date.now()-new Date(ab.inicio).getTime())/60000);
     h+='<div style="height:14px"></div><div class="card" style="border-color:var(--rd);text-align:center">'+
@@ -962,15 +989,7 @@ function vPerfil(){
     '<div class="f1"><div class="t" style="font-weight:700">'+_ok+' de '+_cq.length+' desbloqueadas</div>'+
     '<div class="t2">Toque para ver todas</div></div><span class="x">›</span></div></div>';
   h+=vNuvem();
-  h+='<h2>Dados</h2><div class="card"><p class="t2" style="margin:0 0 12px">'+
-    db.sessoes.filter(function(s){return !s.aberta&&!s.arquivada}).length+' sessões · '+db.series.filter(function(x){return x.feita}).length+' séries · '+
-    db.tecnicas.length+' técnicas no caderno</p>'+
-    '<button class="b2" onclick="exportar()">Exportar dados (JSON)</button>'+
-    '<div style="height:10px"></div>'+
-    '<button class="b2" onclick="document.getElementById(\'imp\').click()">Importar backup</button>'+
-    '<input type="file" id="imp" accept=".json,application/json" style="display:none" onchange="importar(this)">'+
-    '<p class="t2" style="margin:10px 0 0;line-height:1.5">Importar substitui tudo que está neste aparelho pelo conteúdo do arquivo. Exporte antes.</p>'+
-    '</div><div style="height:14px"></div>';
+  h+='<div style="height:14px"></div>';
   return h;
 }
 async function perfil(c,v){db.perfil[c]=v;await salvar()}
@@ -985,8 +1004,8 @@ async function salvarGrad(){
 }
 async function novaGrad(){
   var f=document.getElementById('gf').value,gr=+document.getElementById('gg').value,dt=document.getElementById('gd').value;
-  if(!confirm('Registrar faixa '+f+' · '+gr+'º grau a partir de '+dtBr(dt)+'?\n\nA contagem de aulas reinicia nessa data.'))return;
-  db.graduacoes.push({id:uid(),faixa:f,grau:gr,data:dt,professor:'',academia:''});
+  if(!confirm('Registrar faixa '+f+' · '+gr+'º grau a partir de '+dtBr(dt)+'?\n\nUse isto só quando o professor te graduar de verdade. Para arrumar o cadastro, use "Corrigir graduação atual".'))return;
+  db.graduacoes.push({id:uid(),faixa:f,grau:gr,data:dt,professor:'',academia:'',tipo:'graduacao'});
   await salvar();render();
 }
 function exportar(){
@@ -1079,10 +1098,14 @@ function CONQUISTAS(){
     ['jiu50','Jiu-jitsu','Cinquenta aulas na faixa','Metade do caminho de muita academia.',50,aulasJiu()],
     ['jiu100','Jiu-jitsu','Cem aulas na faixa','Presença que o professor percebe.',100,aulasJiu()],
     ['jiu250','Jiu-jitsu','Duzentas e cinquenta aulas na faixa','Aquele que sempre está lá.',250,aulasJiu()],
-    ['jiug','Jiu-jitsu','Nova graduação','Registrou uma faixa ou grau novo.',2,db.graduacoes.length],
+    ['jiug2','Jiu-jitsu','Graduado','O professor te graduou enquanto você usava o app.',1,graduacoesReais()],
     ['jiut10','Jiu-jitsu','Dez técnicas no caderno','Seu repertório virou registro.',10,db.tecnicas.length],
     ['jiut50','Jiu-jitsu','Cinquenta técnicas no caderno','Um caderno de verdade.',50,db.tecnicas.length],
     ['jiusem','Jiu-jitsu','Quatro semanas firmes','Um mês com duas aulas ou mais por semana.',4,semanasSeguidasJiu()],
+    ['cmp1','Jiu-jitsu','Primeira competição','Você entrou na área.',1,medalhas().total],
+    ['cmp5','Jiu-jitsu','Cinco campeonatos','Rodagem de competidor.',5,medalhas().total],
+    ['cmpp','Jiu-jitsu','Primeiro pódio','Subiu no lugar de cima ou perto dele.',1,medalhas().ouro+medalhas().prata+medalhas().bronze],
+    ['cmpo','Jiu-jitsu','Primeiro ouro','Ninguém te passou naquele dia.',1,medalhas().ouro],
 
     ['mus1','Musculação','Primeiro treino registrado','A primeira série vai pro histórico.',1,mus],
     ['mus100','Musculação','Cem séries','O histórico começou a ter peso.',100,feitas],
@@ -1169,6 +1192,133 @@ function faixaConquistas(){
     L.slice(0,4).map(function(c){
       return '<div class="b"><div class="ii">'+svg('conquista',16)+'</div><div class="nn">'+esc(c.nome)+'</div></div>';
     }).join('')+'</div>';
+}
+
+
+/* ---------- campeonatos ---------- */
+var COLOC=[['ouro','Ouro'],['prata','Prata'],['bronze','Bronze'],['participou','Participou']];
+function campsOrdem(){return (db.campeonatos||[]).filter(function(c){return !c.arquivado})
+  .sort(function(a,b){return b.data.localeCompare(a.data)})}
+function proximoCamp(){
+  return campsOrdem().filter(function(c){return diasAte(c.data)>=0}).sort(function(a,b){return a.data.localeCompare(b.data)})[0];
+}
+function pendentes(){return campsOrdem().filter(function(c){return diasAte(c.data)<0&&!c.colocacao})}
+function medalhas(){
+  var m={ouro:0,prata:0,bronze:0,total:0};
+  campsOrdem().forEach(function(c){
+    if(diasAte(c.data)>0)return;
+    m.total++;
+    if(m[c.colocacao]!==undefined)m[c.colocacao]++;
+  });
+  return m;
+}
+function vCampeonatos(){
+  var prox=proximoCamp(),pend=pendentes(),m=medalhas(),h='';
+  pend.forEach(function(c){
+    h+='<div class="cmp prox"><div class="lb" style="color:var(--ac-t)">Como foi?</div>'+
+      '<div class="nm" style="margin-top:4px">'+esc(c.nome)+'</div>'+
+      '<div class="mt">'+dtBr(c.data)+(c.cidade?' · '+esc(c.cidade):'')+'</div>'+
+      '<div style="height:12px"></div><button class="b1" onclick="abrirCamp(\''+c.id+'\')">Registrar resultado</button></div>';
+  });
+  if(prox){
+    var dd=diasAte(prox.data);
+    var tr=sessoesOk().filter(function(s){return s.tipo==='jiujitsu'&&s.data>=(prox.criado||prox.data)}).length;
+    h+='<div class="cmp prox"><div class="lb" style="color:var(--ac-t)">Próximo</div>'+
+      '<div class="nm" style="margin-top:4px">'+esc(prox.nome)+'</div>'+
+      '<div class="mt">'+dtBr(prox.data)+(prox.cidade?' · '+esc(prox.cidade):'')+
+      (prox.categoria?' · '+esc(prox.categoria):'')+'</div>'+
+      '<div style="display:flex;gap:26px;margin-top:14px">'+
+      '<div><div style="font-size:34px;font-weight:800;letter-spacing:-.05em;color:var(--ac-t)" class="num">'+(dd===0?'hoje':dd)+'</div>'+
+      '<div class="lb" style="margin-top:4px;color:var(--ac-t)">'+(dd===0?'é o dia':(dd===1?'dia restante':'dias restantes'))+'</div></div>'+
+      '<div><div style="font-size:34px;font-weight:800;letter-spacing:-.05em" class="num">'+tr+'</div>'+
+      '<div class="lb" style="margin-top:4px">aulas na preparação</div></div></div>'+
+      '<div style="display:flex;gap:8px;margin-top:14px"><button class="b3" onclick="abrirCamp(\''+prox.id+'\')">Editar</button></div></div>';
+  }
+  if(m.total){
+    h+='<div class="med"><div><div class="v o num">'+m.ouro+'</div><div class="l">Ouro</div></div>'+
+      '<div><div class="v p num">'+m.prata+'</div><div class="l">Prata</div></div>'+
+      '<div><div class="v b num">'+m.bronze+'</div><div class="l">Bronze</div></div>'+
+      '<div><div class="v num">'+m.total+'</div><div class="l">Disputados</div></div></div>';
+  }
+  h+='<button class="b1" onclick="abrirCamp()">+ Novo campeonato</button><div style="height:18px"></div>';
+  var passados=campsOrdem().filter(function(c){return diasAte(c.data)<0&&c.colocacao});
+  if(passados.length){
+    h+='<h2>Histórico</h2>'+passados.map(function(c){
+      return '<div class="cmp" onclick="abrirCamp(\''+c.id+'\')"><div class="top"><div class="f1">'+
+        '<div class="nm">'+esc(c.nome)+'</div>'+
+        '<div class="mt">'+dtBr(c.data)+(c.cidade?' · '+esc(c.cidade):'')+
+        ' · '+(c.kimono?'com kimono':'sem kimono')+(c.absoluto?' · absoluto':'')+'</div>'+
+        (c.categoria||c.faixa?'<div class="mt">'+esc([c.faixa,c.categoria].filter(Boolean).join(' · '))+'</div>':'')+
+        '<span class="cc '+c.colocacao+'">'+(COLOC.filter(function(x){return x[0]===c.colocacao})[0]||['','—'])[1]+'</span>'+
+        (c.notas?'<div class="t2" style="margin-top:9px;color:var(--tx2);line-height:1.5">'+esc(c.notas)+'</div>':'')+
+        '</div><span class="x">›</span></div></div>';
+    }).join('');
+  }else if(!prox&&!pend.length){
+    h+='<div class="empty">Nenhum campeonato registrado.<br>Cadastre o próximo e acompanhe a preparação.</div>';
+  }
+  return h;
+}
+function abaJiu(a){ctx.aba=a;render()}
+function abrirCamp(id){
+  var c=id?db.campeonatos.filter(function(x){return x.id===id})[0]:null;
+  var g=db.graduacoes[db.graduacoes.length-1];
+  var novo=!c;
+  c=c||{id:uid(),nome:'',data:hoje(),cidade:'',kimono:true,faixa:'Faixa '+g.faixa,categoria:'',
+        absoluto:false,colocacao:'',notas:'',criado:hoje(),arquivado:false};
+  var passou=diasAte(c.data)<=0;
+  var el=document.createElement('div');el.className='sheet';el.id='sheet';
+  el.innerHTML='<div><div class="top"><h1 style="font-size:18px">'+(novo?'Novo campeonato':esc(c.nome||'Campeonato'))+'</h1>'+
+    '<button class="x" onclick="fechar()">✕</button></div>'+
+    '<label>Nome</label><input id="cp-n" value="'+esc(c.nome)+'" placeholder="Copa da cidade" autocapitalize="words">'+
+    '<label>Data</label><input id="cp-d" type="date" value="'+c.data+'">'+
+    '<label>Cidade</label><input id="cp-c" value="'+esc(c.cidade)+'" placeholder="opcional" autocapitalize="words">'+
+    '<label>Faixa que vai lutar</label><input id="cp-f" value="'+esc(c.faixa)+'" placeholder="Faixa azul">'+
+    '<label>Categoria</label><input id="cp-cat" value="'+esc(c.categoria)+'" placeholder="Adulto médio, até 82,3 kg">'+
+    '<label>Modalidade</label><div>'+
+    '<button class="pill '+(c.kimono?'on':'')+'" onclick="cpTog(\'kimono\',true)" id="cp-k1">Com kimono</button>'+
+    '<button class="pill '+(!c.kimono?'on':'')+'" onclick="cpTog(\'kimono\',false)" id="cp-k0">Sem kimono</button></div>'+
+    '<label>Absoluto</label><div>'+
+    '<button class="pill '+(c.absoluto?'on':'')+'" onclick="cpTog(\'absoluto\',true)" id="cp-a1">Sim</button>'+
+    '<button class="pill '+(!c.absoluto?'on':'')+'" onclick="cpTog(\'absoluto\',false)" id="cp-a0">Não</button></div>'+
+    (passou?'<label>Resultado</label><div id="cp-res">'+COLOC.map(function(x){
+      return '<button class="pill '+(c.colocacao===x[0]?'on':'')+'" onclick="cpColoc(\''+x[0]+'\')">'+x[1]+'</button>'
+    }).join('')+'</div>':'')+
+    '<label>Anotações</label><textarea rows="3" id="cp-nt" placeholder="Como foi, o que treinar até a próxima">'+esc(c.notas)+'</textarea>'+
+    '<div style="height:16px"></div><button class="b1" onclick="salvarCamp()">Salvar</button>'+
+    (novo?'':'<div style="height:10px"></div><button class="b2" style="color:var(--tx3)" onclick="apagarCamp(\''+c.id+'\')">Apagar campeonato</button>')+
+    '<div style="height:10px"></div></div>';
+  document.body.appendChild(el);
+  CP=JSON.parse(JSON.stringify(c));CP.novo=novo;
+}
+var CP=null;
+function cpTog(campo,v){
+  CP[campo]=v;
+  var a=document.getElementById('cp-'+(campo==='kimono'?'k':'a')+'1'),
+      b=document.getElementById('cp-'+(campo==='kimono'?'k':'a')+'0');
+  a.classList.toggle('on',v);b.classList.toggle('on',!v);
+}
+function cpColoc(v){
+  CP.colocacao=v;
+  var d=document.getElementById('cp-res');
+  d.innerHTML=COLOC.map(function(x){
+    return '<button class="pill '+(v===x[0]?'on':'')+'" onclick="cpColoc(\''+x[0]+'\')">'+x[1]+'</button>'
+  }).join('');
+}
+async function salvarCamp(){
+  var v=function(id){var e=document.getElementById(id);return e?e.value.trim():''};
+  CP.nome=v('cp-n');CP.data=v('cp-d');CP.cidade=v('cp-c');
+  CP.faixa=v('cp-f');CP.categoria=v('cp-cat');CP.notas=v('cp-nt');
+  if(!CP.nome){alert('Dê um nome ao campeonato.');return}
+  if(!CP.data){alert('Informe a data.');return}
+  var novo=CP.novo;delete CP.novo;
+  if(novo)db.campeonatos.push(CP);
+  else db.campeonatos=db.campeonatos.map(function(x){return x.id===CP.id?CP:x});
+  await salvar();fechar();checarConquistas();sincronizar(true);
+}
+async function apagarCamp(id){
+  if(!confirm('Apagar este campeonato?'))return;
+  db.campeonatos.filter(function(x){return x.id===id})[0].arquivado=true;
+  await salvar();fechar();sincronizar(true);
 }
 
 /* ---------- landing ---------- */
@@ -1513,7 +1663,7 @@ async function sair(){
 
 /* --- conversão entre o formato local e as tabelas --- */
 function hashId(s){var h=0,i;for(i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0}return 't'+Math.abs(h).toString(36)}
-var TABELAS=['tr_exercicios','tr_treinos','tr_treino_exercicios','tr_sessoes','tr_series','tr_graduacoes','tr_tecnicas','tr_objetivos','tr_conquistas'];
+var TABELAS=['tr_exercicios','tr_treinos','tr_treino_exercicios','tr_sessoes','tr_series','tr_graduacoes','tr_tecnicas','tr_objetivos','tr_campeonatos','tr_conquistas'];
 function linhasLocais(u){
   var tex=[];
   db.treinos.forEach(function(t){(t.itens||[]).forEach(function(i,ix){
@@ -1532,6 +1682,9 @@ function linhasLocais(u){
     tr_graduacoes:db.graduacoes.map(function(g){return {id:g.id,user_id:u,faixa:g.faixa,grau:+g.grau||0,data:g.data,professor:g.professor||'',academia:g.academia||''}}),
     tr_tecnicas:db.tecnicas.map(function(t){return {id:hashId(t),user_id:u,nome:t}}),
     tr_objetivos:db.objetivos.map(function(o){return {id:o.id,user_id:u,nome:o.nome,data:o.data,criado:o.criado||hoje(),tipo:o.tipo||'jiujitsu',arquivado:!!o.arquivado}}),
+    tr_campeonatos:(db.campeonatos||[]).map(function(c){return {id:c.id,user_id:u,nome:c.nome,data:c.data,
+      cidade:c.cidade||'',kimono:!!c.kimono,faixa:c.faixa||'',categoria:c.categoria||'',absoluto:!!c.absoluto,
+      colocacao:c.colocacao||null,notas:c.notas||'',criado:c.criado||hoje(),arquivado:!!c.arquivado}}),
     tr_conquistas:Object.keys(db.conq||{}).map(function(c){return {id:c+'@'+u,user_id:u,codigo:c,data:db.conq[c]}})
   };
 }
@@ -1552,6 +1705,9 @@ function aplicarRemoto(r){
   if(!db.graduacoes.length)db.graduacoes=[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}];
   db.tecnicas=r.tr_tecnicas.map(function(t){return t.nome});
   db.objetivos=r.tr_objetivos.map(function(o){return {id:o.id,nome:o.nome,data:o.data,criado:o.criado,tipo:o.tipo,arquivado:o.arquivado}});
+  db.campeonatos=(r.tr_campeonatos||[]).map(function(c){return {id:c.id,nome:c.nome,data:c.data,cidade:c.cidade,
+    kimono:c.kimono,faixa:c.faixa,categoria:c.categoria,absoluto:c.absoluto,colocacao:c.colocacao||'',
+    notas:c.notas,criado:c.criado,arquivado:c.arquivado}});
   // conquista é imutável: vale sempre a data mais antiga entre aparelho e nuvem
   var cq=db.conq||{};
   (r.tr_conquistas||[]).forEach(function(c){
@@ -1664,6 +1820,7 @@ function migrar(){
   if(!db.perfil.principal)db.perfil.principal='musculacao';
   ['whatsapp','academia','nascimento','peso'].forEach(function(c){if(db.perfil[c]==null)db.perfil[c]=''});
   if(!db.objetivos)db.objetivos=[];
+  if(!db.campeonatos)db.campeonatos=[];
   if(!db.tecnicas)db.tecnicas=[];
   if(!db.graduacoes||!db.graduacoes.length)db.graduacoes=[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}];
   (db.treinos||[]).forEach(function(t){(t.itens||[]).forEach(function(i){if(!i.id)i.id=uid()})});
