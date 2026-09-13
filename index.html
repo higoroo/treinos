@@ -104,6 +104,34 @@ button:active,.cta:active,.row:active{transform:scale(.975)}
 .tile.full{grid-column:1/-1;min-height:0;flex-direction:row;align-items:center;justify-content:space-between}
 .obj{background:var(--ac-d);border:1px solid var(--ac);border-radius:20px;padding:18px 16px;margin-bottom:12px;position:relative;overflow:hidden}
 .obj .d{font-size:52px;font-weight:800;letter-spacing:-.05em;line-height:.9;color:var(--ac-t);font-variant-numeric:tabular-nums}
+
+/* ---- landing, login e primeiro acesso ---- */
+body.limpo{padding-bottom:0}
+.lp{max-width:560px;margin:0 auto;padding:0 20px}
+.lp-top{display:flex;align-items:center;justify-content:space-between;padding:calc(20px + env(safe-area-inset-top)) 0 0}
+.lp h1{font-size:clamp(44px,13vw,62px);font-weight:800;letter-spacing:-.05em;line-height:.92;margin:36px 0 0}
+.lp h1 em{font-style:normal;color:var(--ac)}
+.lp .lead{font-size:17px;color:var(--tx2);line-height:1.55;margin:18px 0 0;max-width:30em}
+.lp h3{font-size:clamp(26px,7vw,32px);font-weight:800;letter-spacing:-.035em;line-height:1.08;margin:0 0 22px}
+.sec{padding:44px 0;border-top:1px solid var(--br)}
+.pt{display:flex;gap:14px;padding:16px 0}
+.pt .k{flex:0 0 38px;height:38px;border-radius:11px;background:var(--ac-d);color:var(--ac-t);display:flex;align-items:center;justify-content:center}
+.pt .tt{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-bottom:3px}
+.pt .dd{font-size:14px;color:var(--tx2);line-height:1.5}
+.passo{display:flex;gap:14px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--br)}
+.passo:last-child{border-bottom:0}
+.passo .n{font-size:30px;font-weight:800;color:var(--ac);letter-spacing:-.04em;flex:0 0 34px;line-height:1}
+.demo{background:var(--s1);border:1px solid var(--br);border-radius:22px;padding:20px 18px;margin-top:32px}
+.rod{padding:34px 0 calc(34px + env(safe-area-inset-bottom));border-top:1px solid var(--br);color:var(--tx3);font-size:12px;text-align:center}
+.ob-sel{display:block;width:100%;text-align:left;background:var(--s1);border:1.5px solid var(--br);border-radius:16px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
+.ob-sel.on{border-color:var(--ac);background:var(--ac-d)}
+.ob-sel .ii{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:var(--s2);display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+.ob-sel.on .ii{background:var(--ac);color:#fff}
+.ob-sel .nn{font-size:16px;font-weight:700}
+.ob-sel .dd{font-size:13px;color:var(--tx3)}
+.prog{display:flex;gap:6px;margin:20px 0 26px}
+.prog i{flex:1;height:3px;border-radius:2px;background:var(--s2)}
+.prog i.on{background:var(--ac)}
 @media (prefers-reduced-motion:reduce){.an,.ap,.al,.live{animation:none!important}}
 .hero{background:var(--s1);border:1px solid var(--br);border-radius:22px;padding:22px 18px 18px;margin-bottom:12px}
 .big{font-size:64px;font-weight:800;letter-spacing:-.05em;line-height:.9;color:var(--ac)}
@@ -148,16 +176,19 @@ button:active,.cta:active,.row:active{transform:scale(.975)}
 
 <script>
 /* ---------- armazenamento: funciona no claude.ai e como arquivo local ---------- */
-var KEY='treinos:db';
+var KEY_LEGADO='treinos:db';
+function chaveDb(){return SB&&SB.user?'treinos:db:'+SB.user.id:KEY_LEGADO}
 var store={
-  async get(){
-    try{ if(window.storage&&window.storage.get){var r=await window.storage.get(KEY);return r&&r.value?JSON.parse(r.value):null;} }catch(e){}
-    try{ var v=localStorage.getItem(KEY); return v?JSON.parse(v):null; }catch(e){ return null; }
+  async get(k){
+    k=k||chaveDb();
+    try{ if(window.storage&&window.storage.get){var r=await window.storage.get(k);return r&&r.value?JSON.parse(r.value):null;} }catch(e){}
+    try{ var v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; }
   },
-  async set(o){
+  async set(o,k){
+    k=k||chaveDb();
     var s=JSON.stringify(o);
-    try{ if(window.storage&&window.storage.set){ await window.storage.set(KEY,s); return; } }catch(e){}
-    try{ localStorage.setItem(KEY,s); }catch(e){}
+    try{ if(window.storage&&window.storage.set){ await window.storage.set(k,s); return; } }catch(e){}
+    try{ localStorage.setItem(k,s); }catch(e){}
   }
 };
 
@@ -199,6 +230,14 @@ function semente(){
     graduacoes:[{id:uid(),faixa:'Azul',grau:2,data:'2026-01-12',professor:'',academia:''}],
     tecnicas:[], objetivos:[]
   };
+}
+
+function vazio(){
+  return {v:1,
+    perfil:{nome:'',meta:4,descanso:90,principal:'musculacao'},
+    exercicios:[],treinos:[],sessoes:[],series:[],
+    graduacoes:[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}],
+    tecnicas:[],objetivos:[]};
 }
 
 /* ---------- estado ---------- */
@@ -308,7 +347,10 @@ function contar(){
 }
 function render(){
   var h='';
-  if(view==='home')h=vHome();
+  if(view==='landing')h=vLanding();
+  else if(view==='auth')h=vAuth();
+  else if(view==='onboard')h=vOnboard();
+  else if(view==='home')h=vHome();
   else if(view==='sessao')h=vSessao();
   else if(view==='treinos')h=vTreinos();
   else if(view==='editor')h=vEditor();
@@ -319,15 +361,18 @@ function render(){
   var app=document.getElementById('app');
   app.innerHTML=h;
   // telas secundárias entram com um leve deslize; a de treino nunca, pra não atrasar o registro
-  if(view!=='home'&&view!=='sessao'){
+  if(view!=='home'&&view!=='sessao'&&view!=='landing'){
     var i=0;
     Array.prototype.forEach.call(app.children,function(el){
       el.classList.add('an');el.style.animationDelay=(i*45)+'ms';i++;
     });
   }
   contar();
+  var nv=document.getElementById('nav');
+  if(semNav()){nv.style.display='none';document.body.classList.add('limpo');nv.innerHTML='';window.scrollTo(0,0);return}
+  nv.style.display='flex';document.body.classList.remove('limpo');
   var abas=[['home','home','Início'],['treinos','musculacao','Treinos'],['jiu','jiujitsu','Jiu'],['hist','hist','Histórico'],['perfil','perfil','Perfil']];
-  document.getElementById('nav').innerHTML=abas.map(function(a){
+  nv.innerHTML=abas.map(function(a){
     return '<button class="'+(view===a[0]||((view==='sessao'||view==='editor')&&a[0]==='treinos')?'on':'')+'" onclick="ir(\''+a[0]+'\')"><span class="g">'+svg(a[1],21)+'</span>'+a[2]+'</button>';
   }).join('');
   window.scrollTo(0,0);
@@ -877,13 +922,154 @@ function importar(inp){
   r.readAsText(f);
 }
 
+
+/* ---------- landing ---------- */
+function semNav(){return view==='landing'||view==='auth'||view==='onboard'}
+function vLanding(){
+  var h='<div class="lp"><div class="lp-top"><div class="wm">Treinos</div>'+
+    '<button class="b3" onclick="irAuth(false)">Entrar</button></div>';
+  h+='<h1 class="an">Todo treino<br><em>conta.</em></h1>'+
+    '<p class="lead an" style="animation-delay:80ms">Musculação, corrida e jiu-jitsu no mesmo lugar. '+
+    'Você registra em dois toques e o app lembra da carga, das aulas e do quanto você evoluiu.</p>'+
+    '<div class="an" style="animation-delay:140ms;margin-top:26px">'+
+    '<button class="b1" onclick="irAuth(true)">Criar minha conta</button></div>';
+
+  h+='<div class="demo an" style="animation-delay:200ms"><div style="display:flex;align-items:flex-end;justify-content:space-between">'+
+    '<div><div class="gg" style="font-size:64px">12</div><div class="lb" style="margin-top:8px">dias seguidos</div></div>'+
+    '<div style="text-align:right"><div style="font-size:24px;font-weight:800" class="num">4<span style="color:var(--tx3)">/5</span></div>'+
+    '<div class="lb" style="margin-top:5px">na semana</div></div></div>'+
+    '<div class="dots">'+['S','T','Q','Q','S','S','D'].map(function(d,i){
+      var on=[0,1,3,5].indexOf(i)>=0;
+      return '<div><div class="d '+(on?'on':'')+'" style="height:32px">'+(on?'1':'')+'</div><div class="l">'+d+'</div></div>';
+    }).join('')+'</div></div>';
+
+  h+='<div class="sec"><h3>Feito por quem<br>cansou de esquecer.</h3>'+
+    [['musculacao','A carga da semana passada já vem preenchida','Você não digita de novo o que já fez. Confirma a série e segue para a próxima. O descanso começa a contar sozinho.'],
+     ['jiujitsu','No tatame, um toque','Check-in ao chegar, check-out ao sair. As técnicas que você treinou e o que não quer esquecer, você anota depois, no vestiário.'],
+     ['corrida','A conta que ninguém faz por você','Quantas aulas desde a última graduação. Quantos treinos até o campeonato. Quantos dias seguidos você não falha.']
+    ].map(function(x){
+      return '<div class="pt"><div class="k">'+svg(x[0],20)+'</div><div><div class="tt">'+x[1]+'</div><div class="dd">'+x[2]+'</div></div></div>';
+    }).join('')+'</div>';
+
+  h+='<div class="sec"><h3>Começar leva<br>menos de um minuto.</h3>'+
+    [['1','Crie sua conta','E-mail e senha. Só isso.'],
+     ['2','Diga o que você treina','Musculação, corrida ou jiu-jitsu. Os três cabem, você escolhe o principal.'],
+     ['3','Registre o primeiro treino','Funciona sem internet. Sincroniza sozinho quando o sinal voltar.']
+    ].map(function(x){
+      return '<div class="passo"><div class="n">'+x[0]+'</div><div><div class="tt">'+x[1]+'</div><div class="dd">'+x[2]+'</div></div></div>';
+    }).join('')+
+    '<div style="height:26px"></div><button class="b1" onclick="irAuth(true)">Criar minha conta</button>'+
+    '<div style="height:10px"></div><button class="b2" onclick="irAuth(false)">Já tenho conta</button></div>';
+
+  h+='<div class="rod">Treinos · seus dados são seus, e só seus.</div></div>';
+  return h;
+}
+
+/* ---------- entrar / criar conta ---------- */
+function irAuth(criar){view='auth';ctx={criar:criar};render()}
+function vAuth(){
+  var c=ctx.criar;
+  var h='<div class="lp"><div class="lp-top"><button class="b3" onclick="ir(\'landing\')">← Voltar</button><div class="wm">Treinos</div></div>'+
+    '<h1 class="an" style="font-size:clamp(34px,9vw,44px);margin-top:30px">'+(c?'Criar conta':'Entrar')+'</h1>'+
+    '<p class="lead an" style="animation-delay:60ms;font-size:15px">'+
+    (c?'Sua conta guarda os treinos na nuvem. Dá para usar no celular e no computador.':'Use o e-mail e a senha que você cadastrou.')+'</p>'+
+    '<div class="card an" style="animation-delay:120ms;margin-top:24px">'+
+    '<label>E-mail</label><input id="em" type="email" inputmode="email" autocomplete="username" autocapitalize="none">'+
+    '<label>Senha</label><input id="sn" type="password" autocomplete="'+(c?'new-password':'current-password')+'">'+
+    (c?'<p class="t2" style="margin:10px 0 0">Mínimo de 6 caracteres.</p>':'')+
+    '<div style="height:16px"></div><button class="b1" onclick="fazLogin('+c+')">'+(c?'Criar conta':'Entrar')+'</button>'+
+    '<div style="height:10px"></div><button class="b2" onclick="irAuth('+(!c)+')">'+(c?'Já tenho conta':'Criar uma conta')+'</button>'+
+    '</div><div style="height:30px"></div></div>';
+  return h;
+}
+
+/* ---------- primeiro acesso ---------- */
+function vOnboard(){
+  var p=ctx.passo||1,t=ctx.tmp||{};
+  var h='<div class="lp"><div class="lp-top"><div class="wm">Primeiro acesso</div>'+
+    (p>1?'<button class="b3" onclick="obVolta()">← Voltar</button>':'<span></span>')+'</div>'+
+    '<div class="prog">'+[1,2,3].map(function(i){return '<i class="'+(i<=p?'on':'')+'"></i>'}).join('')+'</div>';
+
+  if(p===1){
+    h+='<h1 style="font-size:clamp(32px,8.5vw,42px)">Como você<br>quer ser chamado?</h1>'+
+      '<div class="card" style="margin-top:24px"><input id="ob-nome" placeholder="Seu nome" value="'+esc(t.nome||'')+'" autocapitalize="words">'+
+      '<div style="height:16px"></div><button class="b1" onclick="obNome()">Continuar</button></div>';
+  }
+  if(p===2){
+    h+='<h1 style="font-size:clamp(32px,8.5vw,42px)">Qual seu<br>esporte principal?</h1>'+
+      '<p class="lead" style="font-size:15px">Ele fica em destaque na tela inicial. Os outros continuam disponíveis, e dá para trocar depois.</p>'+
+      '<div style="margin-top:22px">'+
+      [['musculacao','Musculação','Séries, cargas e progressão'],
+       ['jiujitsu','Jiu-jitsu','Aulas, técnicas e graduação'],
+       ['corrida','Corrida','Distância, tempo e ritmo']].map(function(x){
+        return '<button class="ob-sel '+(t.principal===x[0]?'on':'')+'" onclick="obPrincipal(\''+x[0]+'\')">'+
+          '<span class="ii">'+svg(x[0],20)+'</span><span><span class="nn">'+x[1]+'</span><br><span class="dd">'+x[2]+'</span></span></button>';
+      }).join('')+'</div>';
+  }
+  if(p===3){
+    if(t.principal==='jiujitsu'){
+      h+='<h1 style="font-size:clamp(32px,8.5vw,42px)">Qual sua<br>graduação?</h1>'+
+        '<p class="lead" style="font-size:15px">O app conta as aulas a partir dessa data, que é o número que a academia costuma cobrar para graduar.</p>'+
+        '<div class="card" style="margin-top:20px"><label>Faixa</label><select id="ob-f">'+
+        ['Branca','Azul','Roxa','Marrom','Preta'].map(function(f){return '<option>'+f+'</option>'}).join('')+'</select>'+
+        '<label>Grau</label><select id="ob-g">'+[0,1,2,3,4].map(function(n){return '<option>'+n+'</option>'}).join('')+'</select>'+
+        '<label>Desde quando</label><input id="ob-d" type="date" value="'+hoje()+'">'+
+        '<label>Meta de treinos por semana</label><input id="ob-m" class="num" type="number" inputmode="numeric" value="4">'+
+        '<div style="height:16px"></div><button class="b1" onclick="obFim()">Concluir</button></div>';
+    }else if(t.principal==='musculacao'){
+      h+='<h1 style="font-size:clamp(32px,8.5vw,42px)">Quer começar<br>com treinos prontos?</h1>'+
+        '<p class="lead" style="font-size:15px">Um A/B/C básico que você edita depois do jeito que treina. Se preferir, monte do zero.</p>'+
+        '<div style="margin-top:20px">'+
+        '<button class="ob-sel '+(t.modelo!==false?'on':'')+'" onclick="obModelo(true)"><span class="ii">'+svg('musculacao',20)+'</span>'+
+        '<span><span class="nn">Sim, com A/B/C pronto</span><br><span class="dd">Peito e tríceps, costas e bíceps, pernas</span></span></button>'+
+        '<button class="ob-sel '+(t.modelo===false?'on':'')+'" onclick="obModelo(false)"><span class="ii">'+svg('hist',20)+'</span>'+
+        '<span><span class="nn">Não, vou montar o meu</span><br><span class="dd">Começa vazio, do seu jeito</span></span></button></div>'+
+        '<div class="card"><label>Meta de treinos por semana</label><input id="ob-m" class="num" type="number" inputmode="numeric" value="4">'+
+        '<div style="height:16px"></div><button class="b1" onclick="obFim()">Concluir</button></div>';
+    }else{
+      h+='<h1 style="font-size:clamp(32px,8.5vw,42px)">Quantas vezes<br>por semana?</h1>'+
+        '<p class="lead" style="font-size:15px">É a meta que aparece na tela inicial. Pode mudar quando quiser.</p>'+
+        '<div class="card" style="margin-top:20px"><label>Meta de treinos por semana</label>'+
+        '<input id="ob-m" class="num" type="number" inputmode="numeric" value="4">'+
+        '<div style="height:16px"></div><button class="b1" onclick="obFim()">Concluir</button></div>';
+    }
+  }
+  return h+'<div style="height:30px"></div></div>';
+}
+function obVolta(){ctx.passo=(ctx.passo||1)-1;render()}
+function obNome(){
+  var n=(document.getElementById('ob-nome').value||'').trim();
+  if(!n){alert('Escreva seu nome.');return}
+  ctx.tmp=ctx.tmp||{};ctx.tmp.nome=n;ctx.passo=2;render();
+}
+function obPrincipal(p){ctx.tmp.principal=p;ctx.passo=3;render()}
+function obModelo(v){ctx.tmp.modelo=v;render()}
+async function obFim(){
+  var t=ctx.tmp,m=document.getElementById('ob-m');
+  db=vazio();
+  db.perfil.nome=t.nome;
+  db.perfil.principal=t.principal;
+  db.perfil.meta=Math.max(1,+(m?m.value:4)||4);
+  db.exercicios=semente().exercicios;
+  if(t.principal==='musculacao'&&t.modelo!==false){
+    var base=semente();
+    db.exercicios=base.exercicios;db.treinos=base.treinos;
+  }
+  if(t.principal==='jiujitsu'){
+    db.graduacoes=[{id:uid(),faixa:document.getElementById('ob-f').value,
+      grau:+document.getElementById('ob-g').value,data:document.getElementById('ob-d').value,professor:'',academia:''}];
+  }
+  await salvar();view='home';ctx={};render();sincronizar(true);
+}
+
 /* ---------- nuvem (Supabase) ---------- */
 var SB={
   url:'https://huagprlfwnmjrxfwkeak.supabase.co',
   key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1YWdwcmxmd25tanJ4ZndrZWFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NDA1NjcsImV4cCI6MjA5MjExNjU2N30.oqLCi5qSdBRPnHFye0sy8rlaKQ-KcWL8W6sauNYbCB4',
   cli:null, user:null, ocupado:false, msg:'', ultima:null
 };
-var KSNAP='treinos:snapshot', KKEY='treinos:anon';
+var KKEY='treinos:anon';
+function chaveSnap(){return 'treinos:snapshot:'+(SB.user?SB.user.id:'x')}
 
 function chaveSalva(){try{return localStorage.getItem(KKEY)||''}catch(e){return ''}}
 async function iniciarSB(){
@@ -905,12 +1091,13 @@ async function entrar(email,senha,criar){
   SB.ocupado=false;
   if(r.error){SB.msg='';render();alert('Não deu: '+r.error.message);return}
   SB.user=r.data.user;
-  if(!SB.user){SB.msg='';render();alert('Conta criada. Faça login.');return}
-  await sincronizar();
+  if(!SB.user){SB.msg='';render();alert('Conta criada. Agora entre com esse e-mail e senha.');return}
+  SB.msg='';await aposLogin();
 }
 async function sair(){
+  if(!confirm('Sair da conta?\n\nSeus treinos ficam salvos na nuvem e voltam quando você entrar de novo.'))return;
   if(SB.cli)await SB.cli.auth.signOut();
-  SB.user=null;SB.msg='';render();
+  SB.user=null;SB.msg='';db=vazio();view='landing';ctx={};render();
 }
 
 /* --- conversão entre o formato local e as tabelas --- */
@@ -962,7 +1149,7 @@ async function sincronizar(silencioso){
   SB.ocupado=true;SB.msg='Sincronizando...';if(!silencioso)render();
   try{
     var u=SB.user.id, locais=linhasLocais(u), snap={};
-    try{var s=localStorage.getItem(KSNAP);snap=s?JSON.parse(s):{}}catch(e){snap={}}
+    try{var s=localStorage.getItem(chaveSnap());snap=s?JSON.parse(s):{}}catch(e){snap={}}
 
     // 1. envia o que mudou desde a última sincronização, na ordem das dependências
     for(var i=0;i<TABELAS.length;i++){
@@ -998,7 +1185,7 @@ async function sincronizar(silencioso){
     var novo={};
     var l2=linhasLocais(u);
     TABELAS.forEach(function(t){var m={};l2[t].forEach(function(r){m[r.id]=JSON.stringify(r)});novo[t]=m});
-    try{localStorage.setItem(KSNAP,JSON.stringify(novo))}catch(e){}
+    try{localStorage.setItem(chaveSnap(),JSON.stringify(novo))}catch(e){}
     SB.ultima=new Date();SB.msg='';
   }catch(e){
     SB.msg='';
@@ -1008,17 +1195,9 @@ async function sincronizar(silencioso){
 }
 function vNuvem(){
   var h='<h2>Nuvem</h2>';
-  if(!SB.key&&!chaveSalva()){
-    return h+'<div class="card"><p class="t2" style="margin:0 0 12px;line-height:1.5">Cole a chave anon do Supabase para ligar a sincronização. Ela é pública e fica só neste aparelho.</p>'+
-      '<input id="ak" placeholder="eyJhbGciOi..."><div style="height:12px"></div>'+
-      '<button class="b1" onclick="salvarChave()">Conectar</button></div>';
-  }
   if(!SB.user){
-    return h+'<div class="card"><p class="t2" style="margin:0 0 4px;line-height:1.5">Entre para guardar seus treinos na nuvem e usar em outro aparelho.</p>'+
-      '<label>E-mail</label><input id="em" type="email" inputmode="email" autocomplete="username">'+
-      '<label>Senha</label><input id="sn" type="password" autocomplete="current-password">'+
-      '<div style="height:14px"></div><button class="b1" onclick="fazLogin(false)">Entrar</button>'+
-      '<div style="height:10px"></div><button class="b2" onclick="fazLogin(true)">Criar conta</button></div>';
+    return h+'<div class="card"><p class="t2" style="margin:0 0 12px;line-height:1.5">Você está usando só neste aparelho. Entre para guardar na nuvem.</p>'+
+      '<button class="b1" onclick="irAuth(false)">Entrar</button></div>';
   }
   return h+'<div class="card"><div class="t" style="font-weight:600">'+esc(SB.user.email)+'</div>'+
     '<div class="t2">'+(SB.msg||(SB.ultima?'Sincronizado às '+SB.ultima.toTimeString().slice(0,5):'Conectado'))+'</div>'+
@@ -1038,20 +1217,35 @@ function fazLogin(criar){
 }
 
 /* ---------- boot ---------- */
-(async function(){
+async function aposLogin(){
   db=await store.get();
-  if(!db||!db.exercicios){db=semente();await salvar()}
-  // migrações seguras para bancos já em uso
-  var mig=false;
-  if(!db.perfil.principal){db.perfil.principal='musculacao';mig=true}
-  if(!db.objetivos){db.objetivos=[];mig=true}
-  db.treinos.forEach(function(t){(t.itens||[]).forEach(function(i){if(!i.id){i.id=uid();mig=true}})});
-  if(mig)await salvar();
+  if(!db){
+    // primeiro login neste aparelho: aproveita dados locais anteriores, se houver
+    var legado=await store.get(KEY_LEGADO);
+    db=legado&&legado.exercicios?legado:vazio();
+  }
+  migrar();
+  await salvar();
+  view='home';render();
+  await sincronizar(true);
+  if(!db.perfil||!db.perfil.nome){view='onboard';ctx={passo:1,tmp:{}}}
   render();
-  setTimeout(async function(){
-    if(await iniciarSB()&&SB.user){render();sincronizar(true)}
-  },600);
+}
+function migrar(){
+  if(!db.perfil)db.perfil={nome:'',meta:4,descanso:90,principal:'musculacao'};
+  if(!db.perfil.principal)db.perfil.principal='musculacao';
+  if(!db.objetivos)db.objetivos=[];
+  if(!db.tecnicas)db.tecnicas=[];
+  if(!db.graduacoes||!db.graduacoes.length)db.graduacoes=[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}];
+  (db.treinos||[]).forEach(function(t){(t.itens||[]).forEach(function(i){if(!i.id)i.id=uid()})});
+}
+(async function(){
+  db=vazio();
+  await iniciarSB();
+  if(SB.user){await aposLogin();return}
+  view='landing';render();
 })();
+
 window.addEventListener('online',function(){if(SB.user)sincronizar(true)});
 document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='visible'&&view==='sessao')acordar();
