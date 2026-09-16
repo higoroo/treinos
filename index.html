@@ -961,19 +961,48 @@ function abrirDetalhe(id){
     '<label>Kimono</label><div><button class="pill '+(d.kimono?'on':'')+'" onclick="setGi(\''+id+'\',true)">Com kimono</button>'+
     '<button class="pill '+(!d.kimono?'on':'')+'" onclick="setGi(\''+id+'\',false)">Sem kimono</button></div>'+
     '<label>Técnicas e posições</label>'+
+    '<p class="t2" style="margin:-2px 0 8px;line-height:1.45">Adicione quantas quiser. Elas viram etiquetas e voltam como sugestão nas próximas aulas.</p>'+
     '<div id="tgs">'+(d.tecnicas||[]).map(function(t){
       return '<span class="tag">'+esc(t)+' <b onclick="remTec(\''+id+'\',\''+esc(t)+'\')">✕</b></span>'}).join('')+'</div>'+
-    '<input id="ti" placeholder="raspagem da guarda aranha" onkeydown="if(event.key===\'Enter\')addTec(\''+id+'\')" style="margin-top:6px">'+
+    '<div style="display:flex;gap:8px;margin-top:6px">'+
+    '<input id="ti" placeholder="Ex: raspagem da guarda aranha" autocapitalize="none" '+
+    'onkeydown="if(event.key===\'Enter\'){event.preventDefault();addTec(\''+id+'\')}" style="flex:1">'+
+    '<button class="b3" style="flex:0 0 auto;padding:12px 16px" onclick="addTec(\''+id+'\')">Adicionar</button></div>'+
     (sug.length?'<div style="margin-top:8px">'+sug.map(function(t){
       return '<button class="pill" onclick="addTec(\''+id+'\',\''+esc(t)+'\')">+ '+esc(t)+'</button>'}).join('')+'</div>':'')+
-    '<label>Anotações</label><textarea rows="4" id="nt" placeholder="O que você não quer esquecer">'+esc(s.notas)+'</textarea>'+
+    '<label>Anotações</label><textarea rows="4" id="nt" oninput="notaJiu(\''+id+'\',this.value)" placeholder="O que você não quer esquecer">'+esc(s.notas)+'</textarea>'+
     '<div style="height:16px"></div><button class="b1" onclick="salvarDetalhe(\''+id+'\')">Salvar</button>'+
     '<div style="height:10px"></div><button class="b2" style="color:var(--tx3)" onclick="descartarFicha(\''+id+'\')">Descartar esta aula</button></div>';
   document.body.appendChild(el);
 }
-function fechar(){var e=document.getElementById('sheet');if(e)e.remove();render()}
-async function setTipo(id,t){var s=db.sessoes.find(function(x){return x.id===id});s.detalhes.tipo=t;await salvar();var n=document.getElementById('nt').value;s.notas=n;fechar();abrirDetalhe(id)}
-async function setGi(id,v){var s=db.sessoes.find(function(x){return x.id===id});s.detalhes.kimono=v;await salvar();var n=document.getElementById('nt').value;s.notas=n;fechar();abrirDetalhe(id)}
+function fechar(){
+  var t=document.getElementById('nt');
+  if(t&&t.getAttribute('oninput')){
+    var m=/notaJiu\('([^']+)'/.exec(t.getAttribute('oninput'));
+    if(m){var ss=db.sessoes.find(function(x){return x.id===m[1]});if(ss)pendenteTec(ss)}
+    clearTimeout(NT);salvar();
+  }
+  var e=document.getElementById('sheet');if(e)e.remove();render();
+}
+var NT=null;
+function lerNota(s){var e=document.getElementById('nt');if(e)s.notas=e.value}
+function notaJiu(id,v){
+  var s=db.sessoes.find(function(x){return x.id===id});
+  if(!s)return;
+  s.notas=v;
+  clearTimeout(NT);
+  NT=setTimeout(function(){salvar()},400);
+}
+async function setTipo(id,t){
+  var s=db.sessoes.find(function(x){return x.id===id});
+  lerNota(s);s.detalhes.tipo=t;
+  await salvar();fechar();abrirDetalhe(id);
+}
+async function setGi(id,v){
+  var s=db.sessoes.find(function(x){return x.id===id});
+  lerNota(s);s.detalhes.kimono=v;
+  await salvar();fechar();abrirDetalhe(id);
+}
 async function addTec(id,val){
   var s=db.sessoes.find(function(x){return x.id===id});
   var i=document.getElementById('ti'),v=(val||i.value||'').trim().toLowerCase();
@@ -981,17 +1010,29 @@ async function addTec(id,val){
   s.detalhes.tecnicas=s.detalhes.tecnicas||[];
   if(s.detalhes.tecnicas.indexOf(v)<0)s.detalhes.tecnicas.push(v);
   if(db.tecnicas.indexOf(v)<0)db.tecnicas.push(v);
-  s.notas=document.getElementById('nt').value;
+  lerNota(s);
   await salvar();fechar();abrirDetalhe(id);
 }
 async function remTec(id,v){
   var s=db.sessoes.find(function(x){return x.id===id});
   s.detalhes.tecnicas=s.detalhes.tecnicas.filter(function(t){return t!==v});
-  s.notas=document.getElementById('nt').value;await salvar();fechar();abrirDetalhe(id);
+  lerNota(s);await salvar();fechar();abrirDetalhe(id);
+}
+function pendenteTec(s){
+  // o que ficou digitado no campo também conta: ninguém deve perder texto por não apertar enter
+  var i=document.getElementById('ti');
+  if(!i)return;
+  var v=(i.value||'').trim().toLowerCase();
+  if(!v)return;
+  s.detalhes.tecnicas=s.detalhes.tecnicas||[];
+  if(s.detalhes.tecnicas.indexOf(v)<0)s.detalhes.tecnicas.push(v);
+  if(db.tecnicas.indexOf(v)<0)db.tecnicas.push(v);
+  i.value='';
 }
 async function salvarDetalhe(id){
   var s=db.sessoes.find(function(x){return x.id===id});
-  s.notas=document.getElementById('nt').value;await salvar();fechar();checarConquistas();sincronizar(true);
+  lerNota(s);pendenteTec(s);clearTimeout(NT);
+  await salvar();fechar();checarConquistas();sincronizar(true);
 }
 
 /* ---------- corrida ---------- */
