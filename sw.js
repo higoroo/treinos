@@ -1,6 +1,6 @@
 // Treinos — service worker
-// Guarda o app para que ele abra sem internet. Os dados continuam no aparelho.
-const CACHE = 'treinos-v1';
+// Guarda o app para abrir sem internet. Os dados ficam no aparelho, nunca aqui.
+const CACHE = 'treinos-v2';
 const ARQUIVOS = ['./', './index.html'];
 
 self.addEventListener('install', e => {
@@ -20,12 +20,14 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  // nunca interceptar o Supabase: sincronização precisa ir para a rede
+  // o Supabase nunca passa por aqui: sincronizacao precisa ir sempre a rede
   if (url.origin !== self.location.origin) return;
 
-  // rede primeiro, cache como rede de segurança
+  // a propria pagina: busca ignorando o cache do navegador, para a versao nova chegar
+  const ehPagina = req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/');
+
   e.respondWith(
-    fetch(req)
+    fetch(ehPagina ? new Request(req.url, { cache: 'reload', credentials: 'same-origin' }) : req)
       .then(res => {
         const copia = res.clone();
         caches.open(CACHE).then(c => c.put(req, copia)).catch(() => {});
