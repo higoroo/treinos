@@ -91,6 +91,24 @@ nav button.on{color:var(--ac)}
   opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;
   box-shadow:0 10px 30px rgba(0,0,0,.55)}
 .flash.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.segp{display:inline-flex;background:var(--s2);border-radius:999px;padding:3px;gap:2px}
+.segp button{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--tx3);padding:5px 12px;border-radius:999px;transition:background .18s,color .18s}
+.segp button.on{background:var(--ac);color:#fff}
+.ldia{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tx3);padding:14px 0 7px;border-bottom:1px solid var(--br)}
+.ldia:first-child{padding-top:12px}
+.lrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--br)}
+.lrow:last-child{border-bottom:0}
+.lic{width:28px;height:28px;flex:0 0 28px;border-radius:9px;display:flex;
+  align-items:center;justify-content:center;background:var(--s2);color:var(--tx2)}
+.lic.m{background:var(--ac-d);color:var(--ac-t)}
+.lic.j{background:var(--bl-d)}
+.lic.c{background:var(--lm-d)}
+.lnome{flex:1;min-width:0;font-size:14px;font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lnome.meu{color:var(--ac-t)}
+.lmod{flex:0 0 auto;font-size:12px;color:var(--tx3)}
 .pill.on{background:var(--ac-d);color:var(--ac-t)}
 .pill.b{background:var(--bl-d);color:#A8B8FF}
 .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 10px;border-radius:16px;background:var(--s2);color:var(--tx);margin:0 6px 6px 0}
@@ -2605,6 +2623,18 @@ function segunda(d){
   x.setDate(x.getDate()-((x.getDay()+6)%7));
   return x.toISOString().slice(0,10);
 }
+function primeiroDoMes(d){return (d||hoje()).slice(0,7)+'-01'}
+/* no comeco do mes a semana corrente comeca no mes passado:
+   busca sempre a data mais antiga das duas, senao o ranking da semana fica furado */
+function inicioJanela(){
+  var a=segunda(),b=primeiroDoMes();
+  return a<b?a:b;
+}
+function rotuloMes(d){
+  var m=['janeiro','fevereiro','março','abril','maio','junho','julho',
+         'agosto','setembro','outubro','novembro','dezembro'];
+  return m[parseInt((d||hoje()).slice(5,7),10)-1];
+}
 
 async function socCarregar(forcar){
   if(!SB.cli||!SB.user)return;
@@ -2616,7 +2646,7 @@ async function socCarregar(forcar){
     var meu=await SB.cli.from('tr_social_perfil').select('*').eq('user_id',u).maybeSingle();
     SOC.perfil=meu.data||null;
     if(SOC.perfil){
-      var ini=segunda();
+      var ini=inicioJanela();
       var r=await Promise.all([
         SB.cli.from('tr_grupo_membros').select('grupo_id').eq('user_id',u),
         SB.cli.from('tr_presenca').select('*').gte('data',ini),
@@ -2712,8 +2742,10 @@ async function socApagarPresenca(id){
 }
 
 /* ranking da semana */
-function rankingSemana(){
-  var ini=segunda(),conta={};
+function rankingSemana(){return rankingPeriodo(segunda())}
+function rankingMes(){return rankingPeriodo(primeiroDoMes())}
+function rankingPeriodo(ini){
+  var conta={};
   SOC.presencas.forEach(function(p){
     if(p.data<ini)return;
     conta[p.user_id]=(conta[p.user_id]||0)+1;
@@ -2762,7 +2794,8 @@ function vAmigos(){
       '<div style="height:14px"></div><button class="b1" onclick="criarPerfilSocial()">Criar meu perfil</button></div>';
   }
 
-  var rk=rankingSemana();
+  var mes=ctx.rkPer==='mes';
+  var rk=mes?rankingMes():rankingSemana();
   if(rk.length<=1&&!SOC.grupos.length){
     h+='<div class="card an"><div class="t" style="font-weight:700;font-size:17px">Ninguém por aqui ainda</div>'+
       '<p class="t2" style="margin:6px 0 14px;line-height:1.5">Crie um grupo e mande o link no WhatsApp. '+
@@ -2778,9 +2811,14 @@ function vAmigos(){
   var pos=rk.indexOf(eu);
   var acima=pos>0?rk[pos-1]:null;
   var mx=Math.max.apply(null,rk.map(function(x){return x.n}).concat([1]));
+  var lim=ctx.rkTudo?rk.length:6;
   h+='<div class="card an" style="animation-delay:40ms"><div class="top" style="margin-bottom:12px">'+
-    '<span class="lb">esta semana</span><span class="t2">termina domingo</span></div>'+
-    rk.slice(0,6).map(function(x,i){
+    '<div class="segp">'+
+      '<button class="'+(mes?'':'on')+'" onclick="verPeriodo(\'sem\')">Semana</button>'+
+      '<button class="'+(mes?'on':'')+'" onclick="verPeriodo(\'mes\')">Mês</button>'+
+    '</div>'+
+    '<span class="t2">'+(mes?esc(rotuloMes()):'termina domingo')+'</span></div>'+
+    rk.slice(0,lim).map(function(x,i){
       return '<div class="rkl'+(x.eu?' eu':'')+'">'+
         '<span class="rkp'+(i===0?' ouro':'')+'">'+(i+1)+'</span>'+
         '<span class="rkav'+(x.eu?' meu':'')+'">'+esc(x.ini)+'</span>'+
@@ -2789,21 +2827,24 @@ function vAmigos(){
           return '<i></i>'}).join('')+'</span>'+
         '<span class="rkv">'+x.n+'</span></div>';
     }).join('')+
-    (rk.length>6?'<button class="vt" onclick="verTodoRanking()">ver os '+rk.length+'</button>':'')+
+    (rk.length>6&&!ctx.rkTudo?'<button class="vt" onclick="verTodoRanking()">ver os '+rk.length+'</button>':'')+
     '</div>';
 
   if(acima&&acima.n>eu.n){
     var dif=acima.n-eu.n;
-    var faltam=6-((new Date().getDay()+6)%7);
+    var faltam=mes?diasNoMes()-Number(hoje().slice(8,10)):6-((new Date().getDay()+6)%7);
     h+='<div class="alvo an" style="animation-delay:70ms"><div class="aic">'+svg('chama',18)+'</div>'+
       '<div class="f1"><div class="at">'+esc(acima.nome)+' está '+dif+
       (dif===1?' treino':' treinos')+' na sua frente</div>'+
-      '<div class="asub">'+(faltam<=0?'último dia da semana':'faltam '+faltam+(faltam===1?' dia':' dias')+' pra fechar a semana')+'</div></div></div>';
+      '<div class="asub">'+(faltam<=0?(mes?'último dia do mês':'último dia da semana')
+        :'faltam '+faltam+(faltam===1?' dia':' dias')+' pra fechar o '+(mes?'mês':'')+(mes?'':'a semana'))+'</div></div></div>';
   }else if(pos===0&&eu.n>0&&rk.length>1){
     h+='<div class="alvo an" style="animation-delay:70ms"><div class="aic">'+svg('medalha',18)+'</div>'+
       '<div class="f1"><div class="at">Você está em primeiro</div>'+
-      '<div class="asub">segure até domingo</div></div></div>';
+      '<div class="asub">'+(mes?'segure até o fim do mês':'segure até domingo')+'</div></div></div>';
   }
+
+  h+=lancamentosMes();
 
   h+='<h2>Seus grupos</h2>';
   h+=SOC.grupos.length?SOC.grupos.map(function(g){
@@ -2825,6 +2866,53 @@ function cartaoMeuCodigo(){
     '<button class="b3" onclick="copiarCodigo()">Copiar</button></div></div>';
 }
 function verTodoRanking(){ctx.rkTudo=true;render()}
+function verPeriodo(p){ctx.rkPer=p;ctx.rkTudo=false;ctx.lcTudo=false;render()}
+function verTodosLanc(){ctx.lcTudo=true;render()}
+function diasNoMes(d){
+  var x=new Date((d||hoje()).slice(0,7)+'-01T12:00:00');
+  x.setMonth(x.getMonth()+1);x.setDate(0);
+  return x.getDate();
+}
+function rotuloDia(d){
+  var hj=hoje();
+  if(d===hj)return 'hoje';
+  var o=new Date(hj+'T12:00:00');o.setDate(o.getDate()-1);
+  if(d===o.toISOString().slice(0,10))return 'ontem';
+  return diaSem(d)+' '+d.slice(8,10)+'/'+d.slice(5,7);
+}
+
+/* lancamentos do mes: quem treinou o que, dia a dia */
+function lancamentosMes(){
+  var ini=primeiroDoMes();
+  var ls=SOC.presencas.filter(function(p){return p.data>=ini})
+    .sort(function(a,b){return b.data.localeCompare(a.data)||String(b.id).localeCompare(String(a.id))});
+  if(!ls.length){
+    return '<h2>Este mês</h2><div class="card"><p class="t2" style="margin:0;line-height:1.5">'+
+      'Nenhum treino lançado em '+esc(rotuloMes())+' ainda. O primeiro que treinar abre o mês.</p></div>';
+  }
+  var meus=ls.filter(function(p){return p.user_id===SB.user.id}).length;
+  var dias={};ls.forEach(function(p){(dias[p.data]=dias[p.data]||[]).push(p)});
+  var ord=Object.keys(dias).sort(function(a,b){return b.localeCompare(a)});
+  var corte=ctx.lcTudo?ord.length:7;
+  var h='<div class="top" style="margin:26px 0 4px;align-items:flex-end">'+
+    '<h2 style="margin:0">Este mês</h2>'+
+    '<span class="t2">'+ls.length+(ls.length===1?' treino':' treinos')+
+    (meus?' · '+meus+' seu'+(meus===1?'':'s'):'')+'</span></div>'+
+    '<div class="card" style="padding:2px 14px">';
+  ord.slice(0,corte).forEach(function(d){
+    h+='<div class="ldia">'+esc(rotuloDia(d))+'</div>';
+    dias[d].forEach(function(p){
+      var meu=p.user_id===SB.user.id;
+      var nome=meu?'você':(SOC.pessoas[p.user_id]||'alguém');
+      h+='<div class="lrow"><span class="lic '+cls(p.tipo)+'">'+svg(p.tipo,15)+'</span>'+
+        '<span class="lnome'+(meu?' meu':'')+'">'+esc(nome)+'</span>'+
+        '<span class="lmod">'+esc(nomeTipo(p.tipo))+'</span></div>';
+    });
+  });
+  h+='</div>';
+  if(ord.length>corte)h+='<button class="b2" style="margin-top:9px" onclick="verTodosLanc()">ver o mês inteiro</button>';
+  return h;
+}
 
 async function criarPerfilSocial(){
   var a=(document.getElementById('ap').value||'').trim();
