@@ -379,7 +379,47 @@ body{overscroll-behavior-y:contain}
 .prx .pbr{height:5px;background:var(--s2);border-radius:3px;overflow:hidden}
 .prx .pbr>i{display:block;height:100%;background:var(--ac);border-radius:3px;
   animation:cresceh .8s cubic-bezier(.2,.85,.3,1) .25s both}
-@media (prefers-reduced-motion:reduce){.prx .pbr>i{animation:none!important}.ptr.gira .ring{animation-duration:1.4s}.telaD,.telaE,.sheet,.sheet>div{animation:none!important}.bar>i{transition:none!important}.sr.rec input,.recav{animation:none!important}.gbb,.vgr>i,.glp,.glf{animation:none!important}.glp{stroke-dashoffset:0!important}.glf{opacity:1!important}.rv{opacity:1!important;transform:none!important}.an,.ap,.al,.live{animation:none!important}}
+
+/* ---- amigos ---- */
+.rkl{display:flex;align-items:center;gap:11px;padding:8px 0}
+.rkl.eu{background:var(--ac-d);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:10px}
+.rkp{font-size:13px;font-weight:800;color:var(--tx3);width:16px;flex:0 0 16px}
+.rkp.ouro{color:#F5C451}
+.rkl.eu .rkp{color:var(--ac-t)}
+.rkav{width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:var(--s2);display:flex;
+  align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--tx2)}
+.rkav.meu{background:var(--ac);color:#fff}
+.rkn{flex:1;font-size:14px;color:var(--tx2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rkl.eu .rkn{color:var(--tx);font-weight:700}
+.rkb{display:flex;gap:3px}
+.rkb>i{width:6px;height:16px;background:var(--ac);border-radius:2px}
+.rkv{font-size:15px;font-weight:800;width:18px;text-align:right}
+.rkl.eu .rkv{color:#fff}
+.alvo{display:flex;align-items:center;gap:11px;background:var(--ac-d);border:1px solid var(--ac);
+  border-radius:16px;padding:13px;margin-top:10px}
+.alvo .aic{width:34px;height:34px;flex:0 0 34px;border-radius:11px;background:var(--ac);color:#fff;
+  display:flex;align-items:center;justify-content:center}
+.alvo .at{font-size:14px;font-weight:700;line-height:1.3}
+.alvo .asub{font-size:11.5px;color:var(--ac-t);margin-top:2px}
+.cod{font-size:24px;font-weight:800;letter-spacing:.16em;color:var(--ac)}
+.carr{width:28px;height:28px;border-radius:50%;border:3px solid var(--s2);border-top-color:var(--ac);
+  margin:0 auto 12px;animation:giraR .72s linear infinite}
+
+.atl{display:flex;align-items:center;gap:9px;width:100%;background:var(--s1);border:1px solid var(--br);
+  border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--tx2);text-align:left}
+.atl>span{flex:1}
+.atl .se{flex:0 0 auto;color:var(--tx3);font-size:16px}
+.atl svg{color:var(--ac);flex:0 0 auto}
+
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--br)}
+.opt .ot{display:block;font-size:14px;color:var(--tx)}
+.opt .od{display:block;font-size:11.5px;color:var(--tx3);margin-top:2px}
+.sw{flex:0 0 auto;width:42px;height:25px;border-radius:13px;background:var(--s2);position:relative;transition:background .2s}
+.sw.on{background:var(--ac)}
+.sw>i{position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:var(--tx3);
+  transition:transform .22s cubic-bezier(.2,.9,.3,1),background .2s}
+.sw.on>i{transform:translateX(17px);background:#fff}
+@media (prefers-reduced-motion:reduce){.sw>i{transition:none}.carr{animation-duration:1.5s}.prx .pbr>i{animation:none!important}.ptr.gira .ring{animation-duration:1.4s}.telaD,.telaE,.sheet,.sheet>div{animation:none!important}.bar>i{transition:none!important}.sr.rec input,.recav{animation:none!important}.gbb,.vgr>i,.glp,.glf{animation:none!important}.glp{stroke-dashoffset:0!important}.glf{opacity:1!important}.rv{opacity:1!important;transform:none!important}.an,.ap,.al,.live{animation:none!important}}
 .hero{background:var(--s1);border:1px solid var(--br);border-radius:22px;padding:22px 18px 18px;margin-bottom:12px}
 .big{font-size:64px;font-weight:800;letter-spacing:-.05em;line-height:.9;color:var(--ac)}
 .dots{display:flex;justify-content:space-between;gap:5px;margin-top:20px;align-items:flex-end}
@@ -549,6 +589,7 @@ var ICONES={
   chama:'<path d="M12 2.6c3.1 4 5 5.8 5 9.2a5 5 0 01-10 0c0-1.8.7-3 1.6-4 .3 1.5 1.1 2.2 2.1 2.4C10.2 7.6 10.6 5 12 2.6z"/><path d="M12 21.4a2.6 2.6 0 002.6-2.6c0-1.6-1.3-2.3-2.6-4-1.3 1.7-2.6 2.4-2.6 4a2.6 2.6 0 002.6 2.6z"/>',
   medalha:'<circle cx="12" cy="15" r="6"/><path d="M12 12.6l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z"/><path d="M8.4 9.6L5.6 3h4.2l2 4M15.6 9.6L18.4 3h-4.2"/>',
   conquista:'<path d="M8.2 3h7.6v5.2a3.8 3.8 0 01-7.6 0z"/><path d="M8.2 4.4H5.6v1.4a3 3 0 003 3M15.8 4.4h2.6v1.4a3 3 0 01-3 3"/><path d="M12 12v3.4M9 21h6l-.6-3a1.2 1.2 0 00-1.2-1h-2.4a1.2 1.2 0 00-1.2 1z"/>',
+  amigos:'<circle cx="9" cy="8.2" r="3.1"/><path d="M3.2 19.4c.6-3.1 3-4.7 5.8-4.7s5.2 1.6 5.8 4.7"/><path d="M16 5.6a3 3 0 010 5.6M17.8 14.9c2 .5 3.3 1.9 3.8 4"/>',
   home:'<path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1z"/>',
   hist:'<path d="M4 7h16M4 12h16M4 17h10"/>',
   perfil:'<circle cx="12" cy="8" r="3.4"/><path d="M5 20c.7-3.7 3.6-5.6 7-5.6s6.3 1.9 7 5.6"/>'
@@ -653,7 +694,7 @@ function contar(){
     requestAnimationFrame(passo);
   });
 }
-var ORDEM_TELAS=['home','treinos','jiu','hist','perfil'];
+var ORDEM_TELAS=['home','treinos','amigos','hist','perfil'];
 var TELA_ANT=null;
 function ladoTransicao(nova){
   var a=ORDEM_TELAS.indexOf(TELA_ANT),b=ORDEM_TELAS.indexOf(nova);
@@ -671,6 +712,7 @@ function render(){
   else if(view==='treinos')h=vTreinos();
   else if(view==='editor')h=vEditor();
   else if(view==='jiu')h=vJiu();
+  else if(view==='amigos')h=vAmigos();
   else if(view==='corrida')h=vCorrida();
   else if(view==='hist')h=vHist();
   else if(view==='perfil')h=vPerfil();
@@ -697,9 +739,9 @@ function render(){
   var nv=document.getElementById('nav');
   if(semNav()){nv.style.display='none';document.body.classList.add('limpo');nv.innerHTML='';window.scrollTo(0,0);return}
   nv.style.display='flex';document.body.classList.remove('limpo');
-  var abas=[['home','home','Início'],['treinos','musculacao','Treinos'],['jiu','jiujitsu','Jiu'],['hist','hist','Histórico'],['perfil','perfil','Perfil']];
+  var abas=[['home','home','Início'],['treinos','musculacao','Treinos'],['amigos','amigos','Amigos'],['hist','hist','Histórico'],['perfil','perfil','Perfil']];
   nv.innerHTML=abas.map(function(a){
-    return '<button class="'+(view===a[0]||((view==='sessao'||view==='editor')&&a[0]==='treinos'||view==='conq'&&a[0]==='perfil')?'on':'')+'" onclick="ir(\''+a[0]+'\')"><span class="g">'+svg(a[1],21)+'</span>'+a[2]+'</button>';
+    return '<button class="'+(view===a[0]||((view==='sessao'||view==='editor')&&a[0]==='treinos'||view==='conq'&&a[0]==='perfil'||view==='jiu'&&a[0]==='home')?'on':'')+'" onclick="ir(\''+a[0]+'\')"><span class="g">'+svg(a[1],21)+'</span>'+a[2]+'</button>';
   }).join('');
   window.scrollTo(0,0);
 }
@@ -812,6 +854,12 @@ function vHome(){
   }else{
     h+=ctaPrincipal(pt);
   }
+  if(db.perfil.principal==='jiujitsu')
+    h+='<button class="atl an" style="animation-delay:150ms" onclick="ir(\'jiu\')">'+
+      svg('jiujitsu',16)+'<span>minhas aulas, graduação e campeonatos</span><span class="se">›</span></button>';
+  if(db.perfil.principal==='corrida')
+    h+='<button class="atl an" style="animation-delay:150ms" onclick="ir(\'corrida\')">'+
+      svg('corrida',16)+'<span>minhas corridas</span><span class="se">›</span></button>';
   h+=tilesSecundarios();
 
   h+=faixaConquistas();
@@ -1008,7 +1056,7 @@ async function descartar(id){
   var f=db.series.filter(function(x){return x.sessao_id===id&&x.feita}).length;
   if(!confirm('Descartar '+nomeTipo(s.tipo).toLowerCase()+(f?' com '+f+' séries registradas':'')+'?\n\nEle sai das contagens e do histórico.'))return;
   s.aberta=false;s.arquivada=true;
-  pararRest();dormir();await salvar();ir('home');
+  pararRest();dormir();await salvar();socApagarPresenca(id);ir('home');
 }
 async function campo(id,c,v){var x=db.series.find(function(y){return y.id===id});x[c]=v;await salvar()}
 async function notaSessao(v){var s=db.sessoes.find(function(x){return x.id===ctx.sid});s.notas=v;await salvar()}
@@ -1055,7 +1103,7 @@ async function finalizar(){
     s.duracao=s.duracao||60;
     s.fim=new Date(new Date(s.inicio).getTime()+s.duracao*60000).toISOString();
   }
-  s.aberta=false;pararRest();dormir();await salvar();checarConquistas();view='resumo';ctx={sid:s.id};render();sincronizar(true);
+  s.aberta=false;pararRest();dormir();await salvar();checarConquistas();view='resumo';ctx={sid:s.id};render();sincronizar(true);socPresenca(s);
 }
 
 /* ---------- jiu-jitsu ---------- */
@@ -1253,7 +1301,7 @@ async function salvarDetalhe(id){
   lerNota(s);pendenteTec(s);clearTimeout(NT);
   await salvar();checarConquistas();
   var e=document.getElementById('sheet');if(e)e.remove();
-  view='resumo';ctx={sid:id};render();sincronizar(true);
+  view='resumo';ctx={sid:id};render();sincronizar(true);socPresenca(s);
 }
 
 /* ---------- corrida ---------- */
@@ -1282,7 +1330,7 @@ async function salvarCorrida(){
   db.sessoes.push({id:uid(),tipo:'corrida',data:dt,inicio:new Date(f-mi*60000).toISOString(),
     fim:f.toISOString(),duracao:mi,notas:document.getElementById('cnt').value,treino_id:null,
     detalhes:{km:km,fonte:'manual'},aberta:false,arquivada:false});
-  await salvar();checarConquistas();view='resumo';ctx={sid:db.sessoes[db.sessoes.length-1].id};render();sincronizar(true);
+  await salvar();checarConquistas();var _s=db.sessoes[db.sessoes.length-1];view='resumo';ctx={sid:_s.id};render();sincronizar(true);socPresenca(_s);
 }
 
 /* ---------- histórico ---------- */
@@ -1361,6 +1409,27 @@ function vPerfil(){
     '<button class="b2" onclick="novaGrad()">Registrar nova graduação</button>'+
     '<p class="t2" style="margin:10px 0 0;line-height:1.5">Use isto quando você for graduado. A contagem de aulas reinicia a partir da data.</p>'+
     '</div>';
+  if(temSocial()){
+    h+='<h2>Amigos</h2><div class="card">'+
+      '<div class="top" style="margin-bottom:12px"><div class="f1">'+
+      '<div class="t" style="font-weight:700">'+esc(SOC.perfil.apelido)+'</div>'+
+      '<div class="t2">código '+esc(SOC.perfil.codigo)+'</div></div>'+
+      '<button class="b3" onclick="ir(\'amigos\')">Abrir</button></div>'+
+      '<label>Apelido</label><input value="'+esc(SOC.perfil.apelido)+'" oninput="socSalvarPerfil(\'apelido\',this.value)" autocapitalize="words">'+
+      '<p class="t2" style="margin:14px 0 10px;line-height:1.5">O que seus amigos podem ver:</p>'+
+      [['no_ranking','Contar meus treinos no ranking','manda só a data e a modalidade'],
+       ['mostra_duracao','Duração dos treinos',''],
+       ['mostra_carga','Carga e volume da musculação',''],
+       ['mostra_tecnica','Técnicas que treinei no jiu','']].map(function(o){
+        var on=!!SOC.perfil[o[0]];
+        return '<button class="opt'+(on?' on':'')+'" onclick="togglePriv(\''+o[0]+'\')">'+
+          '<span class="f1"><span class="ot">'+o[1]+'</span>'+
+          (o[2]?'<span class="od">'+o[2]+'</span>':'')+'</span>'+
+          '<span class="sw'+(on?' on':'')+'"><i></i></span></button>';
+      }).join('')+
+      '<p class="t2" style="margin:12px 0 0;line-height:1.5">Seu nome completo, telefone, peso e data de nascimento nunca são compartilhados.</p>'+
+      '</div>';
+  }
   h+=vNuvem();
   var _bk='';
   try{_bk=localStorage.getItem('treinos:backup')||''}catch(e){}
@@ -1379,6 +1448,10 @@ function vPerfil(){
   return h;
 }
 async function perfil(c,v){db.perfil[c]=v;await salvar()}
+async function togglePriv(campo){
+  await socSalvarPerfil(campo,!SOC.perfil[campo]);
+  render();
+}
 async function setPrincipal(t){db.perfil.principal=t;await salvar();render()}
 async function salvarGrad(){
   var g=db.graduacoes[db.graduacoes.length-1];
@@ -2506,6 +2579,325 @@ function trocaEx(){
 function escolheEx(id){ctx.exAn=id;var e=document.getElementById('sheet');if(e)e.remove();render()}
 function verTodosRec(){ctx.todosRec=!ctx.todosRec;render()}
 
+
+/* ---------- social ---------- */
+var SOC={perfil:null,grupos:[],membros:{},pessoas:{},presencas:[],feed:[],
+         carregado:false,ocupado:false,erro:''};
+function temSocial(){return !!(SB.cli&&SB.user&&SOC.perfil)}
+function gerarCodigo(n){
+  var a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',o='';
+  for(var i=0;i<(n||6);i++)o+=a.charAt(Math.floor(Math.random()*a.length));
+  return o;
+}
+function iniciais(nome){
+  var p=(nome||'?').trim().split(/\s+/);
+  return ((p[0]||'?').charAt(0)+(p[1]?p[1].charAt(0):'')).toUpperCase();
+}
+function segunda(d){
+  var x=new Date((d||hoje())+'T12:00:00');
+  x.setDate(x.getDate()-((x.getDay()+6)%7));
+  return x.toISOString().slice(0,10);
+}
+
+async function socCarregar(forcar){
+  if(!SB.cli||!SB.user)return;
+  if(SOC.ocupado)return;
+  if(SOC.carregado&&!forcar)return;
+  SOC.ocupado=true;SOC.erro='';
+  try{
+    var u=SB.user.id;
+    var meu=await SB.cli.from('tr_social_perfil').select('*').eq('user_id',u).maybeSingle();
+    SOC.perfil=meu.data||null;
+    if(SOC.perfil){
+      var ini=segunda();
+      var r=await Promise.all([
+        SB.cli.from('tr_grupo_membros').select('grupo_id').eq('user_id',u),
+        SB.cli.from('tr_presenca').select('*').gte('data',ini),
+        SB.cli.from('tr_social_perfil').select('user_id,apelido')
+      ]);
+      var meusG=(r[0].data||[]).map(function(x){return x.grupo_id});
+      SOC.presencas=r[1].data||[];
+      SOC.pessoas={};(r[2].data||[]).forEach(function(x){SOC.pessoas[x.user_id]=x.apelido});
+      if(meusG.length){
+        var g=await Promise.all([
+          SB.cli.from('tr_grupos').select('*').in('id',meusG),
+          SB.cli.from('tr_grupo_membros').select('*').in('grupo_id',meusG)
+        ]);
+        SOC.grupos=g[0].data||[];
+        SOC.membros={};
+        (g[1].data||[]).forEach(function(m){
+          (SOC.membros[m.grupo_id]=SOC.membros[m.grupo_id]||[]).push(m.user_id);
+        });
+      }else{SOC.grupos=[];SOC.membros={}}
+    }
+    SOC.carregado=true;
+  }catch(e){SOC.erro=erroPt(e.message)}
+  SOC.ocupado=false;
+}
+
+async function socCriarPerfil(apelido){
+  if(!SB.cli||!SB.user)return false;
+  for(var i=0;i<6;i++){
+    var cod=gerarCodigo(6);
+    var r=await SB.cli.from('tr_social_perfil').insert({
+      user_id:SB.user.id,apelido:apelido,codigo:cod}).select().maybeSingle();
+    if(!r.error){SOC.perfil=r.data;SOC.carregado=false;return true}
+    if((r.error.message||'').indexOf('codigo')<0&&(r.error.message||'').indexOf('duplicate')<0){
+      alert(erroPt(r.error.message));return false;
+    }
+  }
+  alert('Não deu para gerar seu código. Tente de novo.');
+  return false;
+}
+async function socSalvarPerfil(campo,valor){
+  if(!temSocial())return;
+  SOC.perfil[campo]=valor;
+  var o={};o[campo]=valor;
+  await SB.cli.from('tr_social_perfil').update(o).eq('user_id',SB.user.id);
+}
+async function socCriarGrupo(nome){
+  if(!temSocial())return null;
+  for(var i=0;i<6;i++){
+    var cod=gerarCodigo(8),id=uid();
+    var r=await SB.cli.from('tr_grupos').insert({id:id,nome:nome,dono:SB.user.id,codigo:cod})
+      .select().maybeSingle();
+    if(!r.error){
+      await SB.cli.from('tr_grupo_membros').insert({grupo_id:id,user_id:SB.user.id});
+      SOC.carregado=false;await socCarregar(true);return r.data;
+    }
+    if((r.error.message||'').indexOf('duplicate')<0){alert(erroPt(r.error.message));return null}
+  }
+  return null;
+}
+async function socEntrarGrupo(cod){
+  if(!SB.cli||!SB.user)return null;
+  var r=await SB.cli.rpc('tr_entrar_grupo',{cod:(cod||'').trim().toUpperCase()});
+  if(r.error){alert(r.error.message.indexOf('convite')>=0?'Convite inválido ou expirado.':erroPt(r.error.message));return null}
+  SOC.carregado=false;await socCarregar(true);
+  return (r.data&&r.data[0])||null;
+}
+async function socSeguirPorCodigo(cod){
+  if(!temSocial())return null;
+  var r=await SB.cli.rpc('tr_achar_por_codigo',{cod:(cod||'').trim()});
+  if(r.error){alert(erroPt(r.error.message));return null}
+  var achou=(r.data&&r.data[0])||null;
+  if(!achou){alert('Não achei ninguém com esse código.');return null}
+  var i=await SB.cli.from('tr_seguindo').insert({seguidor:SB.user.id,seguido:achou.user_id});
+  if(i.error&&(i.error.message||'').indexOf('duplicate')<0){alert(erroPt(i.error.message));return null}
+  SOC.carregado=false;await socCarregar(true);
+  return achou;
+}
+async function socSair(grupoId){
+  if(!temSocial())return;
+  await SB.cli.from('tr_grupo_membros').delete()
+    .eq('grupo_id',grupoId).eq('user_id',SB.user.id);
+  SOC.carregado=false;await socCarregar(true);render();
+}
+
+/* presenca: so data e modalidade, nunca detalhe */
+async function socPresenca(sessao){
+  if(!temSocial()||!SOC.perfil.no_ranking)return;
+  if(!sessao||sessao.arquivada)return;
+  try{
+    await SB.cli.from('tr_presenca').upsert(
+      {id:sessao.id,user_id:SB.user.id,data:sessao.data,tipo:sessao.tipo},{onConflict:'id'});
+    SOC.carregado=false;
+  }catch(e){}
+}
+async function socApagarPresenca(id){
+  if(!temSocial())return;
+  try{await SB.cli.from('tr_presenca').delete().eq('id',id)}catch(e){}
+}
+
+/* ranking da semana */
+function rankingSemana(){
+  var ini=segunda(),conta={};
+  SOC.presencas.forEach(function(p){
+    if(p.data<ini)return;
+    conta[p.user_id]=(conta[p.user_id]||0)+1;
+  });
+  // quem e do meu circulo
+  var circulo={};
+  Object.keys(SOC.membros).forEach(function(g){
+    SOC.membros[g].forEach(function(u){circulo[u]=1});
+  });
+  circulo[SB.user.id]=1;
+  Object.keys(conta).forEach(function(u){circulo[u]=1});
+  return Object.keys(circulo).map(function(u){
+    var meu=u===SB.user.id;
+    return {user:u,n:conta[u]||0,
+      nome:meu?'você':(SOC.pessoas[u]||'alguém'),
+      ini:meu?iniciais((SOC.perfil&&SOC.perfil.apelido)||'eu'):iniciais(SOC.pessoas[u]||'?'),
+      eu:meu};
+  }).sort(function(a,b){return b.n-a.n||(a.eu?-1:1)});
+}
+function linkConvite(g){
+  return location.origin+location.pathname+'?g='+g.codigo;
+}
+
+
+/* ---------- tela de amigos ---------- */
+function vAmigos(){
+  var h='<header><div><h1>Amigos</h1>'+
+    (SOC.grupos.length?'<p class="sub">'+esc(SOC.grupos[0].nome)+' · '+
+      ((SOC.membros[SOC.grupos[0].id]||[]).length)+' pessoas</p>':'<p class="sub">Treine junto com o grupo</p>')+
+    '</div>'+(temSocial()?'<button class="b3" onclick="abrirConvite()">+ Convidar</button>':'')+'</header>';
+
+  if(!SB.user){
+    return h+'<div class="card"><p class="t2" style="margin:0 0 14px;line-height:1.5">'+
+      'Para treinar junto com seus amigos, entre na sua conta primeiro.</p>'+
+      '<button class="b1" onclick="irAuth(false)">Entrar</button></div>';
+  }
+  if(!SOC.carregado&&!SOC.ocupado){setTimeout(function(){socCarregar().then(render)},40)}
+  if(!SOC.carregado){
+    return h+'<div class="empty"><div class="carr"></div>carregando</div>';
+  }
+  if(!SOC.perfil){
+    return h+'<div class="card"><div class="t" style="font-weight:700;font-size:17px">Escolha seu apelido</div>'+
+      '<p class="t2" style="margin:6px 0 14px;line-height:1.5">É como os amigos vão te ver. '+
+      'Seu nome, peso e telefone continuam privados.</p>'+
+      '<input id="ap" placeholder="Como te chamam" value="'+esc(db.perfil.nome||'')+'" autocapitalize="words">'+
+      '<div style="height:14px"></div><button class="b1" onclick="criarPerfilSocial()">Criar meu perfil</button></div>';
+  }
+
+  var rk=rankingSemana();
+  if(rk.length<=1&&!SOC.grupos.length){
+    h+='<div class="card an"><div class="t" style="font-weight:700;font-size:17px">Ninguém por aqui ainda</div>'+
+      '<p class="t2" style="margin:6px 0 14px;line-height:1.5">Crie um grupo e mande o link no WhatsApp. '+
+      'Quem abrir já entra direto.</p>'+
+      '<button class="b1" onclick="abrirNovoGrupo()">Criar um grupo</button>'+
+      '<div style="height:9px"></div>'+
+      '<button class="b2" onclick="abrirPorCodigo()">Tenho um código</button></div>';
+    return h+cartaoMeuCodigo();
+  }
+
+  // ranking
+  var eu=rk.filter(function(x){return x.eu})[0]||{n:0};
+  var pos=rk.indexOf(eu);
+  var acima=pos>0?rk[pos-1]:null;
+  var mx=Math.max.apply(null,rk.map(function(x){return x.n}).concat([1]));
+  h+='<div class="card an" style="animation-delay:40ms"><div class="top" style="margin-bottom:12px">'+
+    '<span class="lb">esta semana</span><span class="t2">termina domingo</span></div>'+
+    rk.slice(0,6).map(function(x,i){
+      return '<div class="rkl'+(x.eu?' eu':'')+'">'+
+        '<span class="rkp'+(i===0?' ouro':'')+'">'+(i+1)+'</span>'+
+        '<span class="rkav'+(x.eu?' meu':'')+'">'+esc(x.ini)+'</span>'+
+        '<span class="rkn">'+esc(x.nome)+'</span>'+
+        '<span class="rkb">'+Array.apply(null,{length:Math.min(x.n,7)}).map(function(){
+          return '<i></i>'}).join('')+'</span>'+
+        '<span class="rkv">'+x.n+'</span></div>';
+    }).join('')+
+    (rk.length>6?'<button class="vt" onclick="verTodoRanking()">ver os '+rk.length+'</button>':'')+
+    '</div>';
+
+  if(acima&&acima.n>eu.n){
+    var dif=acima.n-eu.n;
+    var faltam=6-((new Date().getDay()+6)%7);
+    h+='<div class="alvo an" style="animation-delay:70ms"><div class="aic">'+svg('chama',18)+'</div>'+
+      '<div class="f1"><div class="at">'+esc(acima.nome)+' está '+dif+
+      (dif===1?' treino':' treinos')+' na sua frente</div>'+
+      '<div class="asub">'+(faltam<=0?'último dia da semana':'faltam '+faltam+(faltam===1?' dia':' dias')+' pra fechar a semana')+'</div></div></div>';
+  }else if(pos===0&&eu.n>0&&rk.length>1){
+    h+='<div class="alvo an" style="animation-delay:70ms"><div class="aic">'+svg('medalha',18)+'</div>'+
+      '<div class="f1"><div class="at">Você está em primeiro</div>'+
+      '<div class="asub">segure até domingo</div></div></div>';
+  }
+
+  h+='<h2>Seus grupos</h2>';
+  h+=SOC.grupos.length?SOC.grupos.map(function(g){
+      return '<div class="card" style="margin-bottom:9px"><div class="top"><div class="f1">'+
+        '<div class="t" style="font-weight:700">'+esc(g.nome)+'</div>'+
+        '<div class="t2">'+((SOC.membros[g.id]||[]).length)+' pessoas</div></div>'+
+        '<button class="b3" onclick="compartilharGrupo(\''+g.id+'\')">Convidar</button></div></div>';
+    }).join(''):'<div class="card"><p class="t2" style="margin:0 0 12px">Você ainda não está num grupo.</p>'+
+      '<button class="b2" onclick="abrirNovoGrupo()">Criar um grupo</button></div>';
+  h+='<div class="grid2" style="margin-top:9px"><button class="b2" onclick="abrirNovoGrupo()">Novo grupo</button>'+
+     '<button class="b2" onclick="abrirPorCodigo()">Entrar por código</button></div>';
+  return h+cartaoMeuCodigo()+'<div style="height:14px"></div>';
+}
+function cartaoMeuCodigo(){
+  if(!SOC.perfil)return '';
+  return '<h2>Seu código</h2><div class="card"><div class="top"><div class="f1">'+
+    '<div class="cod">'+esc(SOC.perfil.codigo)+'</div>'+
+    '<div class="t2" style="margin-top:3px">passe para alguém te adicionar</div></div>'+
+    '<button class="b3" onclick="copiarCodigo()">Copiar</button></div></div>';
+}
+function verTodoRanking(){ctx.rkTudo=true;render()}
+
+async function criarPerfilSocial(){
+  var a=(document.getElementById('ap').value||'').trim();
+  if(a.length<2){alert('Escreva um apelido com pelo menos 2 letras.');return}
+  if(await socCriarPerfil(a)){await socCarregar(true);render()}
+}
+function abrirNovoGrupo(){
+  var el=document.createElement('div');el.className='sheet';el.id='sheet';
+  el.innerHTML='<div><div class="top"><h1 style="font-size:18px">Novo grupo</h1>'+
+    '<button class="x" onclick="fechar()">✕</button></div>'+
+    '<p class="t2" style="margin:2px 0 0">Depois é só mandar o link no WhatsApp.</p>'+
+    '<label>Nome do grupo</label><input id="gn" placeholder="Tatame Porto Ferreira" autocapitalize="words">'+
+    '<div style="height:16px"></div><button class="b1" onclick="salvarGrupo()">Criar</button>'+
+    '<div style="height:10px"></div></div>';
+  document.body.appendChild(el);
+}
+async function salvarGrupo(){
+  var n=(document.getElementById('gn').value||'').trim();
+  if(n.length<2){alert('Dê um nome ao grupo.');return}
+  var e=document.getElementById('sheet');if(e)e.remove();
+  var g=await socCriarGrupo(n);
+  render();
+  if(g)compartilharGrupo(g.id);
+}
+function abrirPorCodigo(){
+  var el=document.createElement('div');el.className='sheet';el.id='sheet';
+  el.innerHTML='<div><div class="top"><h1 style="font-size:18px">Entrar por código</h1>'+
+    '<button class="x" onclick="fechar()">✕</button></div>'+
+    '<label>Código do grupo ou da pessoa</label>'+
+    '<input id="cg" placeholder="ABC12345" autocapitalize="characters" style="text-transform:uppercase">'+
+    '<p class="t2" style="margin:10px 0 0;line-height:1.5">Código de 8 letras entra num grupo. '+
+    'De 6 letras adiciona a pessoa.</p>'+
+    '<div style="height:16px"></div><button class="b1" onclick="usarCodigo()">Continuar</button>'+
+    '<div style="height:10px"></div></div>';
+  document.body.appendChild(el);
+}
+async function usarCodigo(){
+  var c=(document.getElementById('cg').value||'').trim().toUpperCase();
+  if(c.length<6){alert('Código muito curto.');return}
+  var e=document.getElementById('sheet');if(e)e.remove();
+  if(c.length>=8){
+    var g=await socEntrarGrupo(c);
+    if(g)alert('Você entrou em '+g.nome+'.');
+  }else{
+    var a=await socSeguirPorCodigo(c);
+    if(a)alert('Agora você acompanha '+a.apelido+'.');
+  }
+  render();
+}
+function compartilharGrupo(id){
+  var g=SOC.grupos.filter(function(x){return x.id===id})[0];
+  if(!g)return;
+  var link=linkConvite(g);
+  var txt='Bora treinar junto no Treinos? Entra no grupo '+g.nome+': '+link;
+  if(navigator.share){navigator.share({text:txt}).catch(function(){});return}
+  copiar(link,'Link copiado');
+}
+function abrirConvite(){
+  if(SOC.grupos.length)compartilharGrupo(SOC.grupos[0].id);
+  else abrirNovoGrupo();
+}
+function copiarCodigo(){copiar(SOC.perfil.codigo,'Código copiado')}
+function copiar(txt,msg){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ptrAviso(msg)});return;
+    }
+  }catch(e){}
+  var i=document.createElement('textarea');i.value=txt;
+  i.style.position='fixed';i.style.opacity='0';
+  document.body.appendChild(i);i.select();
+  try{document.execCommand('copy');ptrAviso(msg)}catch(e){alert(txt)}
+  i.remove();
+}
+
 /* ---------- landing ---------- */
 function semNav(){return view==='landing'||view==='auth'||view==='onboard'||view==='novasenha'}
 function vLanding(){
@@ -3116,6 +3508,20 @@ function temDados(d){
   return !!((d.sessoes&&d.sessoes.length)||(d.treinos&&d.treinos.length)||
             (d.series&&d.series.length)||(d.perfil&&d.perfil.nome));
 }
+async function convitePendente(){
+  var c='';
+  try{c=sessionStorage.getItem('treinos:convite')||''}catch(e){}
+  if(!c||!SB.user)return;
+  try{sessionStorage.removeItem('treinos:convite')}catch(e){}
+  await socCarregar(true);
+  if(!SOC.perfil){
+    var nome=(db.perfil&&db.perfil.nome)||'';
+    if(nome)await socCriarPerfil(nome);
+  }
+  var g=await socEntrarGrupo(c);
+  if(g){view='amigos';ctx={};render();
+    setTimeout(function(){alert('Você entrou em '+g.nome+'.')},350);}
+}
 async function aposLogin(){
   try{if(SB.user)localStorage.setItem('treinos:uid',SB.user.id)}catch(e){}
   db=await store.get();
@@ -3137,11 +3543,12 @@ async function aposLogin(){
     await sincronizar(true);
     checarConquistas(true);
     if(!temDados(db)){view='onboard';ctx={passo:1,tmp:{}}}else view='home';
-    render();return;
+    render();convitePendente();return;
   }
   // já temos tudo no aparelho: abre na hora e sincroniza por trás
   view='home';render();
   sincronizar(true).then(function(){checarConquistas(true);render()});
+  convitePendente();
 }
 function migrar(){
   if(!db.perfil)db.perfil={nome:'',meta:4,descanso:90,principal:'musculacao'};
@@ -3157,6 +3564,9 @@ function migrar(){
 (async function(){
   db=vazio();
   var recuperando=/type=recovery/.test(location.hash||'')||/type=recovery/.test(location.search||'');
+  var mConv=/[?&]g=([A-Za-z0-9]+)/.exec(location.search||'');
+  if(mConv){try{sessionStorage.setItem('treinos:convite',mConv[1])}catch(e){}
+    history.replaceState(null,'',location.pathname);}
   try{await window.SB_PRONTO}catch(e){}      // só decide a tela depois que a biblioteca chegou
   await iniciarSB();
   if(recuperando){view='novasenha';render();return}
