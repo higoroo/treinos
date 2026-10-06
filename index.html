@@ -16,6 +16,9 @@
   --tx:#FFFFFF; --tx2:#9C9CA6; --tx3:#61616C;
   --br:#232329; --br2:#34343D;
   --ac:#FF2D46; --ac-d:#3B0F16; --ac-t:#FF7182;
+  /* mesmo vermelho, um tom mais fundo: so onde tem letra branca em cima.
+     o #FF2D46 da 3.7:1 com branco, abaixo do minimo de leitura; este da 5:1 */
+  --ac-f:#D91E36;
   --ok:#FF2D46; --ok-d:#3B0F16;
   --bl:#FFFFFF; --bl-d:#26262C;
   --lm:#FFFFFF; --lm-d:#26262C;
@@ -47,7 +50,7 @@ h2{font-size:13px;font-weight:600;color:var(--tx2);margin:22px 0 8px;text-transf
 .stat.a .v{color:var(--ac-t)}.stat.l .v{color:var(--lm)}
 .stat .u{font-size:12px;color:var(--tx3)}
 button,.btn{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
-.b1{display:block;width:100%;background:var(--ac);color:#fff;font-weight:600;padding:16px;border-radius:var(--r);font-size:16px;text-align:center;letter-spacing:-.01em}
+.b1{display:block;width:100%;background:var(--ac-f);color:#fff;font-weight:600;padding:16px;border-radius:var(--r);font-size:16px;text-align:center;letter-spacing:-.01em}
 .b1:active{opacity:.8}
 .b2{display:block;width:100%;background:var(--s2);border:1px solid var(--br2);color:var(--tx);padding:13px;border-radius:var(--r);text-align:center;font-size:15px}
 .b3{background:var(--s2);border:1px solid var(--br2);padding:8px 13px;border-radius:20px;font-size:13px;color:var(--tx2)}
@@ -94,7 +97,7 @@ nav button.on{color:var(--ac)}
 .segp{display:inline-flex;background:var(--s2);border-radius:999px;padding:3px;gap:2px}
 .segp button{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
   color:var(--tx3);padding:5px 12px;border-radius:999px;transition:background .18s,color .18s}
-.segp button.on{background:var(--ac);color:#fff}
+.segp button.on{background:var(--ac-f);color:#fff}
 .ldia{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:var(--tx3);padding:14px 0 7px;border-bottom:1px solid var(--br)}
 .ldia:first-child{padding-top:12px}
@@ -109,6 +112,37 @@ nav button.on{color:var(--ac)}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lnome.meu{color:var(--ac-t)}
 .lmod{flex:0 0 auto;font-size:12px;color:var(--tx3)}
+
+/* feed: quem treinou, com a reacao */
+.fdl{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--br)}
+.fdl:last-child{border-bottom:0}
+.fav{width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:var(--s3);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--tx)}
+.fav.meu{background:var(--ac-f);color:#fff}
+.fdc{flex:1;min-width:0}
+.fdn{font-size:14px;font-weight:600;color:var(--tx);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fdn.meu{color:var(--ac-t)}
+.fdm{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2);margin-top:2px}
+.fbt{flex:0 0 auto;display:flex;align-items:center;gap:5px;background:transparent;
+  border:1px solid var(--br2);border-radius:999px;color:var(--tx2);font-size:12px;
+  font-weight:700;padding:8px 11px;min-height:38px;
+  transition:background .15s,color .15s,border-color .15s,transform .12s}
+.fbt.on{background:var(--ac-d);border-color:var(--ac-d);color:var(--ac-t)}
+.fbt:active{transform:scale(.9)}
+.fbt.meu{border-color:transparent;background:var(--ac-d);color:var(--ac-t)}
+
+/* meta da semana: comparada so com voce mesmo */
+.mt{background:var(--s1);border:1px solid var(--br);border-radius:var(--r);padding:14px;margin-bottom:20px}
+.mt.zero{border-color:var(--br2);padding:16px}
+.mtb{display:flex;height:8px;border-radius:999px;background:var(--s3);overflow:hidden}
+.mtb>i{display:block;background:var(--ac);border-radius:999px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.mz{display:flex;align-items:center;gap:12px;margin-bottom:13px}
+.mzi{width:40px;height:40px;flex:0 0 40px;border-radius:13px;background:var(--ac-d);
+  color:var(--ac-t);display:flex;align-items:center;justify-content:center}
+.porta{margin:0;padding:4px 6px 0;font-size:12px;line-height:1.5;color:var(--tx2);text-align:center}
+.rkgap{display:flex;align-items:center;justify-content:center;padding:7px 0;
+  font-size:12px;color:var(--tx2);border-bottom:1px solid var(--br)}
 .pill.on{background:var(--ac-d);color:var(--ac-t)}
 .pill.b{background:var(--bl-d);color:#A8B8FF}
 .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 10px;border-radius:16px;background:var(--s2);color:var(--tx);margin:0 6px 6px 0}
@@ -413,7 +447,7 @@ body{overscroll-behavior-y:contain}
 .rkl.eu .rkp{color:var(--ac-t)}
 .rkav{width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:var(--s2);display:flex;
   align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--tx2)}
-.rkav.meu{background:var(--ac);color:#fff}
+.rkav.meu{background:var(--ac-f);color:#fff}
 .rkn{flex:1;font-size:14px;color:var(--tx2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rkl.eu .rkn{color:var(--tx);font-weight:700}
 .rkb{display:flex;gap:3px}
@@ -483,7 +517,7 @@ body{overscroll-behavior-y:contain}
 .dots .l{font-size:9px;font-weight:700;color:var(--tx3);margin-top:7px;text-transform:uppercase;letter-spacing:.12em}
 .lgd{display:flex;gap:15px;justify-content:center;margin-top:15px;flex-wrap:wrap}
 .lgd span{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx3)}
-.cta{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--ac);color:#fff;border-radius:22px;padding:20px;width:100%;text-align:left;margin-bottom:12px;animation:glow 3.2s ease-in-out infinite}
+.cta{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--ac-f);color:#fff;border-radius:22px;padding:20px;width:100%;text-align:left;margin-bottom:12px;animation:glow 3.2s ease-in-out infinite}
 .cta .n{font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin:3px 0}
 .cta .s{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
 .cta .s2{font-size:13px;opacity:.85}
@@ -2606,7 +2640,7 @@ function verTodosRec(){ctx.todosRec=!ctx.todosRec;render()}
 
 
 /* ---------- social ---------- */
-var SOC={perfil:null,grupos:[],membros:{},pessoas:{},presencas:[],feed:[],
+var SOC={perfil:null,grupos:[],membros:{},pessoas:{},presencas:[],feed:[],reacoes:{},
          carregado:false,ocupado:false,erro:''};
 function temSocial(){return !!(SB.cli&&SB.user&&SOC.perfil)}
 function gerarCodigo(n){
@@ -2650,11 +2684,17 @@ async function socCarregar(forcar){
       var r=await Promise.all([
         SB.cli.from('tr_grupo_membros').select('grupo_id').eq('user_id',u),
         SB.cli.from('tr_presenca').select('*').gte('data',ini),
-        SB.cli.from('tr_social_perfil').select('user_id,apelido')
+        SB.cli.from('tr_social_perfil').select('user_id,apelido'),
+        SB.cli.from('tr_presenca_reacoes').select('presenca_id,user_id')
       ]);
       var meusG=(r[0].data||[]).map(function(x){return x.grupo_id});
       SOC.presencas=r[1].data||[];
       SOC.pessoas={};(r[2].data||[]).forEach(function(x){SOC.pessoas[x.user_id]=x.apelido});
+      SOC.reacoes={};
+      (r[3].data||[]).forEach(function(x){
+        var o=SOC.reacoes[x.presenca_id]||(SOC.reacoes[x.presenca_id]={n:0,eu:false});
+        o.n++;if(x.user_id===u)o.eu=true;
+      });
       if(meusG.length){
         var g=await Promise.all([
           SB.cli.from('tr_grupos').select('*').in('id',meusG),
@@ -2733,9 +2773,39 @@ async function socPresenca(sessao){
   if(!sessao||sessao.arquivada)return;
   try{
     await SB.cli.from('tr_presenca').upsert(
-      {id:sessao.id,user_id:SB.user.id,data:sessao.data,tipo:sessao.tipo},{onConflict:'id'});
+      {id:sessao.id,user_id:SB.user.id,data:sessao.data,tipo:sessao.tipo,
+       criado:horaPresenca(sessao)},{onConflict:'id'});
     SOC.carregado=false;
   }catch(e){}
+}
+
+/* Hora que vai pro feed. Usa o fim do treino quando existe; senao o meio-dia
+   do dia. Nunca "agora", pra treino antigo nao aparecer como recem-feito. */
+function horaPresenca(s){
+  var t=s.fim||s.inicio;
+  if(t){var d=new Date(t);if(!isNaN(d))return d.toISOString()}
+  return new Date((s.data||hoje())+'T12:00:00').toISOString();
+}
+
+/* Forca: um toque, sem comentario. Troca na tela na hora e so depois grava. */
+async function socReagir(id){
+  if(!temSocial())return;
+  var p=null;
+  for(var i=0;i<SOC.presencas.length;i++)if(SOC.presencas[i].id===id){p=SOC.presencas[i];break}
+  if(!p||p.user_id===SB.user.id)return;
+  var r=SOC.reacoes[id]||(SOC.reacoes[id]={n:0,eu:false});
+  var ligando=!r.eu;
+  r.eu=ligando;r.n=Math.max(0,r.n+(ligando?1:-1));
+  render();
+  try{
+    var q=ligando
+      ? await SB.cli.from('tr_presenca_reacoes').insert({presenca_id:id,user_id:SB.user.id})
+      : await SB.cli.from('tr_presenca_reacoes').delete()
+          .eq('presenca_id',id).eq('user_id',SB.user.id);
+    if(q&&q.error&&(q.error.message||'').indexOf('duplicate')<0){
+      r.eu=!ligando;r.n=Math.max(0,r.n+(ligando?-1:1));render();
+    }
+  }catch(e){r.eu=!ligando;r.n=Math.max(0,r.n+(ligando?-1:1));render()}
 }
 async function socApagarPresenca(id){
   if(!temSocial())return;
@@ -2757,7 +2827,7 @@ async function socPublicarPendentes(){
     if(s.aberta)return;
     if(s.arquivada){if(jaTem[s.id])arquivadas.push(s.id);return}
     if(jaTem[s.id])return;
-    faltando.push({id:s.id,user_id:u,data:s.data,tipo:s.tipo});
+    faltando.push({id:s.id,user_id:u,data:s.data,tipo:s.tipo,criado:horaPresenca(s)});
   });
   try{
     for(var i=0;i<faltando.length;i+=200){
@@ -2840,45 +2910,17 @@ function vAmigos(){
     return h+cartaoMeuCodigo();
   }
 
-  // ranking
   var eu=rk.filter(function(x){return x.eu})[0]||{n:0};
-  var pos=rk.indexOf(eu);
-  var acima=pos>0?rk[pos-1]:null;
-  var mx=Math.max.apply(null,rk.map(function(x){return x.n}).concat([1]));
-  var lim=ctx.rkTudo?rk.length:6;
-  h+='<div class="card an" style="animation-delay:40ms"><div class="top" style="margin-bottom:12px">'+
-    '<div class="segp">'+
-      '<button class="'+(mes?'':'on')+'" onclick="verPeriodo(\'sem\')">Semana</button>'+
-      '<button class="'+(mes?'on':'')+'" onclick="verPeriodo(\'mes\')">Mês</button>'+
-    '</div>'+
-    '<span class="t2">'+(mes?esc(rotuloMes()):'termina domingo')+'</span></div>'+
-    rk.slice(0,lim).map(function(x,i){
-      return '<div class="rkl'+(x.eu?' eu':'')+'">'+
-        '<span class="rkp'+(i===0?' ouro':'')+'">'+(i+1)+'</span>'+
-        '<span class="rkav'+(x.eu?' meu':'')+'">'+esc(x.ini)+'</span>'+
-        '<span class="rkn">'+esc(x.nome)+'</span>'+
-        '<span class="rkb">'+Array.apply(null,{length:Math.min(x.n,7)}).map(function(){
-          return '<i></i>'}).join('')+'</span>'+
-        '<span class="rkv">'+x.n+'</span></div>';
-    }).join('')+
-    (rk.length>6&&!ctx.rkTudo?'<button class="vt" onclick="verTodoRanking()">ver os '+rk.length+'</button>':'')+
-    '</div>';
+  // o placar so aparece depois do primeiro treino do periodo. por acao, nao por
+  // data: se fosse por data, toda segunda de manha ninguem veria o ranking.
+  var destravado=eu.n>0;
 
-  if(acima&&acima.n>eu.n){
-    var dif=acima.n-eu.n;
-    var faltam=mes?diasNoMes()-Number(hoje().slice(8,10)):6-((new Date().getDay()+6)%7);
-    h+='<div class="alvo an" style="animation-delay:70ms"><div class="aic">'+svg('chama',18)+'</div>'+
-      '<div class="f1"><div class="at">'+esc(acima.nome)+' está '+dif+
-      (dif===1?' treino':' treinos')+' na sua frente</div>'+
-      '<div class="asub">'+(faltam<=0?(mes?'último dia do mês':'último dia da semana')
-        :'faltam '+faltam+(faltam===1?' dia':' dias')+' pra fechar o '+(mes?'mês':'')+(mes?'':'a semana'))+'</div></div></div>';
-  }else if(pos===0&&eu.n>0&&rk.length>1){
-    h+='<div class="alvo an" style="animation-delay:70ms"><div class="aic">'+svg('medalha',18)+'</div>'+
-      '<div class="f1"><div class="at">Você está em primeiro</div>'+
-      '<div class="asub">'+(mes?'segure até o fim do mês':'segure até domingo')+'</div></div></div>';
-  }
+  h+=cartaoMeta(destravado);
+  h+=feedSocial();
 
-  h+=lancamentosMes();
+  if(destravado)h+=cartaoRanking(rk,eu,mes);
+  else h+='<p class="porta an" style="animation-delay:120ms">'+
+    'O ranking '+(mes?'do mês':'da semana')+' aparece aqui assim que você registrar seu primeiro treino.</p>';
 
   h+='<h2>Seus grupos</h2>';
   h+=SOC.grupos.length?SOC.grupos.map(function(g){
@@ -2907,6 +2949,46 @@ function diasNoMes(d){
   x.setMonth(x.getMonth()+1);x.setDate(0);
   return x.getDate();
 }
+/* So no dia de hoje: dentro do dia o cabecalho ja diz a data */
+function horaRel(p){
+  if(!p||p.data!==hoje()||!p.criado)return '';
+  var t=new Date(p.criado);if(isNaN(t))return '';
+  // meio-dia cravado e a convencao de "treino sem hora registrada":
+  // melhor nao mostrar relogio nenhum do que inventar uma recencia
+  if(t.getHours()===12&&t.getMinutes()===0&&t.getSeconds()===0)return '';
+  var min=Math.floor((Date.now()-t.getTime())/60000);
+  if(min<0)min=0;
+  if(min<5)return 'agora';
+  if(min<60)return 'há '+min+'min';
+  var h=Math.floor(min/60);
+  if(h<24)return 'há '+h+'h';
+  return '';
+}
+
+/* Meta da semana: o numero e seu, comparado com voce mesmo */
+function metaSemana(){
+  var m=Math.max(1,db.perfil.meta||5);
+  return {feitos:semanaAtual(),meta:m};
+}
+
+/* O placar mostra os 3 primeiros e a vizinhanca de quem olha.
+   Nunca a lista inteira com a pessoa no fim. */
+function rankingRecorte(rk,tudo){
+  var i,out=[];
+  if(tudo||rk.length<=6){
+    for(i=0;i<rk.length;i++)out.push({x:rk[i],pos:i+1});
+    return out;
+  }
+  var meu=-1;
+  for(i=0;i<rk.length;i++)if(rk[i].eu){meu=i;break}
+  for(i=0;i<3;i++)out.push({x:rk[i],pos:i+1});
+  if(meu<0||meu<3)return out;
+  var ini=Math.max(3,meu-1),fim=Math.min(rk.length-1,meu+1);
+  if(ini>3)out.push({pulo:ini-3});
+  for(i=ini;i<=fim;i++)out.push({x:rk[i],pos:i+1});
+  return out;
+}
+
 function rotuloDia(d){
   var hj=hoje();
   if(d===hj)return 'hoje';
@@ -2915,36 +2997,120 @@ function rotuloDia(d){
   return diaSem(d)+' '+d.slice(8,10)+'/'+d.slice(5,7);
 }
 
-/* lancamentos do mes: quem treinou o que, dia a dia */
-function lancamentosMes(){
-  var ini=primeiroDoMes();
-  var ls=SOC.presencas.filter(function(p){return p.data>=ini})
-    .sort(function(a,b){return b.data.localeCompare(a.data)||String(b.id).localeCompare(String(a.id))});
-  if(!ls.length){
-    return '<h2>Este mês</h2><div class="card"><p class="t2" style="margin:0;line-height:1.5">'+
-      'Nenhum treino lançado em '+esc(rotuloMes())+' ainda. O primeiro que treinar abre o mês.</p></div>';
+/* Sua semana: o numero e seu, comparado so com a sua meta.
+   Com zero, vira o convite — e nao um placar com voce em ultimo. */
+function cartaoMeta(destravado){
+  var m=metaSemana();
+  if(!m.feitos){
+    return '<div class="mt zero an" style="animation-delay:40ms">'+
+      '<div class="mz"><span class="mzi">'+svg('chama',20)+'</span>'+
+      '<div class="f1"><div class="t" style="font-weight:700;font-size:17px;letter-spacing:-.015em">'+
+      'Sua semana começa agora</div>'+
+      '<div class="t2" style="margin-top:2px">0 de '+m.meta+' · ainda dá tempo</div></div></div>'+
+      '<div class="mtb"></div><div style="height:15px"></div>'+
+      '<button class="b1" onclick="ir(\'treinos\')">Registrar um treino</button></div>';
   }
-  var meus=ls.filter(function(p){return p.user_id===SB.user.id}).length;
+  var pc=Math.min(100,Math.round(m.feitos/m.meta*100));
+  var falta=Math.max(0,m.meta-m.feitos);
+  return '<div class="mt an" style="animation-delay:40ms">'+
+    '<div class="top" style="align-items:baseline;margin-bottom:11px">'+
+    '<span class="lb">sua semana</span>'+
+    '<span style="font-size:16px;font-weight:700">'+m.feitos+
+    ' <span style="font-size:13px;font-weight:600;color:var(--tx2)">de '+m.meta+'</span></span></div>'+
+    '<div class="mtb"><i style="width:'+pc+'%"></i></div>'+
+    '<p class="t2" style="margin:10px 0 0;font-size:12px'+(falta?'':';color:var(--ac-t);font-weight:600')+'">'+
+    (falta?('falta'+(falta===1?' 1 treino':'m '+falta+' treinos')+' pra bater sua meta')
+          :'meta da semana batida')+'</p></div>';
+}
+
+/* O feed: quem se mexeu, dia a dia. Vem antes do placar de proposito. */
+function feedSocial(){
+  var ini=primeiroDoMes();
+  var ls=SOC.presencas.filter(function(p){return p.data>=ini}).slice().sort(function(a,b){
+    if(a.data!==b.data)return b.data.localeCompare(a.data);
+    var ta=a.criado?new Date(a.criado).getTime():0,tb=b.criado?new Date(b.criado).getTime():0;
+    return tb-ta||String(b.id).localeCompare(String(a.id));
+  });
+  if(!ls.length){
+    return '<h2>No tatame</h2><div class="card"><p class="t2" style="margin:0;line-height:1.5">'+
+      'Ninguém registrou treino em '+esc(rotuloMes())+' ainda. '+
+      'O primeiro que treinar abre o mês.</p></div>';
+  }
+  var hj=ls.filter(function(p){return p.data===hoje()}).length;
   var dias={};ls.forEach(function(p){(dias[p.data]=dias[p.data]||[]).push(p)});
   var ord=Object.keys(dias).sort(function(a,b){return b.localeCompare(a)});
-  var corte=ctx.lcTudo?ord.length:7;
+  var corte=ctx.lcTudo?ord.length:6;
   var h='<div class="top" style="margin:26px 0 4px;align-items:flex-end">'+
-    '<h2 style="margin:0">Este mês</h2>'+
-    '<span class="t2">'+ls.length+(ls.length===1?' treino':' treinos')+
-    (meus?' · '+meus+' seu'+(meus===1?'':'s'):'')+'</span></div>'+
-    '<div class="card" style="padding:2px 14px">';
+    '<h2 style="margin:0">No tatame</h2>'+
+    '<span class="t2">'+(hj?hj+(hj===1?' treino hoje':' treinos hoje'):ls.length+' no mês')+'</span></div>'+
+    '<div class="card an" style="padding:2px 14px;animation-delay:70ms">';
   ord.slice(0,corte).forEach(function(d){
     h+='<div class="ldia">'+esc(rotuloDia(d))+'</div>';
-    dias[d].forEach(function(p){
-      var meu=p.user_id===SB.user.id;
-      var nome=meu?'você':(SOC.pessoas[p.user_id]||'alguém');
-      h+='<div class="lrow"><span class="lic '+cls(p.tipo)+'">'+svg(p.tipo,15)+'</span>'+
-        '<span class="lnome'+(meu?' meu':'')+'">'+esc(nome)+'</span>'+
-        '<span class="lmod">'+esc(nomeTipo(p.tipo))+'</span></div>';
-    });
+    dias[d].forEach(function(p){h+=linhaFeed(p)});
   });
   h+='</div>';
   if(ord.length>corte)h+='<button class="b2" style="margin-top:9px" onclick="verTodosLanc()">ver o mês inteiro</button>';
+  return h;
+}
+
+function linhaFeed(p){
+  var meu=p.user_id===SB.user.id;
+  var nome=meu?'você':(SOC.pessoas[p.user_id]||'alguém');
+  var ini=meu?iniciais((SOC.perfil&&SOC.perfil.apelido)||'eu'):iniciais(SOC.pessoas[p.user_id]||'?');
+  var r=SOC.reacoes[p.id]||{n:0,eu:false};
+  var qd=horaRel(p);
+  var botao=meu
+    ? (r.n?'<span class="fbt meu">'+svg('chama',14)+r.n+'</span>':'')
+    : '<button class="fbt'+(r.eu?' on':'')+'" onclick="socReagir(\''+p.id+'\')" '+
+      'aria-label="Mandar força para '+esc(nome)+'">'+svg('chama',14)+(r.n||'')+'</button>';
+  return '<div class="fdl"><span class="fav'+(meu?' meu':'')+'">'+esc(ini)+'</span>'+
+    '<span class="fdc"><span class="fdn'+(meu?' meu':'')+'">'+esc(nome)+'</span>'+
+    '<span class="fdm">'+svg(p.tipo,13)+esc(nomeTipo(p.tipo))+(qd?' · '+esc(qd):'')+'</span></span>'+
+    botao+'</div>';
+}
+
+/* Placar: topo 3 e a vizinhanca de quem olha, nunca a lista inteira */
+function cartaoRanking(rk,eu,mes){
+  var linhas=rankingRecorte(rk,ctx.rkTudo);
+  var h='<div class="top" style="margin:26px 0 4px;align-items:flex-end">'+
+    '<h2 style="margin:0">Ranking</h2>'+
+    '<div class="segp">'+
+      '<button class="'+(mes?'':'on')+'" onclick="verPeriodo(\'sem\')">Semana</button>'+
+      '<button class="'+(mes?'on':'')+'" onclick="verPeriodo(\'mes\')">Mês</button>'+
+    '</div></div>'+
+    '<div class="card an" style="animation-delay:100ms">'+
+    '<div class="top" style="margin-bottom:8px"><span class="lb">'+
+    (mes?esc(rotuloMes()):'esta semana')+'</span>'+
+    '<span class="t2">'+(mes?'fecha dia '+diasNoMes():'termina domingo')+'</span></div>';
+  linhas.forEach(function(l){
+    if(l.pulo){h+='<div class="rkgap">mais '+l.pulo+(l.pulo===1?' pessoa':' pessoas')+'</div>';return}
+    var x=l.x;
+    h+='<div class="rkl'+(x.eu?' eu':'')+'">'+
+      '<span class="rkp'+(l.pos===1?' ouro':'')+'" style="width:'+(rk.length>9?20:16)+'px;flex-basis:'+
+      (rk.length>9?20:16)+'px">'+l.pos+'</span>'+
+      '<span class="rkav'+(x.eu?' meu':'')+'">'+esc(x.ini)+'</span>'+
+      '<span class="rkn">'+esc(x.nome)+'</span>'+
+      '<span class="rkb">'+Array.apply(null,{length:Math.min(x.n,7)}).map(function(){
+        return '<i></i>'}).join('')+'</span>'+
+      '<span class="rkv">'+x.n+'</span></div>';
+  });
+  if(rk.length>6&&!ctx.rkTudo)h+='<button class="vt" onclick="verTodoRanking()">ver os '+rk.length+'</button>';
+  h+='</div>';
+
+  var pos=rk.indexOf(eu),acima=pos>0?rk[pos-1]:null;
+  if(acima&&acima.n>eu.n){
+    var dif=acima.n-eu.n;
+    var faltam=mes?diasNoMes()-Number(hoje().slice(8,10)):6-((new Date().getDay()+6)%7);
+    h+='<div class="alvo an" style="animation-delay:130ms"><div class="aic">'+svg('chama',18)+'</div>'+
+      '<div class="f1"><div class="at">'+esc(acima.nome)+' está '+dif+
+      (dif===1?' treino':' treinos')+' na sua frente</div>'+
+      '<div class="asub">'+(faltam<=0?(mes?'último dia do mês':'último dia da semana')
+        :'faltam '+faltam+(faltam===1?' dia':' dias')+' pra fechar '+(mes?'o mês':'a semana'))+'</div></div></div>';
+  }else if(pos===0&&rk.length>1){
+    h+='<div class="alvo an" style="animation-delay:130ms"><div class="aic">'+svg('medalha',18)+'</div>'+
+      '<div class="f1"><div class="at">Você está em primeiro</div>'+
+      '<div class="asub">'+(mes?'segure até o fim do mês':'segure até domingo')+'</div></div></div>';
+  }
   return h;
 }
 
