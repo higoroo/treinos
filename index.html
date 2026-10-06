@@ -280,11 +280,36 @@ body.limpo{padding-bottom:0}
 .dots{display:flex;justify-content:space-between;gap:5px;margin-top:20px;align-items:flex-end}
 .dots>div{flex:1;text-align:center;min-width:0}
 .dots .col{display:flex;flex-direction:column;gap:4px}
-.dots .dd{height:34px;border-radius:11px;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center}
+.dots .dd{height:40px;border-radius:12px;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center}
 .dots .dd.vazio{background:var(--s2)}
 .dots .hj .dd{box-shadow:inset 0 0 0 2px #fff}
 .dots .hj .dd.vazio{box-shadow:inset 0 0 0 2px var(--tx2)}
 .dots .mais{font-size:10px;font-weight:700;color:var(--ac-t);margin-top:2px}
+
+/* ---- calendario do mes ---- */
+.verm{display:block;width:100%;text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--br);
+  font-size:11px;font-weight:700;letter-spacing:.09em;color:var(--ac-t)}
+.mcab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 14px}
+.mcab .nav{width:40px;height:40px;flex:0 0 40px;border-radius:13px;background:var(--s2);color:#fff;
+  display:flex;align-items:center;justify-content:center}
+.mcab .nav.off{background:transparent;color:var(--br2)}
+.mcab .tit{font-size:15px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.mcab .sub2{font-size:11px;color:var(--tx3);margin-top:2px}
+.msem{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.msem div{font-size:9px;font-weight:700;color:var(--tx3);text-align:center;letter-spacing:.1em}
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.mdia{height:56px;border-radius:12px;background:var(--s2);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;overflow:hidden;position:relative;padding:9px 0 2px}
+.mdia.fora{background:transparent}
+.mdia.tem{background:var(--ac);color:#fff}
+.mdia.hj{box-shadow:inset 0 0 0 2px var(--tx2)}
+.mdia.tem.hj{box-shadow:inset 0 0 0 2px #fff}
+.mdia .sl{flex:1;display:flex;align-items:center;justify-content:center;width:100%}
+.mdia .risco{width:26px;height:1.5px;background:rgba(255,255,255,.45);border-radius:1px;flex:0 0 auto}
+.mdia .num2{position:absolute;top:3px;left:5px;font-size:9px;font-weight:700;color:var(--tx3)}
+.mdia.tem .num2{color:rgba(255,255,255,.65)}
+.mdia .mais2{position:absolute;top:3px;right:4px;font-size:9px;font-weight:800;
+  color:rgba(255,255,255,.95);line-height:12px}
 .dots .l{font-size:9px;font-weight:700;color:var(--tx3);margin-top:7px;text-transform:uppercase;letter-spacing:.12em}
 .lgd{display:flex;gap:15px;justify-content:center;margin-top:15px;flex-wrap:wrap}
 .lgd span{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx3)}
@@ -397,7 +422,7 @@ function vazio(){
     perfil:{nome:'',meta:4,descanso:90,principal:'musculacao',whatsapp:'',academia:'',nascimento:'',peso:''},
     exercicios:[],treinos:[],sessoes:[],series:[],
     graduacoes:[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}],
-    tecnicas:[],objetivos:[],campeonatos:[]};
+    tecnicas:[],objetivos:[],campeonatos:[],calExp:false};
 }
 
 /* ---------- estado ---------- */
@@ -637,14 +662,17 @@ function vHome(){
     '<div style="text-align:right;padding-bottom:4px"><div style="font-size:30px;font-weight:800;letter-spacing:-.04em" class="num">'+
       '<span data-cnt="'+sm+'">0</span><span style="color:var(--tx3);font-weight:600">/'+m+'</span></div>'+
     '<div class="lb" style="margin-top:6px">na semana</div></div></div>'+
-    '<div class="dots">'+semanaDias().map(function(x,i){
-      var blocos=x.tipos.length
-        ? x.tipos.slice(0,3).map(function(t,j){
-            return '<div class="dd ap" style="animation-delay:'+(220+i*55+j*45)+'ms">'+svg(t,18)+'</div>';
-          }).join('')+(x.tipos.length>3?'<div class="mais">+'+(x.tipos.length-3)+'</div>':'')
-        : '<div class="dd vazio ap" style="animation-delay:'+(220+i*55)+'ms"></div>';
-      return '<div class="'+(x.hj?'hj':'')+'"><div class="col">'+blocos+'</div><div class="l">'+x.l+'</div></div>';
-    }).join('')+'</div>'+legendaSemana()+'</div>';
+    (db.calExp
+      ? blocoMes()
+      : '<div class="dots">'+semanaDias().map(function(x,i){
+          var blocos=x.tipos.length
+            ? x.tipos.slice(0,3).map(function(t,j){
+                return '<div class="dd ap" style="animation-delay:'+(220+i*55+j*45)+'ms">'+svg(t,24)+'</div>';
+              }).join('')+(x.tipos.length>3?'<div class="mais">+'+(x.tipos.length-3)+'</div>':'')
+            : '<div class="dd vazio ap" style="animation-delay:'+(220+i*55)+'ms"></div>';
+          return '<div class="'+(x.hj?'hj':'')+'"><div class="col">'+blocos+'</div><div class="l">'+x.l+'</div></div>';
+        }).join('')+'</div>'+legendaSemana())+
+    '<button class="verm" onclick="expandeCal()">'+(db.calExp?'RECOLHER  ⌃':'VER O MÊS  ⌄')+'</button></div>';
 
   if(esquecida){
     h+='<div class="card an" style="animation-delay:110ms;border-color:var(--ac);margin-bottom:12px">'+
@@ -1848,6 +1876,94 @@ function vResumo(){
   return h;
 }
 
+
+/* ---------- calendario do mes ---------- */
+var ORDEM_MOD={musculacao:0,jiujitsu:1,corrida:2};
+function tiposDoDia(iso){
+  return sessoesOk().filter(function(s){return s.data===iso})
+    .map(function(s){return s.tipo})
+    .sort(function(a,b){return ORDEM_MOD[a]-ORDEM_MOD[b]});
+}
+function primeiraData(){
+  var ds=sessoesOk().map(function(s){return s.data}).sort();
+  return ds.length?ds[0]:hoje();
+}
+function mesAtual(){
+  if(!ctx.mes){var h=hoje();ctx.mes=h.slice(0,7)}
+  return ctx.mes;
+}
+function mudaMes(n){
+  var p=mesAtual().split('-'),d=new Date(+p[0],+p[1]-1+n,1);
+  var novo=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  if(novo>hoje().slice(0,7))return;                 // nao passa do mes corrente
+  if(novo<primeiraData().slice(0,7))return;         // nao volta antes do primeiro treino
+  ctx.mes=novo;render();
+}
+function diasDoMes(mes){
+  var p=mes.split('-'),ano=+p[0],m=+p[1];
+  var pri=new Date(ano,m-1,1), ult=new Date(ano,m,0);
+  var vazios=(pri.getDay()+6)%7;                    // segunda = 0
+  var out=[],i;
+  for(i=0;i<vazios;i++)out.push(null);
+  for(i=1;i<=ult.getDate();i++){
+    var iso=mes+'-'+String(i).padStart(2,'0');
+    out.push({dia:i,iso:iso,tipos:tiposDoDia(iso),hj:iso===hoje()});
+  }
+  return out;
+}
+function celulaMes(x){
+  if(!x)return '<div class="mdia fora"></div>';
+  var cls='mdia'+(x.tipos.length?' tem':'')+(x.hj?' hj':'');
+  var dentro='<span class="num2">'+x.dia+'</span>';
+  if(!x.tipos.length){
+    return '<div class="'+cls+'">'+dentro+'</div>';
+  }
+  if(x.tipos.length===1){
+    dentro+='<div class="sl">'+svg(x.tipos[0],26)+'</div>';
+  }else{
+    dentro+='<div class="sl">'+svg(x.tipos[0],19)+'</div><div class="risco"></div>'+
+            '<div class="sl">'+svg(x.tipos[1],19)+'</div>';
+    if(x.tipos.length>2)dentro+='<span class="mais2">+'+(x.tipos.length-2)+'</span>';
+  }
+  return '<button class="'+cls+'" onclick="verDia(\''+x.iso+'\')">'+dentro+'</button>';
+}
+function blocoMes(){
+  var mes=mesAtual(),dias=diasDoMes(mes);
+  var nomes=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var p=mes.split('-');
+  var qtd=sessoesOk().filter(function(s){return s.data.slice(0,7)===mes}).length;
+  var temAntes=mes>primeiraData().slice(0,7);
+  var temDepois=mes<hoje().slice(0,7);
+  return '<div class="mcab">'+
+    '<button class="nav'+(temAntes?'':' off')+'" onclick="mudaMes(-1)" aria-label="Mês anterior">'+
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>'+
+    '<div style="text-align:center;flex:1;min-width:0"><div class="tit">'+nomes[+p[1]-1]+' '+p[0]+'</div>'+
+    '<div class="sub2">'+(qtd?qtd+(qtd===1?' atividade':' atividades'):'nenhuma atividade')+'</div></div>'+
+    '<button class="nav'+(temDepois?'':' off')+'" onclick="mudaMes(1)" aria-label="Mês seguinte">'+
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>'+
+    '<div class="msem"><div>S</div><div>T</div><div>Q</div><div>Q</div><div>S</div><div>S</div><div>D</div></div>'+
+    '<div class="mgrid">'+dias.map(celulaMes).join('')+'</div>';
+}
+function verDia(iso){
+  var ss=sessoesOk().filter(function(s){return s.data===iso});
+  if(!ss.length)return;
+  var el=document.createElement('div');el.className='sheet';el.id='sheet';
+  el.innerHTML='<div><div class="top"><h1 style="font-size:18px">'+diaSem(iso)+', '+dtBr(iso)+'</h1>'+
+    '<button class="x" onclick="fechar()">✕</button></div>'+
+    '<div style="height:6px"></div>'+
+    ss.map(function(s){
+      return '<div class="row" onclick="fechar();verSessao(\''+s.id+'\')"><div class="ic '+cls(s.tipo)+'">'+icone(s.tipo)+'</div>'+
+        '<div class="f1"><div class="t">'+esc(resumo(s))+'</div><div class="t2">'+detalhe(s)+'</div></div><span class="x">›</span></div>';
+    }).join('')+
+    '<div style="height:16px"></div></div>';
+  document.body.appendChild(el);
+}
+function expandeCal(){
+  db.calExp=!db.calExp;
+  if(db.calExp)ctx.mes=hoje().slice(0,7);
+  salvar();render();
+}
+
 /* ---------- landing ---------- */
 function semNav(){return view==='landing'||view==='auth'||view==='onboard'||view==='novasenha'}
 function vLanding(){
@@ -2424,6 +2540,7 @@ function migrar(){
   ['whatsapp','academia','nascimento','peso'].forEach(function(c){if(db.perfil[c]==null)db.perfil[c]=''});
   if(!db.objetivos)db.objetivos=[];
   if(!db.campeonatos)db.campeonatos=[];
+  if(db.calExp===undefined)db.calExp=false;
   if(!db.tecnicas)db.tecnicas=[];
   if(!db.graduacoes||!db.graduacoes.length)db.graduacoes=[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}];
   (db.treinos||[]).forEach(function(t){(t.itens||[]).forEach(function(i){if(!i.id)i.id=uid()})});
