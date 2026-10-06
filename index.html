@@ -2666,6 +2666,7 @@ async function socCarregar(forcar){
           (SOC.membros[m.grupo_id]=SOC.membros[m.grupo_id]||[]).push(m.user_id);
         });
       }else{SOC.grupos=[];SOC.membros={}}
+      await socPublicarPendentes();
     }
     SOC.carregado=true;
   }catch(e){SOC.erro=erroPt(e.message)}
@@ -2739,6 +2740,39 @@ async function socPresenca(sessao){
 async function socApagarPresenca(id){
   if(!temSocial())return;
   try{await SB.cli.from('tr_presenca').delete().eq('id',id)}catch(e){}
+}
+
+/* Treino registrado antes do social existir nunca subiu: a presenca so era
+   publicada no fim da sessao. Aqui o que ficou para tras sobe de uma vez.
+   So sobe data e modalidade, igual ao resto: nada de carga, nota ou duracao. */
+async function socPublicarPendentes(){
+  if(!temSocial()||!SOC.perfil.no_ranking)return 0;
+  if(!db||!db.sessoes)return 0;
+  var ini=inicioJanela(),u=SB.user.id;
+  var jaTem={};
+  SOC.presencas.forEach(function(p){if(p.user_id===u)jaTem[p.id]=p});
+  var faltando=[],arquivadas=[];
+  db.sessoes.forEach(function(s){
+    if(!s.data||s.data<ini)return;
+    if(s.aberta)return;
+    if(s.arquivada){if(jaTem[s.id])arquivadas.push(s.id);return}
+    if(jaTem[s.id])return;
+    faltando.push({id:s.id,user_id:u,data:s.data,tipo:s.tipo});
+  });
+  try{
+    for(var i=0;i<faltando.length;i+=200){
+      var lote=faltando.slice(i,i+200);
+      var r=await SB.cli.from('tr_presenca').upsert(lote,{onConflict:'id'});
+      if(r&&r.error)return 0;
+      lote.forEach(function(x){SOC.presencas.push(x)});
+    }
+    if(arquivadas.length){
+      await SB.cli.from('tr_presenca').delete().in('id',arquivadas);
+      SOC.presencas=SOC.presencas.filter(function(p){
+        return !(p.user_id===u&&arquivadas.indexOf(p.id)>=0)});
+    }
+  }catch(e){return 0}
+  return faltando.length;
 }
 
 /* ranking da semana */
