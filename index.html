@@ -274,7 +274,112 @@ body.limpo{padding-bottom:0}
 .rec{display:flex;align-items:center;gap:12px;background:var(--ac-d);border:1px solid var(--ac);border-radius:14px;padding:12px 14px;margin-bottom:8px}
 .rec .rt{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ac-t)}
 .rec .rn{font-size:15px;font-weight:700;letter-spacing:-.01em;margin-top:2px}
-@media (prefers-reduced-motion:reduce){.rv{opacity:1!important;transform:none!important}.an,.ap,.al,.live{animation:none!important}}
+
+/* ---- analises ---- */
+.segab{display:flex;gap:6px;background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:4px;margin-bottom:16px}
+.segab button{flex:1;padding:9px;border-radius:11px;font-size:13px;font-weight:600;color:var(--tx3)}
+.segab button.on{background:var(--ac);color:#fff}
+.dests{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.dcard{background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:13px}
+.dcard.p{background:var(--ac-d);border-color:var(--ac)}
+.dcard .dt{font-size:15px;font-weight:700;line-height:1.35}
+.dcard .dsub{font-size:12px;color:var(--tx3);margin-top:3px}
+.dcard.p .dsub{color:var(--ac-t)}
+.gb{display:flex;align-items:stretch;justify-content:space-between;gap:7px;height:106px}
+.gbc{flex:1;display:flex;flex-direction:column;min-width:0;height:100%}
+.gbw{flex:1;position:relative;min-height:0}
+.gbv{position:absolute;left:0;right:0;text-align:center;font-size:11px;font-weight:800;color:var(--tx);z-index:2}
+.gbb{position:absolute;left:0;right:0;bottom:0;background:var(--ac);border-radius:4px 4px 0 0;animation:cresceb .75s cubic-bezier(.2,.85,.3,1) both}
+.gbb.zero{background:var(--s2)}
+.gbl{font-size:9px;color:var(--tx3);text-align:center;margin-top:7px;padding-top:7px;border-top:1px solid var(--br);text-transform:uppercase;letter-spacing:.08em}
+.gbl.at{color:var(--tx);font-weight:700}
+@keyframes cresceb{from{height:0}}
+.gres{display:flex;gap:18px;margin-top:14px;padding-top:12px;border-top:1px solid var(--br)}
+.grv{font-size:20px;font-weight:800;letter-spacing:-.03em}
+.grl{font-size:9px;letter-spacing:.1em;color:var(--tx3);text-transform:uppercase;margin-top:2px}
+.secm{display:flex;align-items:center;gap:7px;margin:22px 0 10px;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--tx3)}
+.secm .sic{color:var(--ac);line-height:0}
+.vg{margin-bottom:11px}
+.vg:last-child{margin-bottom:0}
+.vgt{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+.vgn{color:var(--tx2)}
+.vgm{font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--ac-t)}
+.vgr{height:9px;background:var(--s2);border-radius:4px;overflow:hidden}
+.vgr>i{display:block;height:100%;background:var(--ac);border-radius:4px;animation:cresceh .7s cubic-bezier(.2,.85,.3,1) both}
+@keyframes cresceh{from{width:0!important}}
+.gl{width:100%;height:auto;display:block}
+.glp{stroke-dasharray:600;stroke-dashoffset:600;animation:desenha 1.2s cubic-bezier(.3,.7,.4,1) .15s forwards}
+@keyframes desenha{to{stroke-dashoffset:0}}
+.glf{opacity:0;animation:apf .35s ease-out 1.1s forwards}
+@keyframes apf{to{opacity:1}}
+.gt{fill:var(--tx3);font-size:9px}
+.gt2{fill:var(--tx2);font-size:10px}
+.gt3{fill:var(--tx);font-size:11px;font-weight:700}
+.rec2{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid var(--br)}
+.rkg{font-size:17px;font-weight:800;color:var(--ac)}
+.vt{display:block;width:100%;font-size:12px;color:var(--ac-t);text-align:center;padding:12px 0;border-top:1px solid var(--br)}
+.duo{display:flex;gap:20px}
+.dv{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.dv.ac{color:var(--ac)}
+.dl{font-size:9px;letter-spacing:.1em;color:var(--tx3);text-transform:uppercase;margin-top:4px}
+.tcs{display:flex;flex-wrap:wrap;gap:7px}
+.tc{font-size:12px;background:var(--s2);color:var(--tx2);padding:5px 11px;border-radius:17px}
+.tc b{color:var(--tx3);font-weight:400}
+.tc.md{font-size:13px;color:var(--tx);padding:6px 12px}
+.tc.top{font-size:14px;background:var(--ac);color:#fff;font-weight:700;padding:7px 13px}
+.tc.top b{color:rgba(255,255,255,.75);font-weight:400}
+
+.sr.rec{border-radius:12px;box-shadow:inset 0 0 0 1.5px var(--ac);background:var(--ac-d);
+  padding:4px 5px;margin:-4px -5px 3px;animation:brilhoRec 1.1s ease-out both}
+.sr.rec input{animation:bate .5s cubic-bezier(.2,1.3,.4,1) both}
+.sr.rec.done input{color:var(--tx);font-weight:700}
+@keyframes bate{0%,100%{transform:scale(1)}34%{transform:scale(1.09)}66%{transform:scale(.985)}}
+@keyframes brilhoRec{0%{box-shadow:inset 0 0 0 1.5px var(--ac),0 0 0 0 rgba(255,45,70,.55)}
+  45%{box-shadow:inset 0 0 0 1.5px var(--ac),0 0 14px 1px rgba(255,45,70,.5)}
+  100%{box-shadow:inset 0 0 0 1.5px var(--ac),0 0 0 0 rgba(255,45,70,0)}}
+.recav{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding-left:33px;
+  animation:sobeRec .45s cubic-bezier(.2,1.2,.4,1) .12s both}
+@keyframes sobeRec{from{opacity:0;transform:translateY(8px)}}
+.rect{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ac)}
+.reca{font-size:11px;color:var(--tx3)}
+
+/* ---- transicoes de tela ---- */
+@keyframes entraDir{from{opacity:0;transform:translateX(26px)}}
+@keyframes entraEsq{from{opacity:0;transform:translateX(-26px)}}
+.telaD{animation:entraDir .26s cubic-bezier(.2,.85,.3,1) both}
+.telaE{animation:entraEsq .26s cubic-bezier(.2,.85,.3,1) both}
+/* ---- ficha subindo com mola ---- */
+@keyframes molaUp{0%{transform:translateY(100%)}72%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+@keyframes fundoIn{from{opacity:0}}
+.sheet{animation:fundoIn .2s ease-out both}
+.sheet>div{animation:molaUp .42s cubic-bezier(.2,.9,.3,1.05) both}
+/* ---- barra do treino ---- */
+.bar>i{transition:width .5s cubic-bezier(.2,.85,.3,1)}
+
+/* ---- puxar para atualizar ---- */
+.ptr{position:fixed;left:0;right:0;top:0;display:flex;align-items:flex-end;justify-content:center;
+  pointer-events:none;z-index:70;height:0;overflow:visible}
+.ptr .ring{width:34px;height:34px;border-radius:50%;border:3px solid var(--s2);border-top-color:var(--ac);
+  opacity:0;transform:translateY(0) rotate(0deg)}
+.ptr.gira .ring{animation:giraR .72s linear infinite;opacity:1}
+@keyframes giraR{to{transform:rotate(360deg)}}
+.ptr .msg{position:absolute;top:46px;left:0;right:0;text-align:center;font-size:11px;
+  font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx3);opacity:0;transition:opacity .25s}
+.ptr .msg.on{opacity:1}
+body{overscroll-behavior-y:contain}
+
+.vtd{font-size:12px;font-weight:700;color:var(--ac-t);white-space:nowrap}
+.prx{display:flex;align-items:center;gap:12px;background:var(--s1);border:1px solid var(--br);
+  border-radius:16px;padding:13px;margin-bottom:9px}
+.prx .pic{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:var(--s2);color:var(--tx3);
+  display:flex;align-items:center;justify-content:center}
+.prx .plb{font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--ac-t)}
+.prx .pnm{font-size:14.5px;font-weight:700;letter-spacing:-.01em;margin:2px 0 7px}
+.prx .pbr{height:5px;background:var(--s2);border-radius:3px;overflow:hidden}
+.prx .pbr>i{display:block;height:100%;background:var(--ac);border-radius:3px;
+  animation:cresceh .8s cubic-bezier(.2,.85,.3,1) .25s both}
+@media (prefers-reduced-motion:reduce){.prx .pbr>i{animation:none!important}.ptr.gira .ring{animation-duration:1.4s}.telaD,.telaE,.sheet,.sheet>div{animation:none!important}.bar>i{transition:none!important}.sr.rec input,.recav{animation:none!important}.gbb,.vgr>i,.glp,.glf{animation:none!important}.glp{stroke-dashoffset:0!important}.glf{opacity:1!important}.rv{opacity:1!important;transform:none!important}.an,.ap,.al,.live{animation:none!important}}
 .hero{background:var(--s1);border:1px solid var(--br);border-radius:22px;padding:22px 18px 18px;margin-bottom:12px}
 .big{font-size:64px;font-weight:800;letter-spacing:-.05em;line-height:.9;color:var(--ac)}
 .dots{display:flex;justify-content:space-between;gap:5px;margin-top:20px;align-items:flex-end}
@@ -343,6 +448,7 @@ body.limpo{padding-bottom:0}
 <body>
 <div id="app"></div>
 <nav id="nav"></nav>
+<div class="ptr" id="ptr"><div class="ring" id="ptrRing"></div><div class="msg" id="ptrMsg"></div></div>
 <script>
 window.SB_PRONTO=new Promise(function(ok){
   var t=document.createElement('script');
@@ -547,6 +653,13 @@ function contar(){
     requestAnimationFrame(passo);
   });
 }
+var ORDEM_TELAS=['home','treinos','jiu','hist','perfil'];
+var TELA_ANT=null;
+function ladoTransicao(nova){
+  var a=ORDEM_TELAS.indexOf(TELA_ANT),b=ORDEM_TELAS.indexOf(nova);
+  if(a<0||b<0||a===b)return '';
+  return b>a?'telaD':'telaE';
+}
 function render(){
   var h='';
   if(view==='landing')h=vLanding();
@@ -564,7 +677,14 @@ function render(){
   else if(view==='conq')h=vConquistas();
   else if(view==='resumo')h=vResumo();
   var app=document.getElementById('app');
+  var lado=ladoTransicao(view);
+  TELA_ANT=view;
   app.innerHTML=h;
+  app.classList.remove('telaD','telaE');
+  if(lado&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){
+    void app.offsetWidth;            // reinicia a animacao
+    app.classList.add(lado);
+  }
   // telas secundárias entram com um leve deslize; a de treino nunca, pra não atrasar o registro
   if(view!=='home'&&view!=='sessao'&&view!=='landing'){
     var i=0;
@@ -583,7 +703,7 @@ function render(){
   }).join('');
   window.scrollTo(0,0);
 }
-function ir(v){pararLanding();view=v;ctx={};render()}
+function ir(v){pararLanding();REC_AGORA=null;view=v;ctx={};render()}
 
 /* ---------- início ---------- */
 function semanaDias(){
@@ -859,11 +979,15 @@ function vSessao(){
       '<p class="mut">'+(a?'Última vez: '+ss.length+'×'+a.reps+' com '+a.carga+' kg':'Primeira vez registrando')+'</p>'+
       '<div class="hd"><span></span><span>Carga (kg)</span><span>Reps</span><span></span></div>'+
       ss.map(function(x){
-        return '<div class="sr '+(x.feita?'done':(prox&&prox.id===x.id?'now':''))+'">'+
+        var ehRec=REC_AGORA&&REC_AGORA.id===x.id;
+        return '<div class="sr '+(x.feita?'done':(prox&&prox.id===x.id?'now':''))+(ehRec?' rec':'')+'">'+
           '<span class="n num">'+x.numero+'</span>'+
           '<input class="num" type="number" inputmode="decimal" value="'+esc(x.carga)+'" onchange="campo(\''+x.id+'\',\'carga\',this.value)">'+
           '<input class="num" type="number" inputmode="numeric" value="'+esc(x.reps)+'" onchange="campo(\''+x.id+'\',\'reps\',this.value)">'+
-          '<button class="ck" onclick="marcar(\''+x.id+'\')">'+(x.feita?'✓':'○')+'</button></div>';
+          '<button class="ck" onclick="marcar(\''+x.id+'\')">'+(x.feita?'✓':'○')+'</button></div>'+
+          (ehRec?'<div class="recav"><span class="rect">novo recorde</span>'+
+            (REC_AGORA.ant?'<span class="reca">antes: '+nk(REC_AGORA.ant)+' kg</span>':
+             '<span class="reca">primeira vez com carga</span>')+'</div>':'');
       }).join('')+'</div>';
   });
   h+='<label>Notas do treino</label><textarea rows="3" onchange="notaSessao(this.value)" placeholder="Como foi hoje?">'+esc(s.notas)+'</textarea>'+
@@ -888,17 +1012,34 @@ async function descartar(id){
 }
 async function campo(id,c,v){var x=db.series.find(function(y){return y.id===id});x[c]=v;await salvar()}
 async function notaSessao(v){var s=db.sessoes.find(function(x){return x.id===ctx.sid});s.notas=v;await salvar()}
+function recordeAnterior(exId,sidAtual){
+  var mx=0;
+  db.series.filter(function(y){return y.exercicio_id===exId&&y.feita&&+y.carga>0&&y.sessao_id!==sidAtual})
+    .forEach(function(y){
+      var ses=db.sessoes.find(function(o){return o.id===y.sessao_id});
+      if(!ses||ses.arquivada)return;
+      if(+y.carga>mx)mx=+y.carga;
+    });
+  return mx;
+}
+var REC_AGORA=null;
 async function marcar(id){
   var x=db.series.find(function(y){return y.id===id});
   x.feita=!x.feita;await salvar();
-  if(x.feita)iniciarRest(db.perfil.descanso);else pararRest();
+  REC_AGORA=null;
+  if(x.feita){
+    var ant=recordeAnterior(x.exercicio_id,x.sessao_id);
+    if(+x.carga>0&&+x.carga>ant)REC_AGORA={id:x.id,carga:+x.carga,ant:ant};
+    iniciarRest(db.perfil.descanso);
+    if(navigator.vibrate)navigator.vibrate(REC_AGORA?[50,45,110]:28);
+  }else pararRest();
   render();
 }
 function iniciarRest(s){clearInterval(restT);rest=s;
   restT=setInterval(function(){
     rest--;var el=document.getElementById('rv');
     if(el)el.textContent=fmt(rest);
-    if(rest<=0){pararRest();if(navigator.vibrate)navigator.vibrate([200,100,200]);render()}
+    if(rest<=0){pararRest();if(navigator.vibrate)navigator.vibrate([130,70,130,70,180]);render()}
   },1000);}
 function pararRest(){clearInterval(restT);rest=null;var e=document.querySelector('.rest');if(e)e.remove()}
 function addRest(n){if(rest!==null){rest+=n;var el=document.getElementById('rv');if(el)el.textContent=fmt(rest)}}
@@ -1145,10 +1286,16 @@ async function salvarCorrida(){
 }
 
 /* ---------- histórico ---------- */
+function abaHist(a){ctx.ab=a;render()}
 function vHist(){
+  var ab=ctx.ab||'lista';
+  var cab='<header><h1>Histórico</h1></header>'+
+    '<div class="segab"><button class="'+(ab==='lista'?'on':'')+'" onclick="abaHist(\'lista\')">Atividades</button>'+
+    '<button class="'+(ab==='an'?'on':'')+'" onclick="abaHist(\'an\')">Análises</button></div>';
+  if(ab==='an')return cab+vAnalises();
   var f=ctx.f||'todos';
   var ss=sessoesOk().filter(function(s){return f==='todos'||s.tipo===f});
-  var h='<header><h1>Histórico</h1></header><div class="tabs">'+
+  var h=cab+'<div class="tabs">'+
     [['todos','Tudo'],['musculacao','Musculação'],['jiujitsu','Jiu-jitsu'],['corrida','Corrida']].map(function(t){
       return '<button class="pill '+(f===t[0]?'on':'')+'" onclick="filtrar(\''+t[0]+'\')">'+t[1]+'</button>'}).join('')+'</div>';
   h+=ss.length?'<div class="card" style="padding:2px 14px">'+ss.map(function(s){
@@ -1158,6 +1305,7 @@ function vHist(){
   return h;
 }
 function filtrar(f){ctx.f=f;render()}
+
 function verSessao(id){
   var s=db.sessoes.find(function(x){return x.id===id});
   if(s.tipo==='jiujitsu'){abrirDetalhe(id);return}
@@ -1213,10 +1361,6 @@ function vPerfil(){
     '<button class="b2" onclick="novaGrad()">Registrar nova graduação</button>'+
     '<p class="t2" style="margin:10px 0 0;line-height:1.5">Use isto quando você for graduado. A contagem de aulas reinicia a partir da data.</p>'+
     '</div>';
-  var _cq=CONQUISTAS(),_ok=_cq.filter(function(c){return db.conq&&db.conq[c.id]}).length;
-  h+='<h2>Conquistas</h2><div class="card" onclick="ir(\'conq\')"><div class="top">'+
-    '<div class="f1"><div class="t" style="font-weight:700">'+_ok+' de '+_cq.length+' desbloqueadas</div>'+
-    '<div class="t2">Toque para ver todas</div></div><span class="x">›</span></div></div>';
   h+=vNuvem();
   var _bk='';
   try{_bk=localStorage.getItem('treinos:backup')||''}catch(e){}
@@ -1423,13 +1567,13 @@ function proximoToast(){
   var c=FILA.shift();
   if(!c){TOAST=null;return}
   TOAST=c;
+  if(navigator.vibrate)navigator.vibrate([18,50,18,50,70]);
   var el=document.createElement('div');
   el.className='toast';
   el.innerHTML='<div class="ti">'+svg(c.ic||'conquista',20)+'</div><div><div class="tl">Conquista desbloqueada</div>'+
     '<div class="tn">'+esc(c.nome)+'</div></div>';
   el.onclick=function(){ir('conq')};
   document.body.appendChild(el);
-  if(navigator.vibrate)navigator.vibrate([40,60,40]);
   setTimeout(function(){el.classList.add('on')},40);
   setTimeout(function(){
     el.classList.remove('on');
@@ -1437,7 +1581,8 @@ function proximoToast(){
   },4200);
 }
 function proximaConq(){
-  var L=CONQUISTAS().filter(function(c){return !(db.conq&&db.conq[c.id])&&c.valor>0});
+  var L=CONQUISTAS().filter(function(c){
+    return !(db.conq&&db.conq[c.id])&&c.valor>0&&c.valor<c.alvo;});
   L.sort(function(a,b){return (b.valor/b.alvo)-(a.valor/a.alvo)});
   return L[0]||null;
 }
@@ -1490,14 +1635,30 @@ function verConq(id){
   document.body.appendChild(el);
 }
 function faixaConquistas(){
-  var L=CONQUISTAS().filter(function(c){return db.conq&&db.conq[c.id]});
-  if(!L.length)return '';
-  L.sort(function(a,b){return (db.conq[b.id]||'').localeCompare(db.conq[a.id]||'')});
-  return '<h2 class="an" style="animation-delay:230ms">Conquistas</h2>'+
-    '<div class="cqr an" style="animation-delay:250ms">'+
-    L.slice(0,4).map(function(c){
-      return '<div class="b" onclick="verConq(\''+c.id+'\')"><div class="ii">'+svg(c.ic,16)+'</div><div class="nn">'+esc(c.nome)+'</div></div>';
-    }).join('')+'</div>';
+  var todas=CONQUISTAS();
+  var L=todas.filter(function(c){return db.conq&&db.conq[c.id]});
+  var pr=proximaConq();
+  if(!L.length&&!pr)return '';
+  var h='<div class="an" style="animation-delay:230ms;display:flex;align-items:baseline;justify-content:space-between;gap:10px">'+
+    '<h2 style="margin:22px 0 8px">Conquistas</h2>'+
+    '<button class="vtd" onclick="ir(\'conq\')">'+L.length+' de '+todas.length+' ›</button></div>';
+  if(pr){
+    var pc=Math.min(100,Math.round(pr.valor/pr.alvo*100));
+    var falta=Math.max(0,Math.round((pr.alvo-pr.valor)*10)/10);
+    h+='<div class="prx an" style="animation-delay:245ms" onclick="verConq(\''+pr.id+'\')">'+
+      '<div class="pic">'+svg(pr.ic,20)+'</div>'+
+      '<div class="f1"><div class="plb">falta '+nk(falta)+' para</div>'+
+      '<div class="pnm">'+esc(pr.nome)+'</div>'+
+      '<div class="pbr"><i style="width:'+pc+'%"></i></div></div></div>';
+  }
+  if(L.length){
+    L.sort(function(a,b){return (db.conq[b.id]||'').localeCompare(db.conq[a.id]||'')});
+    h+='<div class="cqr an" style="animation-delay:260ms">'+
+      L.slice(0,5).map(function(c){
+        return '<div class="b" onclick="verConq(\''+c.id+'\')"><div class="ii">'+svg(c.ic,16)+'</div><div class="nn">'+esc(c.nome)+'</div></div>';
+      }).join('')+'</div>';
+  }
+  return h;
 }
 
 
@@ -1963,6 +2124,387 @@ function expandeCal(){
   if(db.calExp)ctx.mes=hoje().slice(0,7);
   salvar();render();
 }
+
+
+/* ---------- analises ---------- */
+function mesesRecentes(n){
+  var out=[],d=new Date();d.setDate(1);
+  for(var i=n-1;i>=0;i--){
+    var x=new Date(d.getFullYear(),d.getMonth()-i,1);
+    out.push({iso:x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0'),
+      rot:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][x.getMonth()]});
+  }
+  return out;
+}
+function porMes(n,tipo){
+  return mesesRecentes(n).map(function(m){
+    m.n=sessoesOk().filter(function(s){
+      return s.data.slice(0,7)===m.iso&&(!tipo||s.tipo===tipo)}).length;
+    return m;
+  });
+}
+function contaTipo(t,dias){
+  var lim=null;
+  if(dias){var d=new Date();d.setDate(d.getDate()-dias);lim=d.toISOString().slice(0,10)}
+  return sessoesOk().filter(function(s){return s.tipo===t&&(!lim||s.data>=lim)}).length;
+}
+function seriesDe(sid){return db.series.filter(function(x){return x.sessao_id===sid&&x.feita})}
+
+/* --- musculacao --- */
+function volumePorGrupo(dias){
+  var d=new Date();d.setDate(d.getDate()-(dias||30));
+  var lim=d.toISOString().slice(0,10);
+  var ids={};
+  sessoesOk().forEach(function(s){if(s.tipo==='musculacao'&&s.data>=lim)ids[s.id]=1});
+  var g={};
+  db.series.filter(function(x){return ids[x.sessao_id]&&x.feita}).forEach(function(x){
+    var gr=ex(x.exercicio_id).grupo||'Outros';
+    g[gr]=(g[gr]||0)+(+x.carga||0)*(+x.reps||0);
+  });
+  return Object.keys(g).map(function(k){return {grupo:k,kg:g[k]}})
+    .sort(function(a,b){return b.kg-a.kg});
+}
+function recordesPorExercicio(){
+  var r={};
+  db.series.filter(function(x){return x.feita&&+x.carga>0}).forEach(function(x){
+    var ses=db.sessoes.find(function(o){return o.id===x.sessao_id});
+    if(!ses||ses.arquivada)return;
+    var at=r[x.exercicio_id];
+    if(!at||+x.carga>at.carga)r[x.exercicio_id]={carga:+x.carga,reps:+x.reps||0,data:ses.data};
+  });
+  return Object.keys(r).map(function(k){
+    return {id:k,nome:ex(k).nome,carga:r[k].carga,reps:r[k].reps,data:r[k].data};
+  }).sort(function(a,b){return b.carga-a.carga});
+}
+function serieDoExercicio(exId){
+  // maior carga por sessao, em ordem de data
+  var por={};
+  db.series.filter(function(x){return x.exercicio_id===exId&&x.feita&&+x.carga>0}).forEach(function(x){
+    var ses=db.sessoes.find(function(o){return o.id===x.sessao_id});
+    if(!ses||ses.arquivada)return;
+    if(!por[ses.data]||+x.carga>por[ses.data])por[ses.data]=+x.carga;
+  });
+  return Object.keys(por).sort().map(function(d){return {data:d,carga:por[d]}});
+}
+function exerciciosMaisFeitos(){
+  var c={};
+  db.series.filter(function(x){return x.feita&&+x.carga>0}).forEach(function(x){
+    var ses=db.sessoes.find(function(o){return o.id===x.sessao_id});
+    if(!ses||ses.arquivada)return;
+    (c[x.exercicio_id]=c[x.exercicio_id]||{});
+    c[x.exercicio_id][ses.data]=1;
+  });
+  return Object.keys(c).map(function(k){return {id:k,nome:ex(k).nome,dias:Object.keys(c[k]).length}})
+    .sort(function(a,b){return b.dias-a.dias});
+}
+
+/* --- jiu --- */
+function tecnicasMaisTreinadas(){
+  var c={};
+  sessoesOk().forEach(function(s){
+    if(s.tipo!=='jiujitsu')return;
+    ((s.detalhes||{}).tecnicas||[]).forEach(function(t){c[t]=(c[t]||0)+1});
+  });
+  return Object.keys(c).map(function(k){return {nome:k,n:c[k]}})
+    .sort(function(a,b){return b.n-a.n});
+}
+
+/* --- corrida --- */
+function corridas(){
+  return sessoesOk().filter(function(s){return s.tipo==='corrida'&&+(s.detalhes||{}).km>0})
+    .slice().sort(function(a,b){return a.data.localeCompare(b.data)});
+}
+function ritmoDe(s){
+  var km=+(s.detalhes||{}).km||0,mi=s.duracao||0;
+  return (km&&mi)?(mi*60)/km:0;
+}
+function fmtRitmo(seg){
+  if(!seg)return '—';
+  return Math.floor(seg/60)+':'+String(Math.round(seg%60)).padStart(2,'0');
+}
+
+/* --- destaques em frase --- */
+function diaSemanaFraco(){
+  var nomes=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  var cont=[0,0,0,0,0,0,0],sem=[0,0,0,0,0,0,0];
+  var d=new Date();d.setDate(d.getDate()-70);
+  var lim=d.toISOString().slice(0,10);
+  var dias={};
+  sessoesOk().forEach(function(s){if(s.data>=lim)dias[s.data]=1});
+  for(var i=0;i<70;i++){
+    var x=new Date();x.setDate(x.getDate()-i);
+    var iso=x.toISOString().slice(0,10),w=x.getDay();
+    sem[w]++;
+    if(dias[iso])cont[w]++;
+  }
+  var pior=null;
+  for(var w=0;w<7;w++){
+    if(sem[w]<4)continue;
+    var taxa=cont[w]/sem[w];
+    if(!pior||taxa<pior.taxa)pior={w:w,taxa:taxa,n:cont[w],de:sem[w],nome:nomes[w]};
+  }
+  return pior;
+}
+function destaques(){
+  var out=[],mods=modalidadesComDado();
+  var usados={};
+  function add(mod,titulo,sub){
+    if(mods.length>1&&usados[mod])return;
+    usados[mod]=1;out.push({mod:mod,titulo:titulo,sub:sub});
+  }
+  // musculacao: maior evolucao percentual
+  var melhor=null;
+  exerciciosMaisFeitos().slice(0,8).forEach(function(e){
+    var sr=serieDoExercicio(e.id);
+    if(sr.length<4)return;
+    var ini=sr[0].carga,fim=sr[sr.length-1].carga;
+    if(fim<=ini)return;
+    var pc=Math.round((fim/ini-1)*100);
+    if(pc<5)return;
+    var sem=Math.max(1,Math.round((new Date(sr[sr.length-1].data)-new Date(sr[0].data))/604800000));
+    if(!melhor||pc>melhor.pc)melhor={nome:e.nome,pc:pc,ini:ini,fim:fim,sem:sem};
+  });
+  if(melhor)add('musculacao','Seu '+melhor.nome.toLowerCase()+' subiu '+melhor.pc+'% em '+
+    melhor.sem+(melhor.sem===1?' semana':' semanas'),
+    'de '+nk(melhor.ini)+' kg para '+nk(melhor.fim)+' kg');
+  // jiu: melhor mes
+  var mj=porMes(12,'jiujitsu'),atual=mj[mj.length-1];
+  var maxAnt=0;mj.slice(0,-1).forEach(function(m){if(m.n>maxAnt)maxAnt=m.n});
+  if(atual.n>0&&atual.n>=maxAnt&&mj.filter(function(m){return m.n>0}).length>1)
+    add('jiujitsu',cap(atual.rot)+' já é seu melhor mês no tatame',
+      atual.n+(atual.n===1?' aula':' aulas')+' · recorde anterior era '+maxAnt);
+  // jiu: constancia recente
+  var jiu30=contaTipo('jiujitsu',30);
+  if(jiu30>=4)add('jiujitsu',jiu30+' aulas de jiu nos últimos 30 dias',
+    'média de '+nk(jiu30/4.3)+' por semana');
+  // musculacao: desequilibrio
+  var vg=volumePorGrupo(30);
+  if(vg.length>=3){
+    var top=vg[0],bot=vg[vg.length-1];
+    if(top.kg>bot.kg*2.5)
+      add('musculacao','Você treinou '+(top.kg/bot.kg).toFixed(1).replace('.',',')+'x mais '+
+        top.grupo.toLowerCase()+' que '+bot.grupo.toLowerCase()+' neste mês',
+        nk(top.kg/1000)+' t contra '+nk(bot.kg/1000)+' t');
+  }
+  // geral: dia fraco
+  var pior=diaSemanaFraco();
+  if(pior&&pior.taxa<0.3&&sessoesOk().length>=10)
+    add('geral',cap(pior.nome)+' é seu dia mais fraco',
+      pior.n+(pior.n===1?' treino':' treinos')+' nas últimas '+pior.de+' '+pior.nome+'s');
+  // geral: sequencia
+  var sq=sequencia();
+  if(sq>=5)add('geral',sq+' dias seguidos sem falhar','sua melhor marca é '+maiorSequencia()+' dias');
+  // corrida
+  var cs=corridas();
+  if(cs.length>=3){
+    var ult=cs[cs.length-1],melhorKm=cs.reduce(function(a,b){
+      return (+(b.detalhes||{}).km>+(a.detalhes||{}).km)?b:a});
+    if(ult.id===melhorKm.id)add('corrida','Sua última corrida foi a mais longa',
+      nk(+(ult.detalhes||{}).km)+' km');
+  }
+  var ord=['geral'].concat(ordemModalidades());
+  out.sort(function(a,b){
+    var ia=ord.indexOf(a.mod),ib=ord.indexOf(b.mod);
+    // o principal vem antes do geral
+    var pa=a.mod===db.perfil.principal?-1:ia, pb=b.mod===db.perfil.principal?-1:ib;
+    return pa-pb;
+  });
+  return out.slice(0,3);
+}
+function cap(t){return t.charAt(0).toUpperCase()+t.slice(1)}
+function nk(v){
+  v=+v||0;
+  return (Math.round(v*10)/10).toString().replace('.',',');
+}
+function modalidadesComDado(){
+  return ['musculacao','jiujitsu','corrida'].filter(function(t){return contaTipo(t)>=3});
+}
+function ordemModalidades(){
+  var p=db.perfil.principal,m=modalidadesComDado();
+  return m.slice().sort(function(a,b){return (a===p?-1:0)-(b===p?-1:0)});
+}
+
+
+/* ---------- graficos ---------- */
+function gBarras(dados,rotulo){
+  // dados: [{rot, n}]
+  var mx=Math.max.apply(null,dados.map(function(d){return d.n}).concat([1]));
+  return '<div class="gb">'+dados.map(function(d,i){
+      var pc=Math.max(d.n?6:2,Math.round(d.n/mx*100));
+      return '<div class="gbc"><div class="gbw">'+
+        (d.n?'<span class="gbv" style="bottom:calc('+pc+'% + 3px)">'+d.n+'</span>':'')+
+        '<div class="gbb'+(d.n?'':' zero')+'" style="height:'+pc+'%;animation-delay:'+(i*70)+'ms"></div></div>'+
+        '<div class="gbl'+(i===dados.length-1?' at':'')+'">'+d.rot+'</div></div>';
+    }).join('')+'</div>';
+}
+function gLinha(pontos,rotIni,rotFim,valFim){
+  if(pontos.length<2)return '';
+  var L=300,A=104,px=16,py=14;
+  var vs=pontos.map(function(p){return p.carga});
+  var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);
+  if(mx===mn)mx=mn+1;
+  var pts=pontos.map(function(p,i){
+    var x=px+(L-px*2)*(pontos.length===1?0:i/(pontos.length-1));
+    var y=py+(A-py*2-14)*(1-(p.carga-mn)/(mx-mn));
+    return {x:Math.round(x*10)/10,y:Math.round(y*10)/10};
+  });
+  var d=pts.map(function(p){return p.x+','+p.y}).join(' ');
+  var fim=pts[pts.length-1],ini=pts[0];
+  return '<svg viewBox="0 0 '+L+' '+A+'" class="gl" role="img" aria-label="Evolução da carga de '+
+      nk(mn)+' para '+nk(mx)+' quilos">'+
+    '<line x1="'+px+'" y1="'+(A-26)+'" x2="'+(L-px)+'" y2="'+(A-26)+'" stroke="var(--br)" stroke-width="1"/>'+
+    '<polyline class="glp" points="'+d+'" fill="none" stroke="var(--ac)" stroke-width="2" '+
+      'stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<circle cx="'+ini.x+'" cy="'+ini.y+'" r="4" fill="var(--ac)" class="glf"/>'+
+    '<circle cx="'+fim.x+'" cy="'+fim.y+'" r="5" fill="var(--ac)" stroke="var(--s1)" stroke-width="2" class="glf"/>'+
+    '<text x="'+px+'" y="'+(A-8)+'" class="gt">'+esc(rotIni)+'</text>'+
+    '<text x="'+(L-px)+'" y="'+(A-8)+'" class="gt" text-anchor="end">'+esc(rotFim)+'</text>'+
+    '<text x="'+ini.x+'" y="'+(ini.y-9)+'" class="gt2" text-anchor="middle">'+nk(pontos[0].carga)+'</text>'+
+    '<text x="'+(L-px)+'" y="11" class="gt3" text-anchor="end">'+esc(valFim)+'</text>'+
+    '</svg>';
+}
+
+/* ---------- tela de analises ---------- */
+function vAnalises(){
+  var mods=modalidadesComDado(),tot=sessoesOk().length;
+  if(tot<3){
+    return '<div class="empty">Ainda juntando dados.<br>Registre '+(3-tot)+
+      (3-tot===1?' atividade':' atividades')+' para liberar as análises.</div>';
+  }
+  var h='';
+  // destaques
+  var ds=destaques();
+  if(ds.length){
+    h+='<div class="dests">'+ds.map(function(d,i){
+      return '<div class="dcard'+(i===0?' p':'')+' an" style="animation-delay:'+(i*70)+'ms">'+
+        '<div class="dt">'+esc(d.titulo)+'</div><div class="dsub">'+esc(d.sub)+'</div></div>';
+    }).join('')+'</div>';
+  }
+  // geral
+  h+='<h2>Atividades por mês</h2><div class="card">'+gBarras(porMes(6))+
+    '<div class="gres">'+ordemModalidades().map(function(t){
+      return '<div><div class="grv num">'+contaTipo(t,30)+'</div><div class="grl">'+
+        (t==='musculacao'?'academia':t==='jiujitsu'?'jiu':'corrida')+'</div></div>';
+    }).join('')+'</div><p class="t2" style="margin:10px 0 0">nos últimos 30 dias</p></div>';
+
+  ordemModalidades().forEach(function(t){
+    h+='<div class="secm"><span class="sic">'+svg(t,15)+'</span>'+
+      (t==='musculacao'?'Musculação':t==='jiujitsu'?'Jiu-jitsu':'Corrida')+'</div>';
+    if(t==='musculacao')h+=blocoMusc();
+    if(t==='jiujitsu')h+=blocoJiuAn();
+    if(t==='corrida')h+=blocoCorrida();
+  });
+
+  // modalidades sem dado suficiente
+  ['musculacao','jiujitsu','corrida'].forEach(function(t){
+    if(mods.indexOf(t)>=0)return;
+    var n=contaTipo(t);
+    if(!n)return;
+    h+='<div class="secm"><span class="sic">'+svg(t,15)+'</span>'+
+      (t==='musculacao'?'Musculação':t==='jiujitsu'?'Jiu-jitsu':'Corrida')+'</div>'+
+      '<div class="card"><p class="t2" style="margin:0;line-height:1.5">Ainda juntando dados. '+
+      'Faltam '+(3-n)+(3-n===1?' registro':' registros')+' para liberar.</p></div>';
+  });
+  return h+'<div style="height:14px"></div>';
+}
+function blocoMusc(){
+  var h='',vg=volumePorGrupo(30);
+  if(vg.length){
+    var mx=vg[0].kg;
+    h+='<div class="card" style="margin-bottom:10px"><p class="t2" style="margin:0 0 12px">volume por grupo · 30 dias</p>'+
+      vg.slice(0,6).map(function(g,i){
+        var ult=(i===vg.slice(0,6).length-1&&vg.length>=3);
+        return '<div class="vg"><div class="vgt"><span>'+esc(g.grupo)+
+          (ult?' <span class="vgm">· MENOS TREINADO</span>':'')+'</span><span class="vgn">'+
+          nk(g.kg/1000)+' t</span></div>'+
+          '<div class="vgr"><i style="width:'+Math.max(3,Math.round(g.kg/mx*100))+'%;animation-delay:'+(i*60)+'ms"></i></div></div>';
+      }).join('')+'</div>';
+  }
+  // evolucao
+  var alvo=ctx.exAn,lista=exerciciosMaisFeitos().filter(function(e){return serieDoExercicio(e.id).length>=4});
+  if(lista.length){
+    if(!alvo||!lista.some(function(e){return e.id===alvo}))alvo=lista[0].id;
+    var sr=serieDoExercicio(alvo);
+    var semanas=Math.max(1,Math.round((new Date(sr[sr.length-1].data)-new Date(sr[0].data))/604800000));
+    h+='<div class="card" style="margin-bottom:10px"><div class="top" style="margin-bottom:10px">'+
+      '<p class="t2" style="margin:0">evolução da carga</p>'+
+      (lista.length>1?'<button class="b3" onclick="trocaEx()">'+esc(ex(alvo).nome)+' ⌄</button>':
+        '<span class="t2">'+esc(ex(alvo).nome)+'</span>')+'</div>'+
+      gLinha(sr,semanas+(semanas===1?' semana atrás':' semanas atrás'),'hoje',nk(sr[sr.length-1].carga)+' kg')+'</div>';
+  }
+  // recordes
+  var rs=recordesPorExercicio();
+  if(rs.length){
+    h+='<div class="card" style="padding:4px 14px"><p class="t2" style="margin:12px 0 4px">seus recordes</p>'+
+      rs.slice(0,ctx.todosRec?rs.length:3).map(function(r){
+        return '<div class="rec2"><div><div class="t">'+esc(r.nome)+'</div>'+
+          '<div class="t2">'+dtBr(r.data)+' · '+r.reps+' reps</div></div>'+
+          '<div class="rkg">'+nk(r.carga)+' kg</div></div>';
+      }).join('')+
+      (rs.length>3?'<button class="vt" onclick="verTodosRec()">'+
+        (ctx.todosRec?'ver menos':'ver todos os '+rs.length)+'</button>':'<div style="height:10px"></div>')+'</div>';
+  }
+  return h;
+}
+function blocoJiuAn(){
+  var g=db.graduacoes[db.graduacoes.length-1];
+  var h='<div class="card"><div class="duo">'+
+    '<div><div class="dv ac">'+aulasJiu()+'</div><div class="dl">aulas na faixa</div></div>'+
+    '<div><div class="dv">'+mesesDesde(g.data)+'</div><div class="dl">'+
+      (mesesDesde(g.data)===1?'mês de ':'meses de ')+esc(g.faixa.toLowerCase())+'</div></div></div>';
+  var tc=tecnicasMaisTreinadas();
+  if(tc.length){
+    var mx=tc[0].n;
+    h+='<p class="t2" style="margin:14px 0 10px">as posições que mais aparecem no seu caderno</p>'+
+      '<div class="tcs">'+tc.slice(0,6).map(function(t,i){
+        var forte=t.n>=mx*0.75;
+        return '<span class="tc'+(i===0?' top':(forte?' md':''))+'">'+esc(t.nome)+
+          ' <b>'+t.n+'</b></span>';
+      }).join('')+'</div>';
+  }
+  var ms=porMes(6,'jiujitsu');
+  if(ms.filter(function(m){return m.n>0}).length>=2)
+    h+='<p class="t2" style="margin:22px 0 10px">aulas por mês</p>'+gBarras(ms);
+  return h+'</div>';
+}
+function blocoCorrida(){
+  var cs=corridas();
+  var mesKm=cs.filter(function(s){return s.data.slice(0,7)===hoje().slice(0,7)})
+    .reduce(function(a,s){return a+(+(s.detalhes||{}).km||0)},0);
+  var ritmos=cs.map(ritmoDe).filter(function(r){return r>0});
+  var melhor=ritmos.length?Math.min.apply(null,ritmos):0;
+  var h='<div class="card"><div class="duo">'+
+    '<div><div class="dv ac">'+nk(mesKm)+'</div><div class="dl">km no mês</div></div>'+
+    '<div><div class="dv">'+fmtRitmo(melhor)+'</div><div class="dl">melhor ritmo</div></div></div>';
+  if(cs.length>=4){
+    var pts=cs.filter(function(s){return ritmoDe(s)>0})
+      .map(function(s){return {data:s.data,carga:Math.round(600-ritmoDe(s))}});  // invertido: menor ritmo = melhor
+    if(pts.length>=2){
+      h+='<p class="t2" style="margin:14px 0 6px">ritmo ao longo do tempo · mais alto é mais rápido</p>'+
+        gLinha(pts,'início','hoje',fmtRitmo(ritmoDe(cs[cs.length-1]))+'/km');
+    }
+  }else{
+    h+='<p class="t2" style="margin:14px 0 0;line-height:1.5">faltam '+(4-cs.length)+
+      (4-cs.length===1?' corrida':' corridas')+' para liberar o gráfico de ritmo</p>';
+  }
+  return h+'</div>';
+}
+function trocaEx(){
+  var lista=exerciciosMaisFeitos().filter(function(e){return serieDoExercicio(e.id).length>=4});
+  var el=document.createElement('div');el.className='sheet';el.id='sheet';
+  el.innerHTML='<div><div class="top"><h1 style="font-size:18px">Qual exercício</h1>'+
+    '<button class="x" onclick="fechar()">✕</button></div><div style="height:6px"></div>'+
+    lista.map(function(e){
+      var sr=serieDoExercicio(e.id);
+      return '<div class="row" onclick="escolheEx(\''+e.id+'\')"><div class="f1">'+
+        '<div class="t">'+esc(e.nome)+'</div><div class="t2">'+e.dias+' treinos · maior '+
+        nk(Math.max.apply(null,sr.map(function(x){return x.carga})))+' kg</div></div>'+
+        '<span class="x">›</span></div>';
+    }).join('')+'<div style="height:14px"></div></div>';
+  document.body.appendChild(el);
+}
+function escolheEx(id){ctx.exAn=id;var e=document.getElementById('sheet');if(e)e.remove();render()}
+function verTodosRec(){ctx.todosRec=!ctx.todosRec;render()}
 
 /* ---------- landing ---------- */
 function semNav(){return view==='landing'||view==='auth'||view==='onboard'||view==='novasenha'}
@@ -2501,6 +3043,73 @@ function fazLogin(criar){
   entrar(e,s,criar);
 }
 
+
+/* ---------- puxar para atualizar ---------- */
+var PTR={y0:0,ativo:false,puxando:false,altura:0};
+function ptrEls(){return {box:document.getElementById('ptr'),ring:document.getElementById('ptrRing'),
+  msg:document.getElementById('ptrMsg')}}
+function ptrPode(){
+  // so na raiz das telas principais, nunca no treino nem com ficha aberta
+  if(document.getElementById('sheet'))return false;
+  if(view==='sessao'||view==='landing'||view==='auth'||view==='onboard'||view==='novasenha')return false;
+  return (window.scrollY||document.documentElement.scrollTop||0)<=0;
+}
+function ptrMostra(d){
+  var e=ptrEls();if(!e.ring)return;
+  var p=Math.min(1,d/90);
+  e.ring.style.opacity=p;
+  e.ring.style.transform='translateY('+Math.min(d*.55,54)+'px) rotate('+Math.round(d*2.6)+'deg)';
+}
+function ptrLimpa(){
+  var e=ptrEls();if(!e.ring)return;
+  e.box.classList.remove('gira');
+  e.ring.style.transition='opacity .25s,transform .25s';
+  e.ring.style.opacity='0';e.ring.style.transform='translateY(0) rotate(0deg)';
+  setTimeout(function(){if(e.ring)e.ring.style.transition=''},260);
+  e.msg.classList.remove('on');
+}
+function ptrAviso(txt){
+  var e=ptrEls();if(!e.msg)return;
+  e.msg.textContent=txt;e.msg.classList.add('on');
+  setTimeout(function(){if(e.msg)e.msg.classList.remove('on')},1600);
+}
+async function ptrSolta(){
+  var e=ptrEls();
+  if(!SB.user){ptrLimpa();ptrAviso('entre para sincronizar');return}
+  if(!navigator.onLine){ptrLimpa();ptrAviso('sem conexão');return}
+  e.box.classList.add('gira');
+  e.ring.style.opacity='1';
+  e.ring.style.transform='translateY(42px)';
+  var t0=Date.now();
+  try{await sincronizar(true)}catch(x){}
+  var falta=620-(Date.now()-t0);          // gira pelo menos meio segundo, senao pisca
+  setTimeout(function(){
+    ptrLimpa();
+    if(SB.msg)ptrAviso('não deu para sincronizar');
+    render();
+  },Math.max(0,falta));
+}
+function ligarPTR(){
+  document.addEventListener('touchstart',function(ev){
+    if(!ptrPode()||PTR.ativo)return;
+    PTR.y0=ev.touches[0].clientY;PTR.puxando=true;PTR.altura=0;
+  },{passive:true});
+  document.addEventListener('touchmove',function(ev){
+    if(!PTR.puxando||PTR.ativo)return;
+    var d=ev.touches[0].clientY-PTR.y0;
+    if(d<=0){PTR.altura=0;ptrMostra(0);return}
+    if(!ptrPode()){PTR.puxando=false;ptrMostra(0);return}
+    PTR.altura=d;ptrMostra(d);
+  },{passive:true});
+  document.addEventListener('touchend',function(){
+    if(!PTR.puxando)return;
+    PTR.puxando=false;
+    if(PTR.altura>=80&&!PTR.ativo){PTR.ativo=true;ptrSolta().then(function(){PTR.ativo=false})}
+    else ptrLimpa();
+    PTR.altura=0;
+  },{passive:true});
+}
+
 /* ---------- boot ---------- */
 function temDados(d){
   if(!d)return false;
@@ -2557,7 +3166,7 @@ function migrar(){
   var local=u?await store.get('treinos:db:'+u):null;
   if(!temDados(local))local=await store.get(KEY_LEGADO);   // uso anterior sem login
   if(temDados(local)){
-    db=local;migrar();view='home';render();
+    db=local;migrar();checarConquistas(true);view='home';render();
     // quando a rede voltar, o app se reconecta sozinho
     var tentar=async function(){
       if(!navigator.onLine)return;
@@ -2571,6 +3180,7 @@ function migrar(){
 })();
 
 window.addEventListener('online',function(){if(SB.user)sincronizar(true)});
+ligarPTR();
 
 // abre sem internet: registra o service worker, se ele estiver publicado junto
 if('serviceWorker' in navigator){
