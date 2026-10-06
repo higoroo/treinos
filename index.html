@@ -84,6 +84,13 @@ nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
 nav button .g{line-height:0;display:flex;align-items:center;justify-content:center;height:22px}
 nav button.on{color:var(--ac)}
 .pill{display:inline-block;font-size:12px;padding:4px 10px;border-radius:14px;background:var(--s2);color:var(--tx2);margin:0 6px 6px 0}
+.flash{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));z-index:95;
+  transform:translateX(-50%) translateY(12px);background:var(--s3);border:1px solid var(--br2);
+  color:var(--tx);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;
+  letter-spacing:-.01em;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis;
+  opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;
+  box-shadow:0 10px 30px rgba(0,0,0,.55)}
+.flash.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .pill.on{background:var(--ac-d);color:var(--ac-t)}
 .pill.b{background:var(--bl-d);color:#A8B8FF}
 .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 10px;border-radius:16px;background:var(--s2);color:var(--tx);margin:0 6px 6px 0}
@@ -2657,17 +2664,12 @@ async function socSalvarPerfil(campo,valor){
 }
 async function socCriarGrupo(nome){
   if(!temSocial())return null;
-  for(var i=0;i<6;i++){
-    var cod=gerarCodigo(8),id=uid();
-    var r=await SB.cli.from('tr_grupos').insert({id:id,nome:nome,dono:SB.user.id,codigo:cod})
-      .select().maybeSingle();
-    if(!r.error){
-      await SB.cli.from('tr_grupo_membros').insert({grupo_id:id,user_id:SB.user.id});
-      SOC.carregado=false;await socCarregar(true);return r.data;
-    }
-    if((r.error.message||'').indexOf('duplicate')<0){alert(erroPt(r.error.message));return null}
-  }
-  return null;
+  var r=await SB.cli.rpc('tr_criar_grupo',{p_nome:nome});
+  if(r.error){alert(erroPt(r.error.message));return null}
+  var g=(r.data&&r.data[0])||null;
+  if(!g){alert('O grupo não foi criado. Tente de novo.');return null}
+  SOC.carregado=false;await socCarregar(true);
+  return g;
 }
 async function socEntrarGrupo(cod){
   if(!SB.cli||!SB.user)return null;
@@ -2885,16 +2887,26 @@ function abrirConvite(){
   else abrirNovoGrupo();
 }
 function copiarCodigo(){copiar(SOC.perfil.codigo,'Código copiado')}
+var _flashT=null;
+function flash(txt){
+  var e=document.getElementById('flash');
+  if(!e){e=document.createElement('div');e.className='flash';e.id='flash';document.body.appendChild(e)}
+  e.textContent=txt;
+  e.offsetHeight;
+  e.classList.add('on');
+  clearTimeout(_flashT);
+  _flashT=setTimeout(function(){e.classList.remove('on')},1800);
+}
 function copiar(txt,msg){
   try{
     if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt).then(function(){ptrAviso(msg)});return;
+      navigator.clipboard.writeText(txt).then(function(){flash(msg)});return;
     }
   }catch(e){}
   var i=document.createElement('textarea');i.value=txt;
   i.style.position='fixed';i.style.opacity='0';
   document.body.appendChild(i);i.select();
-  try{document.execCommand('copy');ptrAviso(msg)}catch(e){alert(txt)}
+  try{document.execCommand('copy');flash(msg)}catch(e){alert(txt)}
   i.remove();
 }
 
@@ -3230,6 +3242,12 @@ function erroPt(m){
   if(m.indexOf('rate limit')>=0||m.indexOf('too many')>=0)return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.';
   if(m.indexOf('failed to fetch')>=0||m.indexOf('network')>=0)return 'Sem conexão agora. Seus treinos continuam salvos no aparelho.';
   if(m.indexOf('for security purposes')>=0)return 'Aguarde alguns segundos antes de tentar de novo.';
+  if(m.indexOf('nome do grupo')>=0)return 'Dê um nome ao grupo.';
+  if(m.indexOf('não autenticado')>=0||m.indexOf('jwt')>=0)return 'Sua sessão expirou. Entre de novo.';
+  if(m.indexOf('só o dono')>=0)return 'Só quem criou o grupo pode fazer isso.';
+  if(m.indexOf('tr_criar_grupo')>=0||m.indexOf('function public.tr_')>=0)
+    return 'O app está mais novo que o banco. Falta rodar a última atualização no Supabase.';
+  if(m.indexOf('row-level security')>=0)return 'O banco recusou a gravação. Me avise que eu ajusto a permissão.';
   return m?('Não deu certo: '+m):'Não deu certo. Tente de novo.';
 }
 function chaveSnap(){return 'treinos:snapshot:'+(SB.user?SB.user.id:'x')}

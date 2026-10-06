@@ -1,6 +1,6 @@
 // Treinos — service worker
 // Guarda o app para abrir sem internet. Os dados ficam no aparelho, nunca aqui.
-const CACHE = 'treinos-v2';
+const CACHE = 'treinos-v3';
 const ARQUIVOS = ['./', './index.html'];
 
 self.addEventListener('install', e => {
