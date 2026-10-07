@@ -583,7 +583,15 @@ var store={
 };
 
 var uid=function(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
-var hoje=function(){var d=new Date();return d.toISOString().slice(0,10)};
+/* Data no fuso de quem esta usando. toISOString() devolve UTC: em Porto
+   Ferreira (UTC-3) o app virava o dia as 21h, e o treino da noite caia
+   no dia seguinte. Tudo que e DIA passa por aqui; so instante usa UTC. */
+function dISO(d){
+  d=d||new Date();
+  var m=d.getMonth()+1,x=d.getDate();
+  return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(x<10?'0':'')+x;
+}
+var hoje=function(){return dISO()};
 
 /* ---------- semente ---------- */
 function semente(){
@@ -672,14 +680,14 @@ function sessoesOk(){return db.sessoes.filter(function(s){return !s.aberta&&!s.a
 function semanaAtual(){
   var d=new Date(),dw=(d.getDay()+6)%7;
   d.setDate(d.getDate()-dw);d.setHours(0,0,0,0);
-  var ini=d.toISOString().slice(0,10);
+  var ini=dISO(d);
   return sessoesOk().filter(function(s){return s.data>=ini}).length;
 }
 function sequencia(){
   var dias={};sessoesOk().forEach(function(s){dias[s.data]=1});
   var n=0,d=new Date();
-  if(!dias[d.toISOString().slice(0,10)])d.setDate(d.getDate()-1);
-  while(dias[d.toISOString().slice(0,10)]){n++;d.setDate(d.getDate()-1)}
+  if(!dias[dISO(d)])d.setDate(d.getDate()-1);
+  while(dias[dISO(d)]){n++;d.setDate(d.getDate()-1)}
   return n;
 }
 function graduacoesReais(){
@@ -813,7 +821,7 @@ function semanaDias(){
   var ordem={musculacao:0,jiujitsu:1,corrida:2};
   for(var i=0;i<7;i++){
     var dt=new Date(d);dt.setDate(d.getDate()+i);
-    var iso=dt.toISOString().slice(0,10);
+    var iso=dISO(dt);
     var tipos=sessoesOk().filter(function(s){return s.data===iso})
       .map(function(s){return s.tipo})
       .sort(function(a,b){return ordem[a]-ordem[b]});
@@ -1597,7 +1605,7 @@ function exerciciosComProgresso(){
 function semanasSeguidasJiu(){
   var sem={};sessoesOk().filter(function(s){return s.tipo==='jiujitsu'}).forEach(function(s){
     var d=new Date(s.data+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));
-    var k=d.toISOString().slice(0,10);sem[k]=(sem[k]||0)+1;
+    var k=dISO(d);sem[k]=(sem[k]||0)+1;
   });
   var ks=Object.keys(sem).sort(),melhor=0,atual=0,ant=null;
   ks.forEach(function(k){
@@ -2277,7 +2285,7 @@ function porMes(n,tipo){
 }
 function contaTipo(t,dias){
   var lim=null;
-  if(dias){var d=new Date();d.setDate(d.getDate()-dias);lim=d.toISOString().slice(0,10)}
+  if(dias){var d=new Date();d.setDate(d.getDate()-dias);lim=dISO(d)}
   return sessoesOk().filter(function(s){return s.tipo===t&&(!lim||s.data>=lim)}).length;
 }
 function seriesDe(sid){return db.series.filter(function(x){return x.sessao_id===sid&&x.feita})}
@@ -2285,7 +2293,7 @@ function seriesDe(sid){return db.series.filter(function(x){return x.sessao_id===
 /* --- musculacao --- */
 function volumePorGrupo(dias){
   var d=new Date();d.setDate(d.getDate()-(dias||30));
-  var lim=d.toISOString().slice(0,10);
+  var lim=dISO(d);
   var ids={};
   sessoesOk().forEach(function(s){if(s.tipo==='musculacao'&&s.data>=lim)ids[s.id]=1});
   var g={};
@@ -2360,12 +2368,12 @@ function diaSemanaFraco(){
   var nomes=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
   var cont=[0,0,0,0,0,0,0],sem=[0,0,0,0,0,0,0];
   var d=new Date();d.setDate(d.getDate()-70);
-  var lim=d.toISOString().slice(0,10);
+  var lim=dISO(d);
   var dias={};
   sessoesOk().forEach(function(s){if(s.data>=lim)dias[s.data]=1});
   for(var i=0;i<70;i++){
     var x=new Date();x.setDate(x.getDate()-i);
-    var iso=x.toISOString().slice(0,10),w=x.getDay();
+    var iso=dISO(x),w=x.getDay();
     sem[w]++;
     if(dias[iso])cont[w]++;
   }
@@ -2655,7 +2663,7 @@ function iniciais(nome){
 function segunda(d){
   var x=new Date((d||hoje())+'T12:00:00');
   x.setDate(x.getDate()-((x.getDay()+6)%7));
-  return x.toISOString().slice(0,10);
+  return dISO(x);
 }
 function primeiroDoMes(d){return (d||hoje()).slice(0,7)+'-01'}
 /* no comeco do mes a semana corrente comeca no mes passado:
@@ -2826,7 +2834,10 @@ async function socPublicarPendentes(){
     if(!s.data||s.data<ini)return;
     if(s.aberta)return;
     if(s.arquivada){if(jaTem[s.id])arquivadas.push(s.id);return}
-    if(jaTem[s.id])return;
+    var ex=jaTem[s.id];
+    // já publicada e batendo com o aparelho: nada a fazer.
+    // se a data divergir (conserto de fuso), republica por cima.
+    if(ex&&ex.data===s.data&&ex.tipo===s.tipo)return;
     faltando.push({id:s.id,user_id:u,data:s.data,tipo:s.tipo,criado:horaPresenca(s)});
   });
   try{
@@ -2834,7 +2845,11 @@ async function socPublicarPendentes(){
       var lote=faltando.slice(i,i+200);
       var r=await SB.cli.from('tr_presenca').upsert(lote,{onConflict:'id'});
       if(r&&r.error)return 0;
-      lote.forEach(function(x){SOC.presencas.push(x)});
+      lote.forEach(function(x){
+        var j=-1;
+        for(var k=0;k<SOC.presencas.length;k++)if(SOC.presencas[k].id===x.id){j=k;break}
+        if(j>=0)SOC.presencas[j]=x;else SOC.presencas.push(x);
+      });
     }
     if(arquivadas.length){
       await SB.cli.from('tr_presenca').delete().in('id',arquivadas);
@@ -2993,7 +3008,7 @@ function rotuloDia(d){
   var hj=hoje();
   if(d===hj)return 'hoje';
   var o=new Date(hj+'T12:00:00');o.setDate(o.getDate()-1);
-  if(d===o.toISOString().slice(0,10))return 'ontem';
+  if(d===dISO(o))return 'ontem';
   return diaSem(d)+' '+d.slice(8,10)+'/'+d.slice(5,7);
 }
 
@@ -3625,6 +3640,8 @@ function aplicarRemoto(r){
     if(!cq[c.codigo]||c.data<cq[c.codigo])cq[c.codigo]=c.data;
   });
   db.conq=cq;
+  // a nuvem guarda as datas como foram gravadas, inclusive as erradas
+  repararFuso();
 }
 
 /* --- sincronização: envia só o que mudou, depois puxa tudo --- */
@@ -3673,6 +3690,20 @@ async function sincronizar(silencioso){
       peso:qp.data.peso==null?'':String(qp.data.peso)};
     aplicarRemoto(remoto);
     await salvar();
+
+    // 2b. o conserto de fuso roda ao aplicar o remoto, então as datas que ele
+    // acertou precisam voltar à nuvem ANTES do snapshot — senão ficam
+    // marcadas como "já enviadas" sem nunca terem subido.
+    if(FUSO_MEXEU.length){
+      var lf=linhasLocais(u);
+      var corrigidas=lf.tr_sessoes.filter(function(r){return FUSO_MEXEU.indexOf(r.id)>=0});
+      for(var pf=0;pf<corrigidas.length;pf+=400){
+        var rf=await SB.cli.from('tr_sessoes').upsert(corrigidas.slice(pf,pf+400),{onConflict:'id'});
+        if(rf.error)throw new Error('tr_sessoes: '+rf.error.message);
+      }
+      FUSO_MEXEU=[];
+      SOC.carregado=false;   // a presença também carrega a data; recarrega e republica
+    }
 
     // 3. guarda a nova referência do que já está na nuvem
     var novo={};
@@ -3849,12 +3880,21 @@ async function aposLogin(){
     await sincronizar(true);
     checarConquistas(true);
     if(!temDados(db)){view='onboard';ctx={passo:1,tmp:{}}}else view='home';
-    render();convitePendente();return;
+    render();avisoFuso();convitePendente();return;
   }
   // já temos tudo no aparelho: abre na hora e sincroniza por trás
-  view='home';render();
-  sincronizar(true).then(function(){checarConquistas(true);render()});
+  view='home';render();avisoFuso();
+  sincronizar(true).then(function(){checarConquistas(true);render();avisoFuso()});
   convitePendente();
+}
+/* o conserto de data nao pode acontecer calado: a pessoa precisa saber
+   que o historico dela mudou, e que da pra voltar atras */
+function avisoFuso(){
+  if(!DATAS_CORRIGIDAS)return;
+  var n=DATAS_CORRIGIDAS;DATAS_CORRIGIDAS=0;
+  setTimeout(function(){
+    flash(n===1?'1 data corrigida':n+' datas corrigidas');
+  },700);
 }
 function migrar(){
   if(!db.perfil)db.perfil={nome:'',meta:4,descanso:90,principal:'musculacao'};
@@ -3866,6 +3906,34 @@ function migrar(){
   if(!db.tecnicas)db.tecnicas=[];
   if(!db.graduacoes||!db.graduacoes.length)db.graduacoes=[{id:uid(),faixa:'Branca',grau:0,data:hoje(),professor:'',academia:''}];
   (db.treinos||[]).forEach(function(t){(t.itens||[]).forEach(function(i){if(!i.id)i.id=uid()})});
+  repararFuso();
+}
+
+/* Conserto de uma vez: antes, treino comecado depois das 21h ficava com a
+   data do dia seguinte, porque o dia saia em UTC. O 'inicio' e um instante
+   e nunca esteve errado, entao ele diz qual era o dia de verdade.
+   Treino lancado para outro dia nao e tocado: ali a data veio da pessoa e
+   o inicio foi montado a partir dela, entao os dois ja batem. */
+var DATAS_CORRIGIDAS=0, FUSO_MEXEU=[];
+function repararFuso(){
+  if(!db||!db.sessoes||!db.sessoes.length)return 0;
+  var erradas=[];
+  db.sessoes.forEach(function(s){
+    if(!s.inicio||!s.data)return;
+    var t=new Date(s.inicio);
+    if(isNaN(t))return;
+    var real=dISO(t);
+    if(real!==s.data)erradas.push({s:s,para:real});
+  });
+  if(!erradas.length)return 0;
+  // guarda como estava antes de encostar em qualquer coisa
+  try{localStorage.setItem('treinos:backup:fuso',JSON.stringify(db))}catch(e){}
+  erradas.forEach(function(e){
+    e.s.data=e.para;
+    if(FUSO_MEXEU.indexOf(e.s.id)<0)FUSO_MEXEU.push(e.s.id);
+  });
+  DATAS_CORRIGIDAS+=erradas.length;
+  return erradas.length;
 }
 (async function(){
   db=vazio();
