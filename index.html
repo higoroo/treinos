@@ -131,6 +131,31 @@ nav button.on{color:var(--ac)}
 .fbt.on{background:var(--ac-d);border-color:var(--ac-d);color:var(--ac-t)}
 .fbt:active{transform:scale(.9)}
 .fbt.meu{border-color:transparent;background:var(--ac-d);color:var(--ac-t)}
+.fdl.comnota{flex-direction:column;align-items:stretch;gap:0}
+.fdt{display:flex;align-items:center;gap:11px}
+/* largura auto: com align-items:stretch ela ja preenche o que sobra.
+   com width:100% a margem da esquerda era somada e o texto vazava do card */
+.fnt{display:block;width:auto;box-sizing:border-box;text-align:left;
+  margin:7px 0 1px 45px;padding:0;
+  font-size:13px;line-height:1.5;color:var(--tx2);background:transparent;border:0;
+  overflow-wrap:anywhere;white-space:pre-wrap}
+.fnt.meu{color:var(--tx);cursor:pointer}
+.fnt.vazio{color:var(--tx3);font-size:12px}
+.fnt.meu:active,.fnt.vazio:active{opacity:.6}
+/* chamada pra contar pro grupo, na tela de fim de treino */
+.cgr{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:var(--s1);border:1px solid var(--br2);border-radius:var(--r);padding:13px 14px}
+.cgr.tem{border-color:var(--ac-d);background:var(--ac-d)}
+.cgr:active{transform:scale(.985)}
+.cgi{width:36px;height:36px;flex:0 0 36px;border-radius:12px;background:var(--s3);
+  color:var(--tx2);display:flex;align-items:center;justify-content:center}
+.cgr.tem .cgi{background:var(--ac-f);color:#fff}
+.cgt{flex:1;min-width:0;display:block}
+.cgl{display:block;font-size:10px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tx2)}
+.cgr.tem .cgl{color:var(--ac-t)}
+.cgd{display:block;font-size:14px;color:var(--tx);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* meta da semana: comparada so com voce mesmo */
 .mt{background:var(--s1);border:1px solid var(--br);border-radius:var(--r);padding:14px;margin-bottom:20px}
@@ -834,7 +859,7 @@ function ctaPrincipal(pt){
   if(p==='jiujitsu'){
     var g=db.graduacoes[db.graduacoes.length-1];
     return '<button class="cta an" style="animation-delay:120ms" onclick="checkin()"><div><div class="s">Treino de hoje</div>'+
-      '<div class="n">Check-in no tatame</div><div class="s2">Faixa '+esc(g.faixa)+' · '+g.grau+'º grau · '+aulasJiu()+' aulas</div></div><span class="a">→</span></button>';
+      '<div class="n">Tô no tatame</div><div class="s2">Faixa '+esc(g.faixa)+' · '+g.grau+'º grau · '+aulasJiu()+' aulas</div></div><span class="a">→</span></button>';
   }
   if(p==='corrida'){
     return '<button class="cta an" style="animation-delay:120ms" onclick="ir(\'corrida\')"><div><div class="s">Treino de hoje</div>'+
@@ -1230,12 +1255,12 @@ function vJiu(){
   if(ab){
     var min=Math.round((Date.now()-new Date(ab.inicio).getTime())/60000);
     h+='<div style="height:14px"></div><div class="card" style="border-color:var(--rd);text-align:center">'+
-      '<div class="t2"><span class="live"></span>Treino em andamento</div>'+
+      '<div class="t2"><span class="live"></span>No tatame</div>'+
       '<div class="v num" style="font-size:34px;font-weight:600;margin:6px 0">'+min+' min</div>'+
-      '<button class="b1" onclick="checkout(\''+ab.id+'\')">Check-out</button>'+
-      '<div style="height:10px"></div><button class="b2" style="color:var(--tx3)" onclick="descartar(\''+ab.id+'\')">Descartar check-in</button></div>';
+      '<button class="b1" onclick="checkout(\''+ab.id+'\')">Fim de treino</button>'+
+      '<div style="height:10px"></div><button class="b2" style="color:var(--tx3)" onclick="descartar(\''+ab.id+'\')">Sair sem registrar</button></div>';
   }else{
-    h+='<div style="height:14px"></div><button class="b1" onclick="checkin()">Check-in</button>'+
+    h+='<div style="height:14px"></div><button class="b1" onclick="checkin()">Tô no tatame</button>'+
       '<p class="t2" style="text-align:center;margin-top:8px">Detalhe o treino depois, no vestiário</p>'+
       '<div style="height:10px"></div><button class="b2" onclick="aulaAnterior()">Registrar aula de outro dia</button>';
   }
@@ -1270,7 +1295,8 @@ async function salvarAulaAnterior(){
   var s={id:uid(),tipo:'jiujitsu',data:d,inicio:ini.toISOString(),
     fim:new Date(ini.getTime()+m*60000).toISOString(),duracao:m,notas:'',treino_id:null,
     detalhes:{tipo:'',kimono:true,tecnicas:[]},aberta:false,arquivada:false};
-  db.sessoes.push(s);await salvar();fechar();checarConquistas();sincronizar(true);abrirDetalhe(s.id);
+  db.sessoes.push(s);await salvar();fechar();checarConquistas();sincronizar(true);
+  abrirDetalhe(s.id);socPresenca(s);
 }
 async function checkin(){
   var s={id:uid(),tipo:'jiujitsu',data:hoje(),inicio:new Date().toISOString(),fim:null,duracao:null,
@@ -1281,7 +1307,10 @@ async function checkout(id){
   var s=db.sessoes.find(function(x){return x.id===id});
   s.fim=new Date().toISOString();
   s.duracao=Math.max(1,Math.round((new Date(s.fim)-new Date(s.inicio))/60000));
-  s.aberta=false;await salvar();abrirDetalhe(s.id);checarConquistas();sincronizar(true);
+  // publica JA, antes da folha de técnicas: a aula acabou aqui. Quem fechava
+  // a folha no ✕ nunca aparecia pro grupo. Salvar a folha republica por cima,
+  // com o recado, porque a presença usa o id da sessão.
+  s.aberta=false;await salvar();abrirDetalhe(s.id);checarConquistas();sincronizar(true);socPresenca(s);
 }
 function abrirDetalhe(id){
   var s=db.sessoes.find(function(x){return x.id===id}),d=s.detalhes||{tecnicas:[]};
@@ -2171,6 +2200,16 @@ function vResumo(){
         '<div><div class="rt">Conquista desbloqueada</div><div class="rn">'+esc(c.nome)+'</div></div></div>';
     }).join('')+'</div>';
   }
+  // acabou de treinar: é a hora de contar, se ele estiver num grupo
+  if(temSocial()&&SOC.perfil.no_ranking&&!s.arquivada){
+    var ng=notaGrupo(s);
+    h+='<div style="height:16px"></div>'+
+      '<button class="cgr'+(ng?' tem':'')+'" onclick="abrirNota(\''+s.id+'\')">'+
+      '<span class="cgi">'+svg(ng?'chama':'amigos',18)+'</span>'+
+      '<span class="cgt"><span class="cgl">'+(ng?'no feed do grupo':'contar pro grupo')+'</span>'+
+      '<span class="cgd">'+esc(ng||'o que valeu a pena desse treino')+'</span></span>'+
+      '<span class="se">›</span></button>';
+  }
   h+='<div style="height:14px"></div><button class="b1" onclick="compartilharSessao(\''+s.id+'\')">Compartilhar imagem</button>'+
     (ULTIMAS.length?'<div style="height:10px"></div><button class="b2" onclick="compartilharConq(\''+ULTIMAS[0].id+'\')">Compartilhar a conquista</button>':'')+
     '<div style="height:10px"></div><button class="b2" onclick="ir(\'home\')">Pronto</button><div style="height:20px"></div></div>';
@@ -2775,16 +2814,27 @@ async function socSair(grupoId){
   SOC.carregado=false;await socCarregar(true);render();
 }
 
-/* presenca: so data e modalidade, nunca detalhe */
+/* presenca: data, modalidade e o recado que a pessoa escolheu dividir */
 async function socPresenca(sessao){
-  if(!temSocial()||!SOC.perfil.no_ranking)return;
+  if(!SB.cli||!SB.user)return;
   if(!sessao||sessao.arquivada)return;
+  // O perfil social so era carregado ao abrir a aba Amigos. Quem registrava
+  // o treino e fechava o app sem passar por la nunca publicava nada: o
+  // treino ficava so no aparelho e o grupo nao via. Carrega aqui se faltar.
+  if(!SOC.perfil&&!SOC.carregado)await socCarregar();
+  if(!temSocial()||!SOC.perfil.no_ranking)return;
   try{
     await SB.cli.from('tr_presenca').upsert(
       {id:sessao.id,user_id:SB.user.id,data:sessao.data,tipo:sessao.tipo,
-       criado:horaPresenca(sessao)},{onConflict:'id'});
+       criado:horaPresenca(sessao),nota:notaGrupo(sessao)},{onConflict:'id'});
     SOC.carregado=false;
   }catch(e){}
+}
+
+/* O recado do feed. NUNCA sai das anotacoes privadas do treino: a pessoa
+   escreve de novo, so o que ela quer que o grupo leia. */
+function notaGrupo(s){
+  return String((s&&s.detalhes&&s.detalhes.notaGrupo)||'').slice(0,140);
 }
 
 /* Hora que vai pro feed. Usa o fim do treino quando existe; senao o meio-dia
@@ -2836,9 +2886,10 @@ async function socPublicarPendentes(){
     if(s.arquivada){if(jaTem[s.id])arquivadas.push(s.id);return}
     var ex=jaTem[s.id];
     // já publicada e batendo com o aparelho: nada a fazer.
-    // se a data divergir (conserto de fuso), republica por cima.
-    if(ex&&ex.data===s.data&&ex.tipo===s.tipo)return;
-    faltando.push({id:s.id,user_id:u,data:s.data,tipo:s.tipo,criado:horaPresenca(s)});
+    // se a data ou o recado divergirem, republica por cima.
+    if(ex&&ex.data===s.data&&ex.tipo===s.tipo&&(ex.nota||'')===notaGrupo(s))return;
+    faltando.push({id:s.id,user_id:u,data:s.data,tipo:s.tipo,
+                   criado:horaPresenca(s),nota:notaGrupo(s)});
   });
   try{
     for(var i=0;i<faltando.length;i+=200){
@@ -3073,15 +3124,80 @@ function linhaFeed(p){
   var nome=meu?'você':(SOC.pessoas[p.user_id]||'alguém');
   var ini=meu?iniciais((SOC.perfil&&SOC.perfil.apelido)||'eu'):iniciais(SOC.pessoas[p.user_id]||'?');
   var r=SOC.reacoes[p.id]||{n:0,eu:false};
-  var qd=horaRel(p);
+  var qd=horaRel(p),nt=(p.nota||'').trim();
   var botao=meu
     ? (r.n?'<span class="fbt meu">'+svg('chama',14)+r.n+'</span>':'')
     : '<button class="fbt'+(r.eu?' on':'')+'" onclick="socReagir(\''+p.id+'\')" '+
       'aria-label="Mandar força para '+esc(nome)+'">'+svg('chama',14)+(r.n||'')+'</button>';
-  return '<div class="fdl"><span class="fav'+(meu?' meu':'')+'">'+esc(ini)+'</span>'+
+  // o recado só existe se a pessoa escreveu; o seu é tocável pra editar
+  var recado=nt
+    ? (meu?'<button class="fnt meu" onclick="abrirNota(\''+p.id+'\')">'+esc(nt)+'</button>'
+          :'<p class="fnt">'+esc(nt)+'</p>')
+    : (meu?'<button class="fnt vazio" onclick="abrirNota(\''+p.id+'\')">contar pro grupo…</button>':'');
+  return '<div class="fdl'+(recado?' comnota':'')+'">'+
+    '<div class="fdt"><span class="fav'+(meu?' meu':'')+'">'+esc(ini)+'</span>'+
     '<span class="fdc"><span class="fdn'+(meu?' meu':'')+'">'+esc(nome)+'</span>'+
     '<span class="fdm">'+svg(p.tipo,13)+esc(nomeTipo(p.tipo))+(qd?' · '+esc(qd):'')+'</span></span>'+
-    botao+'</div>';
+    botao+'</div>'+recado+'</div>';
+}
+
+/* Escrever ou mudar o recado de um treino seu */
+function abrirNota(pid){
+  var s=null;
+  for(var i=0;i<db.sessoes.length;i++)if(db.sessoes[i].id===pid){s=db.sessoes[i];break}
+  if(!s){alert('Esse treino não está neste aparelho.');return}
+  var atual=notaGrupo(s),d=s.detalhes||{};
+  var tec=(d.tecnicas||[]).join(', ');
+  var el=document.createElement('div');el.className='sheet';el.id='sheet';
+  el.innerHTML='<div><div class="top"><h1 style="font-size:18px">Contar pro grupo</h1>'+
+    '<button class="x" onclick="fechar()">✕</button></div>'+
+    '<p class="t2" style="margin:2px 0 0;line-height:1.5">Só isto aparece no feed. '+
+    'Suas anotações do treino continuam só suas.</p>'+
+    '<label>Recado</label>'+
+    '<textarea id="ng" rows="3" maxlength="140" placeholder="Ex: peguei a raspagem que tava treinando" '+
+    'oninput="contaNota()">'+esc(atual)+'</textarea>'+
+    '<div class="t2" style="text-align:right;font-size:11px;margin-top:4px"><span id="ngc">'+
+    atual.length+'</span>/140</div>'+
+    (tec?'<button class="b3" style="margin-top:4px" onclick="puxarTecnicas()">+ incluir as técnicas de hoje</button>':'')+
+    '<div style="height:16px"></div><button class="b1" onclick="salvarNota(\''+pid+'\')">Mandar pro grupo</button>'+
+    (atual?'<div style="height:9px"></div><button class="b2" style="color:var(--tx3)" onclick="salvarNota(\''+pid+'\',true)">Tirar do feed</button>':'')+
+    '<div style="height:10px"></div></div>';
+  document.body.appendChild(el);
+  setTimeout(function(){var t=document.getElementById('ng');if(t)t.focus()},80);
+}
+function contaNota(){
+  var t=document.getElementById('ng'),c=document.getElementById('ngc');
+  if(t&&c)c.textContent=t.value.length;
+}
+function puxarTecnicas(){
+  var t=document.getElementById('ng');if(!t)return;
+  var s=null,pid=null;
+  // a folha aberta é sempre a do treino cujo botão foi tocado
+  var b=document.querySelector('#sheet .b1');
+  if(b)pid=(b.getAttribute('onclick')||'').match(/'([^']+)'/)[1];
+  for(var i=0;i<db.sessoes.length;i++)if(db.sessoes[i].id===pid){s=db.sessoes[i];break}
+  if(!s)return;
+  var tec=((s.detalhes||{}).tecnicas||[]).join(', ');
+  t.value=(t.value?t.value.replace(/\s*$/,'')+' · ':'')+tec;
+  if(t.value.length>140)t.value=t.value.slice(0,140);
+  contaNota();t.focus();
+}
+async function salvarNota(pid,tirar){
+  var t=document.getElementById('ng');
+  var v=tirar?'':((t&&t.value)||'').trim().slice(0,140);
+  var s=null;
+  for(var i=0;i<db.sessoes.length;i++)if(db.sessoes[i].id===pid){s=db.sessoes[i];break}
+  if(!s)return;
+  s.detalhes=s.detalhes||{};
+  s.detalhes.notaGrupo=v;
+  await salvar();
+  fechar();
+  // leva pro feed na hora, sem esperar a próxima carga
+  for(var k=0;k<SOC.presencas.length;k++)if(SOC.presencas[k].id===pid)SOC.presencas[k].nota=v;
+  render();
+  await socPresenca(s);
+  sincronizar(true);
+  flash(v?'Mandado pro grupo':'Tirado do feed');
 }
 
 /* Placar: topo 3 e a vizinhanca de quem olha, nunca a lista inteira */
@@ -3237,7 +3353,7 @@ function vLanding(){
     '<div style="text-align:right"><div class="jn"><span id="j-n">94</span></div>'+
     '<div class="lb" style="margin-top:4px">aulas</div></div></div>'+
     '<div class="t2" id="j-txt">21 aulas nos últimos 3 meses</div>'+
-    '<div class="jb" id="j-btn">Check-in</div>'+
+    '<div class="jb" id="j-btn">Tô no tatame</div>'+
     '<div class="jtags" id="j-tags">'+
     ['raspagem da guarda aranha','berimbolo','estrangulamento pela costas']
       .map(function(t){return '<span>'+t+'</span>'}).join('')+'</div>'+
@@ -3250,7 +3366,7 @@ function vLanding(){
 
   h+='<div class="sec"><h3 class="rv">Feito por quem<br>cansou de esquecer.</h3>'+
     [['musculacao','A carga da semana passada já vem preenchida','Você não digita de novo o que já fez. Confirma a série e segue para a próxima, sem tirar o foco do treino.'],
-     ['jiujitsu','No tatame, um toque','Check-in ao chegar, check-out ao sair. As técnicas que você treinou e o que não quer esquecer, você anota depois, no vestiário.'],
+     ['jiujitsu','No tatame, um toque','Um toque ao chegar, outro ao sair. As técnicas que você treinou e o que não quer esquecer, você anota depois, no vestiário.'],
      ['corrida','A conta que ninguém faz por você','Quantas aulas desde a última graduação. Quantos treinos até o campeonato. Quantos dias seguidos você não falha.']
     ].map(function(x,i){
       return '<div class="pt rv" style="transition-delay:'+(i*90)+'ms"><div class="k">'+svg(x[0],20)+'</div>'+
@@ -3349,7 +3465,7 @@ function animarLanding(){
     setTimeout(function(){ix=(ix+1)%frases.length;el.textContent=frases[ix];el.classList.remove('sai')},300);
   },2600);
 
-  // 4. demonstração em laço: check-in, aula, check-out e a conta subindo
+  // 4. demonstração em laço: chega, treina, sai e a conta sobe
   var ciclo=function(){
     var b=document.getElementById('j-btn'),n=document.getElementById('j-n'),
         txt=document.getElementById('j-txt'),
@@ -3357,12 +3473,12 @@ function animarLanding(){
     if(!b)return;
     clearInterval(LP.b);
     var cq=document.getElementById('j-conq');
-    b.textContent='Check-in';b.className='jb';
+    b.textContent='Tô no tatame';b.className='jb';
     n.textContent='94';txt.textContent='21 aulas nos últimos 3 meses';
     cq.classList.remove('on');
     Array.prototype.forEach.call(tags,function(t){t.classList.remove('on')});
 
-    LP.c=setTimeout(function(){                       // toque no check-in
+    LP.c=setTimeout(function(){                       // toque ao chegar
       b.classList.add('toque');
       LP.c=setTimeout(function(){
         b.classList.remove('toque');b.classList.add('viva');
@@ -3371,9 +3487,9 @@ function animarLanding(){
           seg+=4;
           b.innerHTML='<span class="live"></span>Em aula · '+Math.floor(seg/60)+':'+String(seg%60).padStart(2,'0');
         },70);
-        LP.c=setTimeout(function(){                   // check-out
+        LP.c=setTimeout(function(){                   // toque ao sair
           clearInterval(LP.b);
-          b.className='jb toque';b.textContent='Check-out';
+          b.className='jb toque';b.textContent='Fim de treino';
           LP.c=setTimeout(function(){
             b.classList.remove('toque');
             n.textContent='95';n.parentElement.classList.add('ap');
@@ -3880,12 +3996,26 @@ async function aposLogin(){
     await sincronizar(true);
     checarConquistas(true);
     if(!temDados(db)){view='onboard';ctx={passo:1,tmp:{}}}else view='home';
-    render();avisoFuso();convitePendente();return;
+    render();avisoFuso();socAoAbrir();convitePendente();return;
   }
   // já temos tudo no aparelho: abre na hora e sincroniza por trás
   view='home';render();avisoFuso();
-  sincronizar(true).then(function(){checarConquistas(true);render();avisoFuso()});
+  sincronizar(true).then(function(){checarConquistas(true);render();avisoFuso();socAoAbrir(true)});
+  socAoAbrir();
   convitePendente();
+}
+
+/* Carrega o social a cada abertura do app, por trás, sem segurar a tela.
+   Dois motivos: o registro do treino passa a funcionar sem precisar visitar
+   a aba Amigos, e o que ficou pendente sobe sozinho. Depois da sincronia
+   roda de novo, porque pode ter chegado treino de outro aparelho. */
+function socAoAbrir(depoisDaNuvem){
+  if(!SB.cli||!SB.user)return;
+  setTimeout(function(){
+    socCarregar(!!depoisDaNuvem).then(function(){
+      if(view==='amigos')render();
+    }).catch(function(){});
+  },depoisDaNuvem?0:400);
 }
 /* o conserto de data nao pode acontecer calado: a pessoa precisa saber
    que o historico dela mudou, e que da pra voltar atras */
