@@ -183,7 +183,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-colo
   </div>
   <div class="mres" id="minhas"></div>
   <div class="plist" id="plist"></div>
-  <div class="soon"><b>Em breve:</b> Futevôlei, Corrida e Beach Tênis.</div>
+  <div class="soon"><b>Em breve:</b> Futevôlei, Corrida e Beach Tênis.<div class="btns"><button class="sbtn pri" id="avisarMod">🔔 Avisar quando chegar</button></div></div>
   <div class="foot"><button id="openPanel">Área do profissional</button><button id="openAdmin">Gerenciador</button></div>
 </div>
 
@@ -205,6 +205,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-colo
   <h2>Horários livres</h2>
   <div class="hint" id="precoDia" style="margin:-4px 0 10px"></div>
   <div class="slots" id="slots"></div>
+  <button class="sbtn" id="avisarPro" style="margin-top:14px;width:100%;padding:13px">🔔 Não achou horário? Avise-me quando abrir agenda</button>
 </div>
 
 <div class="bar" id="bar"><button class="cta" id="cta" disabled>Escolha local, dia e horário</button></div>
@@ -281,6 +282,9 @@ const ERROS = {
   data_longe: 'Escolha uma data mais próxima.',
   muitas_pendentes: 'Você já tem 2 reservas aguardando pagamento. Conclua o Pix delas ou espere expirar.',
   profissional_indisponivel: 'Este profissional não está disponível.',
+  email_invalido: 'Informe um e-mail válido.',
+  contato_invalido: 'Informe um WhatsApp com DDD ou um e-mail válido.',
+  muitos_cadastros: 'Muitos cadastros agora. Tente de novo mais tarde.',
   codigo_invalido: 'Código inválido ou já usado.',
   repasse_sem_pagamento: 'Esta aula já teve repasse. Resolva o reembolso manualmente.',
   reserva_imutavel: 'Os valores de uma reserva não podem ser alterados.'
@@ -470,6 +474,8 @@ $('cta').onclick = () => {
     </div>
     <label>Seu nome</label><input id="fnome" autocomplete="name" placeholder="Como te chamam">
     <label>Seu WhatsApp</label><input id="fzap" inputmode="tel" autocomplete="tel" placeholder="(19) 99999-9999">
+    <label>Seu e-mail</label><input id="femail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com">
+    <div class="hint" style="margin:10px 0 0">Ao reservar, você aceita receber contato por WhatsApp e e-mail sobre esta aula e novidades do Treina Aí. Usamos seus dados só para isso.</div>
     <div class="err" id="ferr"></div>
     <div class="row"><button class="btn2" id="fcancel">Voltar</button><button class="btn1" id="fok">Reservar e pagar</button></div>
   `);
@@ -481,9 +487,11 @@ async function confirmar(){
   const nome = $('fnome').value.trim(), zap = digits($('fzap').value);
   if(nome.length < 2){ $('ferr').textContent = 'Informe seu nome.'; return; }
   if(zap.length < 10){ $('ferr').textContent = 'Informe um WhatsApp válido com DDD.'; return; }
+  const email = $('femail').value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ $('ferr').textContent = 'Informe um e-mail válido.'; return; }
   const btn = $('fok'); btn.disabled = true; btn.textContent = 'Reservando…'; $('ferr').textContent = '';
   const { data, error } = await sb.rpc('ta_criar_reserva', {
-    p_pro:cur.id, p_data:state.date, p_hora:state.hour, p_local:state.acad, p_nome:nome, p_zap:zap
+    p_pro:cur.id, p_data:state.date, p_hora:state.hour, p_local:state.acad, p_nome:nome, p_zap:zap, p_email:email
   });
   if(error || !data || !data[0]){
     $('ferr').textContent = msgErro(error);
@@ -586,6 +594,29 @@ function iniciarPoll(rec){
     else if(s.status === 'expirada' || s.status === 'cancelada'){ pararPoll(); showExpirada(rec); renderMinhas(); }
   }, 6000);
 }
+
+/* ---------- avisar quando abrir ---------- */
+function avisarSheet(pro){
+  openSheet(`
+    <h3>${pro ? 'Avisar quando abrir agenda' : 'Avisar quando chegar'}</h3>
+    <div class="sub">${pro ? 'Quando ' + esc(pro.nome) + ' liberar novos horários, avisamos você.' : 'Avisamos você quando entrarem novas modalidades.'}</div>
+    ${pro ? '' : `<label>Modalidade</label><select id="av_mod">${['Futevôlei','Corrida','Beach Tênis','Outra'].map(m => `<option>${m}</option>`).join('')}</select>`}
+    <label>Seu WhatsApp (com DDD) ou e-mail</label><input id="av_c" autocomplete="email" placeholder="(19) 99999-9999 ou voce@email.com">
+    <div class="hint" style="margin:10px 0 0">Usamos o contato só para este aviso e novidades do Treina Aí.</div>
+    <div class="err" id="av_err"></div>
+    <div class="row"><button class="btn2" id="av_cancel">Cancelar</button><button class="btn1" id="av_ok">Quero ser avisado</button></div>`);
+  $('av_cancel').onclick = closeSheet;
+  $('av_ok').onclick = async () => {
+    const c = $('av_c').value.trim(); if(!c){ $('av_err').textContent = 'Informe seu WhatsApp ou e-mail.'; return; }
+    $('av_ok').disabled = true;
+    const { error } = await sb.rpc('ta_avisar', { p_contato:c, p_pro: pro ? pro.id : null, p_mod: pro ? pro.mod : $('av_mod').value });
+    if(error){ $('av_ok').disabled = false; $('av_err').textContent = msgErro(error); return; }
+    openSheet(`<div class="center"><div class="ok">✓</div><h3>Pronto!</h3><div class="sub">Vamos te avisar assim que tiver novidade.</div></div><div class="row"><button class="btn2" id="av_f">Fechar</button></div>`);
+    $('av_f').onclick = closeSheet;
+  };
+}
+$('avisarPro').onclick = () => cur && avisarSheet(cur);
+$('avisarMod').onclick = () => avisarSheet(null);
 
 /* ---------- suas reservas (guardadas no aparelho do aluno) ---------- */
 const RES_KEY = 'ta_res';
@@ -852,11 +883,11 @@ function renderAdmin(){
   if(admTimer){ clearInterval(admTimer); admTimer = null; }
   if(!SESSION) return authForm(box, renderAdmin);
   if(!ISADMIN){ box.innerHTML = '<div class="warn">Esta conta não é de administrador.</div>'; return; }
-  const T = [['aulas','Aulas'],['pros','Profissionais'],['cfg','Configurações']];
+  const T = [['aulas','Aulas'],['pros','Profissionais'],['ctt','Contatos'],['cfg','Configurações']];
   box.innerHTML = `<div class="tabs" id="atabs">${T.map(([k,l]) => `<button class="tab ${atab===k?'on':''}" data-k="${k}">${l}</button>`).join('')}</div><div id="atab"></div>`;
   $('atabs').querySelectorAll('.tab').forEach(b => b.onclick = () => { atab = b.dataset.k; renderAdmin(); });
   if(atab==='aulas'){ adminAulas(); admTimer = setInterval(() => adminAulas(true), 15000); }
-  else if(atab==='pros') adminPros(); else adminCfg();
+  else if(atab==='pros') adminPros(); else if(atab==='ctt') adminContatos(); else adminCfg();
 }
 
 async function adminAulas(silent){
@@ -983,6 +1014,35 @@ function novoProSheet(){
     if(error){ $('n_err').textContent = msgErro(error); return; }
     closeSheet(); adminPros();
   };
+}
+
+async function adminContatos(){
+  $('atab').innerHTML = '<div class="empty">Carregando…</div>';
+  const [r, i] = await Promise.all([
+    sb.from('ta_reservas').select('aluno_nome,aluno_zap,aluno_email,status,total,created_at').order('created_at', { ascending:false }),
+    sb.from('ta_interessados').select('contato,tipo,modalidade,pro_id,created_at').order('created_at', { ascending:false })
+  ]);
+  if(r.error || i.error){ $('atab').innerHTML = '<div class="warn">Não foi possível carregar. Rodou a migração 1 no Supabase?</div>'; return; }
+  const m = new Map();
+  r.data.forEach(b => {
+    const c = m.get(b.aluno_zap) || { nome:b.aluno_nome, zap:b.aluno_zap, email:b.aluno_email || '', n:0, pagas:0, ult:b.created_at };
+    c.n++; if(b.status === 'pago') c.pagas++; if(!c.email && b.aluno_email) c.email = b.aluno_email; m.set(b.aluno_zap, c);
+  });
+  const alunos = [...m.values()];
+  const csvAl = 'nome;whatsapp;email;reservas;pagas\n' + alunos.map(a => [a.nome,a.zap,a.email,a.n,a.pagas].join(';')).join('\n');
+  const csvIn = 'contato;tipo;interesse;data\n' + i.data.map(x => [x.contato,x.tipo,x.modalidade||'',x.created_at.slice(0,10)].join(';')).join('\n');
+  $('atab').innerHTML = `
+    <h2 style="margin-top:14px">Alunos (${alunos.length})</h2>
+    <div class="btns" style="margin:0 0 10px"><button class="sbtn" id="cp_al">Copiar lista (planilha)</button></div>` +
+    (alunos.map(a => `<div class="bk"><div class="bh"><b>${esc(a.nome)}</b><span class="tag">${a.pagas} paga(s) · ${a.n} reserva(s)</span></div>
+      <div class="bm">${esc(a.zap)}${a.email ? ' · ' + esc(a.email) : ''}</div>
+      <div class="btns"><a class="sbtn" style="text-decoration:none;color:var(--txt)" target="_blank" rel="noopener" href="${wa(a.zap)}">WhatsApp</a></div></div>`).join('') || '<div class="empty">Ainda sem alunos.</div>') +
+    `<h2>Quero ser avisado (${i.data.length})</h2>
+    <div class="btns" style="margin:0 0 10px"><button class="sbtn" id="cp_in">Copiar lista (planilha)</button></div>` +
+    (i.data.map(x => `<div class="bk"><div class="bh"><b>${esc(x.contato)}</b><span class="tag">${esc(x.tipo)}</span></div>
+      <div class="bm">${x.modalidade ? esc(x.modalidade) + ' · ' : ''}${esc(x.created_at.slice(0,10))}</div></div>`).join('') || '<div class="empty">Ninguém na lista ainda.</div>');
+  const cp = (id, t) => $(id).onclick = async () => { try{ await navigator.clipboard.writeText(t); toast('Copiado. Cole numa planilha.'); }catch(e){ toast('Não consegui copiar neste navegador.'); } };
+  cp('cp_al', csvAl); cp('cp_in', csvIn);
 }
 
 async function adminCfg(){
