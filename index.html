@@ -316,6 +316,13 @@ const ERROS = {
   email_invalido: 'Informe um e-mail válido.',
   contato_invalido: 'Informe um WhatsApp com DDD ou um e-mail válido.',
   muitos_cadastros: 'Muitos cadastros agora. Tente de novo mais tarde.',
+  aula_nao_comecou: 'A aula ainda não começou. Você poderá concluir a partir do horário.',
+  ja_concluida: 'Esta aula já foi concluída.',
+  reserva_nao_paga: 'Esta reserva ainda não foi paga.',
+  reserva_nao_encontrada: 'Reserva não encontrada.',
+  reserva_nao_ativa: 'Esta reserva não pode mais ser cancelada.',
+  repasse_sem_conclusao: 'Conclua a aula (ou marque falta) antes de registrar o repasse.',
+  aula_ja_concluida: 'Esta aula já foi concluída e não pode ser cancelada.',
   codigo_invalido: 'Código inválido ou já usado.',
   repasse_sem_pagamento: 'Esta aula já teve repasse. Resolva o reembolso manualmente.',
   reserva_imutavel: 'Os valores de uma reserva não podem ser alterados.'
@@ -719,28 +726,39 @@ async function renderMinhas(){
   const resumo = Object.fromEntries((data || []).map(x => [x.id, x]));
   const itens = guardadas.filter(r => resumo[r.id]).map(r => ({ rec:r, s:resumo[r.id] }));
   const pagas = itens.filter(x => x.s.status === 'pago').sort((a,b) => (a.s.data + pad(a.s.hora)).localeCompare(b.s.data + pad(b.s.hora)));
-  const real = pagas.filter(x => acabou(x.s.data, x.s.hora)).map(x => ({ ...x.s }));
+  const real = pagas.filter(x => x.s.conclusao === 'concluida').map(x => ({ ...x.s }));
   const { desb, todas } = calcularConquistas(real);
   MIN = { cards:[], real, desb, todas, itens };
   const hojeK = key(hoje), limite = key(new Date(hoje.getTime() - 14*86400000));
   const mostrar = itens.filter(x => {
-    if(x.s.status === 'pago') return !acabou(x.s.data, x.s.hora) || x.s.data >= limite;
+    if(x.s.status === 'pago') return !x.s.conclusao || x.s.data >= limite;
+    if(x.s.status === 'cancelada' && x.s.foi_paga) return x.s.data >= limite;
     return x.s.data >= hojeK;
   }).sort((a,b) => (a.s.data + pad(a.s.hora)).localeCompare(b.s.data + pad(b.s.hora)));
   MIN.cards = mostrar;
   let h = '';
   if(mostrar.length){
     h += '<h2 style="margin-top:6px">Suas reservas</h2>' + mostrar.map((x,i) => {
-      const s = x.s, r = x.rec, d = dataObj(s.data), feita = s.status === 'pago' && acabou(s.data, s.hora);
-      const badge = s.status === 'pago' ? `<span class="badge st-pg">${feita ? 'Aula realizada' : 'Aula confirmada'}</span>`
+      const s = x.s, r = x.rec, d = dataObj(s.data);
+      const feita = s.status === 'pago' && s.conclusao === 'concluida', faltou = s.status === 'pago' && s.conclusao === 'aluno_faltou';
+      const aguardaFim = s.status === 'pago' && !s.conclusao && acabou(s.data, s.hora);
+      const badge = feita ? '<span class="badge st-pg">Aula realizada</span>'
+                  : faltou ? '<span class="badge st-rp">Falta registrada</span>'
+                  : aguardaFim ? '<span class="badge st-ag">Aguardando o profissional finalizar</span>'
+                  : s.status === 'pago' ? '<span class="badge st-pg">Aula confirmada</span>'
                   : s.status === 'aguardando' ? '<span class="badge st-ag">Aguardando pagamento</span>'
                   : `<span class="badge st-rp">${s.status === 'cancelada' ? 'Cancelada' : 'Expirada'}</span>`;
-      let btns = '';
-      if(s.status === 'pago' && feita) btns = `<button class="sbtn pri" data-a="share" data-i="${i}">📸 Compartilhar treino</button><button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
+      let btns = '', nota = '';
+      if(s.status === 'cancelada' && s.foi_paga) nota = s.reembolsada ? 'Pix devolvido.' : 'O profissional cancelou a aula. Seu Pix será devolvido.';
+      if(aguardaFim) nota = 'O profissional confirma a aula no app. Assim você libera a conquista e o compartilhar.';
+      if(aguardaFim) btns = `<a class="sbtn pri" style="text-decoration:none" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, `Oi, ${primeiroNome(s.pro_nome)}! Pode finalizar a minha aula de ${fmtLong(d)} no Treina Aí? Assim eu libero minha conquista 😄`)}">🔔 Lembrar o profissional</a>`;
+      else if(faltou) btns = `<button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
+      else if(s.status === 'pago' && feita) btns = `<button class="sbtn pri" data-a="share" data-i="${i}">📸 Compartilhar treino</button><button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
       else if(s.status === 'pago') btns = `<button class="sbtn pri" data-a="cal" data-i="${i}">📅 Calendário</button><a class="sbtn" style="text-decoration:none;color:var(--txt)" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msgAula(r, s.pro_nome))}">💬 Combinar detalhes</a>`;
       else if(s.status === 'aguardando') btns = `<button class="sbtn pri" data-a="pix" data-i="${i}">Ver Pix</button>`;
       else btns = `<button class="sbtn" data-a="rm" data-i="${i}">Remover</button>`;
       return `<div class="mr"><div class="bh"><b>${esc(s.modalidade)} com ${esc(s.pro_nome)}</b>${badge}</div>
+        ${nota ? `<div class="bm" style="margin:2px 0 0">${nota}</div>` : ''}
         <div class="when"><div class="dt"><small>${DIAS[d.getDay()]}</small><b>${pad(d.getDate())}</b><small>${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]}</small></div>
         <div class="wx"><b>${hh(s.hora)}</b><br><span>${esc(s.local)}</span></div></div><div class="btns">${btns}</div></div>`;
     }).join('');
@@ -930,6 +948,7 @@ $('pSair').onclick = sair; $('aSair').onclick = sair;
    ÁREA DO PROFISSIONAL
    ============================================================ */
 let pRes = [], pBloq = [], pdate = key(hoje);
+const comecou = (data, hora) => { const t = new Date(data + 'T00:00:00'); t.setHours(hora, 0, 0, 0); return t.getTime() <= Date.now(); };
 $('openPanel').onclick = async () => { $('panel').classList.add('show'); $('pbox').innerHTML = '<div class="empty">Carregando…</div>'; await carregarPapeis(); renderPro(); };
 $('closePanel').onclick = () => { $('panel').classList.remove('show'); carregarVitrine(); };
 
@@ -978,14 +997,31 @@ async function renderProDash(){
 function renderPanelPro(){
   const lista = pRes;
   $('blist').innerHTML = lista.length ? lista.map(b => {
-    const d = dataObj(b.data), pago = b.status === 'pago';
-    return `<div class="book">
+    const d = dataObj(b.data), pago = b.status === 'pago', iniciou = comecou(b.data, b.hora);
+    const pend = pago && !b.conclusao && iniciou, futura = pago && !b.conclusao && !iniciou;
+    const st = !pago ? '<span class="badge st-ag">Aguardando pagamento</span>'
+             : b.conclusao === 'concluida' ? `<span class="badge st-pg">Concluída · você recebe ${brl2(b.valor_aula)}</span>`
+             : b.conclusao === 'aluno_faltou' ? `<span class="badge st-rp">Aluno faltou · você recebe ${brl2(b.valor_aula)}</span>`
+             : pend ? '<span class="badge st-ag">Falta concluir</span>'
+             : `<span class="badge st-pg">Pago · você recebe ${brl2(b.valor_aula)}</span>`;
+    return `<div class="book" style="flex-wrap:wrap;${pend ? 'border-color:var(--acc)' : ''}">
       <div class="when"><b>${hh(b.hora)}</b><small>${fmtLong(d)}</small></div>
-      <div class="info">${esc(b.aluno_nome)}<br><span>${esc(b.local)}</span><br>
-        ${pago ? `<span class="badge st-pg">Pago · você recebe ${brl2(b.valor_aula)}</span>` : '<span class="badge st-ag">Aguardando pagamento</span>'}</div>
+      <div class="info">${esc(b.aluno_nome)}<br><span>${esc(b.local)}</span><br>${st}</div>
       ${pago && b.aluno_zap ? `<a class="mini" target="_blank" rel="noopener" href="${wa(b.aluno_zap)}" style="text-decoration:none;color:var(--txt)">Zap</a>` : ''}
+      ${pend ? `<div class="btns" style="width:100%"><button class="sbtn pri" data-a="concluir" data-id="${b.id}">✅ Aula concluída</button><button class="sbtn" data-a="faltou" data-id="${b.id}">Aluno faltou</button></div>` : ''}
+      ${futura ? `<div class="btns" style="width:100%"><button class="sbtn del" data-a="cancelar" data-id="${b.id}">Cancelar aula</button></div>` : ''}
     </div>`;
   }).join('') : '<div class="empty">Nenhuma aula marcada ainda.</div>';
+  const falta = lista.filter(b => b.status === 'pago' && !b.conclusao && comecou(b.data, b.hora)).length;
+  if(falta) $('blist').insertAdjacentHTML('afterbegin', `<div class="warn" style="margin-bottom:10px">Você tem ${falta} ${falta===1?'aula':'aulas'} para concluir. Ao concluir, o aluno libera a conquista e o seu repasse fica liberado.</div>`);
+  $('blist').querySelectorAll('[data-a]').forEach(btn => btn.onclick = async () => {
+    const id = btn.dataset.id, a = btn.dataset.a; let res;
+    if(a === 'concluir') res = await sb.rpc('ta_concluir_aula', { p_id:id, p_resultado:'concluida' });
+    else if(a === 'faltou'){ if(!confirm('Marcar que o aluno faltou? A aula será paga a você mesmo assim.')) return; res = await sb.rpc('ta_concluir_aula', { p_id:id, p_resultado:'aluno_faltou' }); }
+    else { if(!confirm('Cancelar esta aula? O aluno será avisado e receberá o Pix de volta.')) return; res = await sb.rpc('ta_cancelar_aula_pro', { p_id:id }); }
+    if(res.error){ toast(msgErro(res.error)); return; }
+    toast(a === 'cancelar' ? 'Aula cancelada.' : 'Registrado ✓'); renderProDash();
+  });
 
   $('pdays').innerHTML = dias.map((d,i) =>
     `<button class="day ${pdate===key(d)?'on':''}" data-i="${i}"><small>${DIAS[d.getDay()]}</small><b>${d.getDate()}</b></button>`).join('');
@@ -1096,33 +1132,40 @@ async function adminAulas(silent){
   const hold = c.data ? c.data.hold_min : 30;
   const nomes = Object.fromEntries((p.data || []).map(x => [x.id, x]));
   const venceu = b => b.status === 'aguardando' && Date.now() - new Date(b.created_at).getTime() >= hold*60000;
-  const ativa = b => b.status === 'pago' || (b.status === 'aguardando' && !venceu(b));
+  const devolver = b => b.status === 'cancelada' && b.pago_em && !b.reembolsada;
+  const ativa = b => b.status === 'pago' || devolver(b) || (b.status === 'aguardando' && !venceu(b));
   const todas = r.data;
   const pagos = todas.filter(b => b.status === 'pago');
   const recebido = pagos.reduce((s,b) => s + +b.total, 0);
-  const repassar = pagos.filter(b => !b.repasse).reduce((s,b) => s + +b.preco, 0);
+  const prontas = pagos.filter(b => b.conclusao && !b.repasse), esperando = pagos.filter(b => !b.conclusao), aDevolver = todas.filter(devolver);
+  const repassar = prontas.reduce((s,b) => s + +b.preco, 0);
   const comissao = pagos.reduce((s,b) => s + +b.taxa, 0);
   const desde = key(new Date(hoje.getTime() - 7*86400000));
   const exp = todas.filter(b => b.data >= desde && (venceu(b) || b.status === 'expirada'));
-  const lista = todas.filter(b => b.data >= desde && ativa(b)).concat(mostrarExp ? exp : []);
+  const recente = b => b.data >= desde || (b.status === 'pago' && !b.repasse) || devolver(b);
+  const lista = todas.filter(b => recente(b) && ativa(b)).concat(mostrarExp ? exp : []);
   $('atab').innerHTML = `
     <div class="kpis">
       <div class="kpi"><b>${brl2(recebido)}</b><span>recebido</span></div>
-      <div class="kpi"><b>${brl2(repassar)}</b><span>a repassar</span></div>
+      <div class="kpi"><b>${brl2(repassar)}</b><span>a repassar (aula concluída)</span></div>
       <div class="kpi"><b>${brl2(comissao)}</b><span>sua comissão</span></div>
     </div>
+    <div class="hint" style="margin:-4px 0 12px">Aguardando conclusão: ${esperando.length} ${esperando.length===1?'aula':'aulas'} (${brl2(esperando.reduce((s,b) => s + +b.preco, 0))}) · A devolver ao aluno: ${aDevolver.length} (${brl2(aDevolver.reduce((s,b) => s + +b.total, 0))})</div>
     <div class="btns" style="margin:0 0 12px"><button class="sbtn" id="a_ref">Atualizar</button>
       <button class="sbtn ${mostrarExp?'pri':''}" id="a_exp">${mostrarExp ? 'Ocultar' : 'Mostrar'} expiradas (${exp.length})</button></div>` +
     (lista.length ? lista.map(b => {
       const pr = nomes[b.pro_id], d = dataObj(b.data);
       const expirada = venceu(b) || b.status === 'expirada';
-      const st = b.status === 'pago' ? (b.repasse ? ['st-rp','Repasse feito'] : ['st-pg','Pago'])
+      const st = devolver(b) ? ['st-ag','Devolver Pix ao aluno']
+               : b.status === 'pago' ? (b.repasse ? ['st-rp','Repasse feito'] : b.conclusao === 'concluida' ? ['st-pg','Concluída'] : b.conclusao === 'aluno_faltou' ? ['st-pg','Aluno faltou'] : ['st-ag','Pago · aguardando conclusão'])
                : expirada ? ['st-rp','Expirada'] : ['st-ag','Aguardando pagamento'];
       let btns = '';
-      if(b.status !== 'pago') btns += `<button class="sbtn pri" data-a="pago" data-id="${b.id}">Confirmar pagamento</button>`;
-      else if(!b.repasse) btns += `<button class="sbtn pri" data-a="repasse" data-id="${b.id}">Marcar repasse feito</button>`;
+      if(devolver(b)) btns += `<button class="sbtn pri" data-a="reemb" data-id="${b.id}">Marcar reembolso feito</button>`;
+      else if(b.status === 'aguardando') btns += `<button class="sbtn pri" data-a="pago" data-id="${b.id}">Confirmar pagamento</button>`;
+      else if(b.status === 'pago' && !b.conclusao) btns += `<button class="sbtn pri" data-a="concluir" data-id="${b.id}">Concluir aula</button><button class="sbtn" data-a="faltou" data-id="${b.id}">Aluno faltou</button>`;
+      else if(b.status === 'pago' && !b.repasse) btns += `<button class="sbtn pri" data-a="repasse" data-id="${b.id}">Marcar repasse feito</button>`;
       btns += `<a class="sbtn" style="text-decoration:none;color:var(--txt)" target="_blank" rel="noopener" href="${wa(b.aluno_zap)}">Zap do aluno</a>`;
-      if(b.status !== 'cancelada' && b.status !== 'expirada') btns += `<button class="sbtn del" data-a="cancelar" data-id="${b.id}">Cancelar</button>`;
+      if((b.status === 'pago' && !b.conclusao) || b.status === 'aguardando') btns += `<button class="sbtn del" data-a="cancelar" data-id="${b.id}" data-pago="${b.status === 'pago' ? 1 : 0}">Cancelar</button>`;
       return `<div class="bk">
         <div class="bh"><b>${fmtLong(d)} · ${hh(b.hora)}</b><span class="badge ${st[0]}">${st[1]}</span></div>
         <div>${esc(b.aluno_nome)} → ${pr ? esc(pr.nome) : '(profissional removido)'}<br><span style="color:var(--mut)">${esc(b.local)}</span></div>
@@ -1137,7 +1180,10 @@ async function adminAulas(silent){
     let q;
     if(a === 'pago') q = sb.from('ta_reservas').update({ status:'pago' }).eq('id', id);
     else if(a === 'repasse') q = sb.from('ta_reservas').update({ repasse:true }).eq('id', id);
-    else { if(!confirm('Cancelar essa reserva? O horário volta a ficar livre.')) return; q = sb.from('ta_reservas').update({ status:'cancelada' }).eq('id', id); }
+    else if(a === 'concluir') q = sb.from('ta_reservas').update({ conclusao:'concluida' }).eq('id', id);
+    else if(a === 'faltou'){ if(!confirm('Marcar que o aluno faltou? O profissional recebe mesmo assim.')) return; q = sb.from('ta_reservas').update({ conclusao:'aluno_faltou' }).eq('id', id); }
+    else if(a === 'reemb') q = sb.from('ta_reservas').update({ reembolsada:true }).eq('id', id);
+    else { if(!confirm(btn.dataset.pago === '1' ? 'Cancelar essa aula já paga? Você precisará devolver o Pix ao aluno.' : 'Cancelar essa reserva? O horário volta a ficar livre.')) return; q = sb.from('ta_reservas').update({ status:'cancelada' }).eq('id', id); }
     const { error } = await q;
     if(error){ toast(msgErro(error)); return; }
     adminAulas();
