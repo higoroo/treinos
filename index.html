@@ -219,6 +219,8 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
   </div>
   <div class="mres" id="minhas"></div>
   <div class="plist" id="plist"></div>
+  <div id="vconq"></div>
+  <div id="acct" class="hint" style="text-align:center;margin:16px 0 0"></div>
   <div class="soon"><b>Em breve:</b> Futevôlei, Corrida e Beach Tênis.<div class="btns"><button class="sbtn pri" id="avisarMod">🔔 Avisar quando chegar</button></div></div>
   <div class="foot"><button id="openPanel">Área do profissional</button><button id="openAdmin">Gerenciador</button></div>
 </div>
@@ -413,6 +415,7 @@ function renderHome(){
       </div>
       <div class="price"><b>${brl(Math.min(p.preco, p.precoFds>0 ? p.precoFds : p.preco))}</b><span>${p.precoFds>0 && p.precoFds!==p.preco ? 'a partir de' : 'hora-aula'}</span></div>
     </button>`).join('') || '<div class="empty">Os primeiros profissionais chegam em breve.</div>';
+  renderVconq();
   $('plist').querySelectorAll('.pro').forEach(b => b.onclick = () => openPro(b.dataset.id));
 }
 
@@ -520,13 +523,17 @@ $('cta').onclick = () => {
     </div>
     <label>Seu nome</label><input id="fnome" autocomplete="name" placeholder="Como te chamam">
     <label>Seu WhatsApp</label><input id="fzap" inputmode="tel" autocomplete="tel" placeholder="(19) 99999-9999">
-    <label>Seu e-mail</label><input id="femail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com">
+    <label>Seu e-mail</label><input id="femail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="${esc(SESSION?.user?.email || '')}">
+    ${SESSION ? '<div class="hint" style="margin:10px 0 0">Você está logado. Suas conquistas e aulas ficam salvas na sua conta.</div>' : `
+    <label>Crie uma senha</label><input id="fsenha" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+    <div class="hint" style="margin:6px 0 0">Sua conta guarda suas aulas e conquistas, mesmo se trocar de celular. <a href="#" id="fjatenho" style="color:var(--acc)">Já tenho conta</a></div>`}
     <div class="hint" style="margin:10px 0 0">Ao reservar, você aceita receber contato por WhatsApp e e-mail sobre esta aula e novidades do Treina Aí. Usamos seus dados só para isso.</div>
     <div class="err" id="ferr"></div>
     <div class="row"><button class="btn2" id="fcancel">Voltar</button><button class="btn1" id="fok">Reservar e pagar</button></div>
   `);
   $('fcancel').onclick = closeSheet;
   $('fok').onclick = confirmar;
+  if($('fjatenho')) $('fjatenho').onclick = e => { e.preventDefault(); entrarAluno(() => $('cta').onclick()); };
 };
 
 async function confirmar(){
@@ -535,7 +542,21 @@ async function confirmar(){
   if(zap.length < 10){ $('ferr').textContent = 'Informe um WhatsApp válido com DDD.'; return; }
   const email = $('femail').value.trim().toLowerCase();
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ $('ferr').textContent = 'Informe um e-mail válido.'; return; }
+  let senha = '';
+  if(!SESSION){
+    senha = $('fsenha').value;
+    if(senha.length < 6){ $('ferr').textContent = 'Crie uma senha de pelo menos 6 caracteres.'; return; }
+  }
   const btn = $('fok'); btn.disabled = true; btn.textContent = 'Reservando…'; $('ferr').textContent = '';
+  let semSessao = false;
+  if(!SESSION){
+    const r = await sb.auth.signUp({ email, password:senha, options:{ data:{ nome, whatsapp:zap }, emailRedirectTo: urlVolta() } });
+    if(r.error){
+      $('ferr').textContent = traduzAuth(r.error.message);
+      btn.disabled = false; btn.textContent = 'Reservar e pagar'; return;
+    }
+    if(r.data.session){ SESSION = r.data.session; } else semSessao = true;
+  }
   const { data, error } = await sb.rpc('ta_criar_reserva', {
     p_pro:cur.id, p_data:state.date, p_hora:state.hour, p_local:state.acad, p_nome:nome, p_zap:zap, p_email:email
   });
@@ -554,6 +575,8 @@ async function confirmar(){
   const rec = { id:r.reserva_id, proId:cur.id, proNome:cur.nome, mod:cur.mod, date:state.date, hour:state.hour, acad:state.acad,
                 total:+r.valor_total, payload, adminZap:r.admin_zap, nome, criada:Date.now() };
   salvarRes(rec);
+  if(SESSION) sb.rpc('ta_vincular_reservas', { p_ids:[r.reserva_id] }).then(() => atualizarConta());
+  if(semSessao) toast('Conta criada! Confirme seu e-mail para salvar suas conquistas.');
   showPix(rec);
 }
 
@@ -683,6 +706,29 @@ function avisarSheet(pro){
 $('avisarPro').onclick = () => cur && avisarSheet(cur);
 $('avisarMod').onclick = () => avisarSheet(null);
 
+/* ---------- conta do aluno ---------- */
+async function sincronizarAluno(){
+  if(!SESSION) return;
+  const ids = store.get(RES_KEY, []).map(r => r.id);
+  await sb.rpc('ta_vincular_reservas', { p_ids: ids });
+}
+function atualizarConta(){
+  const el = $('acct'); if(!el) return;
+  if(SESSION){
+    el.innerHTML = `Conta: ${esc(SESSION.user.email)} · <a href="#" id="acSair" style="color:var(--acc)">Sair</a>`;
+    $('acSair').onclick = async e => { e.preventDefault(); await sair(); renderMinhas(); };
+  } else {
+    el.innerHTML = `Já tem conta? <a href="#" id="acEntrar" style="color:var(--acc)">Entrar</a>`;
+    $('acEntrar').onclick = e => { e.preventDefault(); entrarAluno(); };
+  }
+}
+function entrarAluno(depois){
+  openSheet(`<h3>Entrar na sua conta</h3><div id="abox2"></div><div class="row" style="margin-top:8px"><button class="btn2" id="ac_x">Voltar</button></div>`);
+  authForm($('abox2'), async () => { await sincronizarAluno(); closeSheet(); atualizarConta(); await renderMinhas(); if(depois) depois(); });
+  $('abox2').querySelector('.sub').textContent = 'Use o e-mail e a senha que você criou ao reservar.';
+  $('ac_x').onclick = closeSheet;
+}
+
 /* ---------- suas reservas + conquistas (guardadas no aparelho do aluno) ---------- */
 const RES_KEY = 'ta_res', CONQ_KEY = 'ta_conq_vistas';
 function salvarRes(rec){
@@ -726,14 +772,31 @@ function calcularConquistas(real){
 }
 
 let MIN = { cards:[], real:[], desb:{}, todas:new Set() };
+let TEMPAGA = false;
+function renderVconq(){
+  const el = $('vconq'); if(!el) return;
+  if(TEMPAGA || !pros.length){ el.innerHTML = ''; return; }
+  el.innerHTML = `<h2 style="margin-top:22px">Conquistas para desbloquear</h2>
+    <div class="hint" style="margin:0 0 10px">Cada aula concluída pode render uma medalha e uma imagem para compartilhar no fim do treino.</div>
+    <div class="cgrid">${CONQ.map(c => `<div class="bd off"><div class="ic">${c.ic}</div><b>${c.nome}</b><small>${c.desc}</small></div>`).join('')}</div>`;
+}
 async function renderMinhas(){
-  const guardadas = store.get(RES_KEY, []);
-  if(!guardadas.length){ $('minhas').innerHTML = ''; return; }
+  const guardadas = store.get(RES_KEY, []).slice();
+  if(SESSION){
+    const { data:ids } = await sb.rpc('ta_meus_ids');
+    const tem = new Set(guardadas.map(r => r.id));
+    (ids || []).forEach(id => { if(!tem.has(id)) guardadas.push({ id, stub:true }); });
+  }
+  atualizarConta();
+  if(!guardadas.length){ $('minhas').innerHTML = ''; TEMPAGA = false; renderVconq(); return; }
   const { data, error } = await sb.rpc('ta_resumo_reservas', { p_ids: guardadas.map(r => r.id) });
   if(error){ return; }
   const resumo = Object.fromEntries((data || []).map(x => [x.id, x]));
-  const itens = guardadas.filter(r => resumo[r.id]).map(r => ({ rec:r, s:resumo[r.id] }));
+  const nomeConta = SESSION?.user?.user_metadata?.nome || '';
+  const stubRec = s => ({ id:s.id, stub:true, proId:s.pro_id, proNome:s.pro_nome, mod:s.modalidade, date:s.data, hour:s.hora, acad:s.local, nome:nomeConta });
+  const itens = guardadas.filter(r => resumo[r.id]).map(r => ({ rec: r.stub ? stubRec(resumo[r.id]) : r, s:resumo[r.id] }));
   const pagas = itens.filter(x => x.s.status === 'pago').sort((a,b) => (a.s.data + pad(a.s.hora)).localeCompare(b.s.data + pad(b.s.hora)));
+  TEMPAGA = pagas.length > 0; renderVconq();
   const real = pagas.filter(x => x.s.conclusao === 'concluida').map(x => ({ ...x.s }));
   const { desb, todas } = calcularConquistas(real);
   MIN = { cards:[], real, desb, todas, itens };
@@ -763,8 +826,9 @@ async function renderMinhas(){
       else if(faltou) btns = `<button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
       else if(s.status === 'pago' && feita) btns = `<button class="sbtn pri" data-a="share" data-i="${i}">📸 Compartilhar treino</button><button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
       else if(s.status === 'pago') btns = `<button class="sbtn pri" data-a="cal" data-i="${i}">📅 Calendário</button><a class="sbtn" style="text-decoration:none;color:var(--txt)" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msgAula(r, s.pro_nome))}">💬 Combinar detalhes</a>`;
-      else if(s.status === 'aguardando') btns = `<button class="sbtn pri" data-a="pix" data-i="${i}">Ver Pix</button>`;
-      else btns = `<button class="sbtn" data-a="rm" data-i="${i}">Remover</button>`;
+      else if(s.status === 'aguardando') btns = r.stub ? '' : `<button class="sbtn pri" data-a="pix" data-i="${i}">Ver Pix</button>`;
+      else btns = r.stub ? '' : `<button class="sbtn" data-a="rm" data-i="${i}">Remover</button>`;
+      if(s.status === 'aguardando' && r.stub) nota = 'Reservada em outro aparelho. Abra o Pix por lá ou reserve de novo.';
       return `<div class="mr"><div class="bh"><b>${esc(s.modalidade)} com ${esc(s.pro_nome)}</b>${badge}</div>
         ${nota ? `<div class="bm" style="margin:2px 0 0">${nota}</div>` : ''}
         <div class="when"><div class="dt"><small>${DIAS[d.getDay()]}</small><b>${pad(d.getDate())}</b><small>${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]}</small></div>
@@ -956,7 +1020,7 @@ function abrirRecuperacao(){
     closeSheet(); toast('Senha alterada.');
   };
 }
-async function sair(){ await sb.auth.signOut(); SESSION = null; ISADMIN = false; MYPRO = null; renderPro(); renderAdmin(); }
+async function sair(){ await sb.auth.signOut(); SESSION = null; ISADMIN = false; MYPRO = null; renderPro(); renderAdmin(); atualizarConta(); }
 $('pSair').onclick = sair; $('aSair').onclick = sair;
 
 /* ---------- fotos dos profissionais ---------- */
@@ -1412,7 +1476,7 @@ async function adminCfg(){
 }
 
 /* ---------- início ---------- */
-(async function init(){ await carregarVitrine(); renderMinhas(); })();
+(async function init(){ await carregarVitrine(); await carregarPapeis(); await sincronizarAluno(); renderMinhas(); })();
 </script>
 </body>
 </html>
