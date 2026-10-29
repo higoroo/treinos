@@ -1066,8 +1066,10 @@ $('closePanel').onclick = () => { $('panel').classList.remove('show'); carregarV
 function renderPro(){
   $('pSair').style.display = SESSION ? '' : 'none';
   const box = $('pbox');
-  if(!SESSION) return authForm(box, renderPro);
+  if(!SESSION) return proEntrada(box);
   if(!MYPRO){
+    const pend = store.get('ta_cod_pend', '');
+    if(pend){ store.set('ta_cod_pend', ''); sb.rpc('ta_vincular_pro', { p_codigo:pend }).then(async r => { if(!r.error){ await carregarPapeis(); renderPro(); } }); }
     box.innerHTML = `
       <div class="sub">Você entrou, mas esta conta ainda não está ligada a um cadastro de profissional. Informe o código de convite que você recebeu.</div>
       <label>Código de convite</label><input id="cv_cod" autocapitalize="characters" autocomplete="off" placeholder="Ex.: A1B2C3D4">
@@ -1082,6 +1084,38 @@ function renderPro(){
     return;
   }
   renderProDash();
+}
+
+function proEntrada(box){
+  box.innerHTML = `
+    <h2 style="margin-top:6px">Primeiro acesso</h2>
+    <div class="sub">Recebeu um código de convite? Crie seu acesso em um passo.</div>
+    <label>Código de convite</label><input id="pe_cod" autocapitalize="characters" autocomplete="off" placeholder="Ex.: A1B2C3D4">
+    <label>Seu e-mail</label><input id="pe_email" type="email" inputmode="email" autocomplete="email">
+    <label>Crie uma senha</label><input id="pe_senha" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+    <div class="err" id="pe_err"></div>
+    <div class="row"><button class="btn1" id="pe_ok">Criar meu acesso</button></div>
+    <h2 style="margin-top:22px">Já tem acesso?</h2>
+    <div id="pe_login"></div>`;
+  authForm($('pe_login'), renderPro);
+  const sub = $('pe_login').querySelector('.sub'); if(sub) sub.remove();
+  const msg = (t, ok) => { $('pe_err').style.color = ok ? 'var(--acc)' : 'var(--danger)'; $('pe_err').textContent = t; };
+  $('pe_ok').onclick = async () => {
+    const cod = $('pe_cod').value.trim(), email = $('pe_email').value.trim(), senha = $('pe_senha').value;
+    if(!cod) return msg('Informe o código de convite.');
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return msg('Informe um e-mail válido.');
+    if(senha.length < 6) return msg('A senha precisa ter pelo menos 6 caracteres.');
+    msg('Criando seu acesso…', true);
+    const { data, error } = await sb.auth.signUp({ email, password:senha, options:{ emailRedirectTo: urlVolta() } });
+    if(error) return msg(traduzAuth(error.message));
+    if(!data.session){
+      store.set('ta_cod_pend', cod);
+      return msg('Enviamos um e-mail de confirmação. Confirme, volte aqui e entre: o convite será vinculado sozinho.', true);
+    }
+    const r = await sb.rpc('ta_vincular_pro', { p_codigo:cod });
+    await carregarPapeis(); renderPro();
+    if(r.error) setTimeout(() => { const e = $('cv_err'); if(e) e.textContent = msgErro(r.error); }, 0);
+  };
 }
 
 async function renderProDash(){
