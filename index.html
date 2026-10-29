@@ -169,6 +169,37 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-colo
 .sbtn.pri{background:var(--acc);color:var(--acc-ink)}
 .sbtn.del{color:var(--danger)}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--card2);border:1px solid var(--line);padding:12px 16px;border-radius:12px;z-index:60;font-size:14px;max-width:90vw;text-align:center}
+
+/* confirmação / ingresso */
+.tkt{background:var(--card2);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:4px}
+.tkt .h{display:flex;gap:12px;align-items:center;padding:14px}
+.tkt .h .avatar{width:48px;height:48px;font-size:19px}
+.tkt .n{font-weight:700;font-size:16px}.tkt .m{color:var(--mut);font-size:13px;margin-top:2px}
+.tkt .cut{border-top:2px dashed var(--line);margin:0 14px}
+.tkt .b{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px}
+.tkt .b small{display:block;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.tkt .b b{font-size:17px;display:block;margin-top:3px}.tkt .b .full{grid-column:1/3}
+.btnw{display:block;width:100%;text-align:center;padding:15px;border-radius:14px;font-weight:800;font-size:15px;margin-top:10px;text-decoration:none}
+.btnw.pri{background:var(--acc);color:var(--acc-ink)}
+.btnw.sec{background:var(--card2);color:var(--txt);font-weight:600;border:1px solid var(--line)}
+.btnw.ghost{color:var(--mut);font-weight:600}
+/* reservas do aluno */
+.mr .when{display:flex;gap:12px;align-items:center;margin:10px 0 0}
+.mr .dt{background:var(--card2);border-radius:12px;padding:8px 12px;text-align:center;min-width:62px}
+.mr .dt b{display:block;font-size:20px;color:var(--acc);line-height:1.1}.mr .dt small{color:var(--mut);font-size:11px;text-transform:uppercase;display:block}
+.mr .wx{font-size:14px;line-height:1.45}.mr .wx span{color:var(--mut)}
+/* conquistas */
+.lvl{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.lvl .r{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.lvl b{font-size:18px}.lvl span{color:var(--mut);font-size:12px}
+.pbar{height:8px;border-radius:99px;background:var(--card2);margin:10px 0 6px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--acc);border-radius:99px}
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bd{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 6px;text-align:center}
+.bd .ic{width:48px;height:48px;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;font-size:23px;background:#1a2108;border:2px solid var(--acc)}
+.bd b{font-size:12px;display:block;line-height:1.25}.bd small{color:var(--mut);font-size:10.5px;display:block;margin-top:3px;line-height:1.25}
+.bd.off{opacity:.5}.bd.off .ic{background:var(--card2);border:2px dashed var(--line);filter:grayscale(1)}
+.bd.new{border-color:var(--acc)}
+.ntag{display:inline-block;font-size:9.5px;background:var(--acc);color:var(--acc-ink);border-radius:99px;padding:2px 7px;font-weight:800;margin-top:4px}
+.shcv{width:100%;height:auto;border-radius:14px;margin-top:12px;background:conic-gradient(#2a2e36 25%,#1c1f26 0 50%,#2a2e36 0 75%,#1c1f26 0) 0 0/24px 24px;display:block}
 </style>
 </head>
 <body>
@@ -505,7 +536,7 @@ async function confirmar(){
   const payload = r.pix_chave
     ? pixPayload(r.pix_chave, r.pix_nome, r.pix_cidade, +r.valor_total, 'TA' + String(r.reserva_id).replace(/-/g,'').slice(0,10).toUpperCase())
     : '';
-  const rec = { id:r.reserva_id, proNome:cur.nome, mod:cur.mod, date:state.date, hour:state.hour, acad:state.acad,
+  const rec = { id:r.reserva_id, proId:cur.id, proNome:cur.nome, mod:cur.mod, date:state.date, hour:state.hour, acad:state.acad,
                 total:+r.valor_total, payload, adminZap:r.admin_zap, nome, criada:Date.now() };
   salvarRes(rec);
   showPix(rec);
@@ -559,19 +590,38 @@ function showAguardando(rec){
   $('fechar2').onclick = async () => { closeSheet(); if(cur){ await carregarOcupados(); state.hour = null; renderDays(); renderSlots(); updateCta(); } renderMinhas(); };
   iniciarPoll(rec);
 }
+const primeiroNome = n => String(n || '').trim().split(/\s+/)[0] || '';
+const msgAula = (rec, proNome) => `Oi, ${primeiroNome(proNome)}! Aula confirmada para ${fmtLong(dataObj(rec.date))} às ${hh(rec.hour)} (${rec.acad}). Sou o ${primeiroNome(rec.nome)}, até lá! 💪`;
+function baixarIcs(rec, proNome){
+  const d = rec.date.replace(/-/g,''), fim = rec.hour >= 23 ? '235900' : pad(rec.hour+1) + '0000';
+  const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Treina Ai//PT','BEGIN:VEVENT','UID:' + rec.id + '@treinaai',
+    'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),
+    'DTSTART;TZID=America/Sao_Paulo:' + d + 'T' + pad(rec.hour) + '0000',
+    'DTEND;TZID=America/Sao_Paulo:' + d + 'T' + fim,
+    'SUMMARY:' + rec.mod + ' com ' + proNome, 'LOCATION:' + String(rec.acad).replace(/[,;]/g,' '),
+    'END:VEVENT','END:VCALENDAR'].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ics], { type:'text/calendar' }));
+  a.download = 'aula.ics'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
 function showPago(rec, s){
-  const d = dataObj(rec.date);
-  const msg = `Olá ${s.pro_nome}! Reservei uma aula de ${rec.mod} ${fmtLong(d)} às ${hh(rec.hour)} (${rec.acad}). Meu nome é ${rec.nome}.`;
+  const d = dataObj(rec.date), pn = primeiroNome(s.pro_nome);
   openSheet(`
-    <div class="center">
-      <div class="ok">✓</div>
-      <h3>Pagamento confirmado!</h3>
-      <div class="sub">${fmtLong(d)} às ${hh(rec.hour)}<br>${esc(rec.acad)}</div>
-      <div class="sub">Fale com o profissional para combinar os detalhes da aula.</div>
+    <div class="center"><div class="ok">✓</div><h3>Aula confirmada!</h3>
+    <div class="sub">Sua vaga está garantida. Chegue uns 5 min antes.</div></div>
+    <div class="tkt">
+      <div class="h"><div class="avatar" style="--h:${(String(s.pro_nome).charCodeAt(0)*7) % 360}">${esc(String(s.pro_nome).trim().charAt(0).toUpperCase())}</div>
+        <div><div class="n">${esc(s.pro_nome)}</div><div class="m">${esc(rec.mod)}</div></div></div>
+      <div class="cut"></div>
+      <div class="b"><div><small>Dia</small><b>${fmtLong(d)}</b></div><div><small>Horário</small><b>${hh(rec.hour)}</b></div>
+        <div class="full"><small>Local</small><b>${esc(rec.acad)}</b></div></div>
     </div>
-    <div class="row"><a class="btn1" style="text-align:center;text-decoration:none;color:var(--acc-ink)" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msg)}">Falar no WhatsApp</a></div>
-    <div class="row" style="margin-top:10px"><button class="btn2" id="fechar3">Fechar</button></div>
-  `);
+    <button class="btnw pri" id="p_cal">📅 Adicionar ao calendário</button>
+    <a class="btnw sec" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msgAula(rec, s.pro_nome))}">💬 Combinar detalhes com ${esc(pn)}</a>
+    <div class="hint" style="text-align:center;margin:10px 0 0">Use o WhatsApp para alinhar o ponto de encontro ou o que levar.</div>
+    <button class="btnw ghost" id="fechar3">Fechar</button>`);
+  $('p_cal').onclick = () => baixarIcs(rec, s.pro_nome);
   $('fechar3').onclick = async () => { closeSheet(); if(cur){ await carregarOcupados(); state.hour = null; renderDays(); renderSlots(); updateCta(); } renderMinhas(); };
 }
 function showExpirada(rec){
@@ -618,39 +668,183 @@ function avisarSheet(pro){
 $('avisarPro').onclick = () => cur && avisarSheet(cur);
 $('avisarMod').onclick = () => avisarSheet(null);
 
-/* ---------- suas reservas (guardadas no aparelho do aluno) ---------- */
-const RES_KEY = 'ta_res';
+/* ---------- suas reservas + conquistas (guardadas no aparelho do aluno) ---------- */
+const RES_KEY = 'ta_res', CONQ_KEY = 'ta_conq_vistas';
 function salvarRes(rec){
   const l = store.get(RES_KEY, []).filter(x => x.id !== rec.id);
-  l.push(rec); store.set(RES_KEY, l.slice(-20));
+  l.push(rec); store.set(RES_KEY, l.slice(-60));
 }
 function removerRes(id){ store.set(RES_KEY, store.get(RES_KEY, []).filter(x => x.id !== id)); renderMinhas(); }
-async function renderMinhas(){
-  const lista = store.get(RES_KEY, []).filter(r => r.date >= key(hoje)).sort((a,b) => (a.date + pad(a.hour)).localeCompare(b.date + pad(b.hour)));
-  if(!lista.length){ $('minhas').innerHTML = ''; return; }
-  const sts = await Promise.all(lista.map(r => sb.rpc('ta_status_reserva', { p_id:r.id })));
-  $('minhas').innerHTML = '<h2 style="margin-top:6px">Suas reservas</h2>' + lista.map((r,i) => {
-    const s = sts[i].data && sts[i].data[0]; const st = s ? s.status : 'aguardando';
-    const d = dataObj(r.date);
-    const badge = st==='pago' ? '<span class="badge st-pg">Confirmada</span>'
-                : st==='aguardando' ? '<span class="badge st-ag">Aguardando pagamento</span>'
-                : '<span class="badge st-rp">' + (st==='cancelada' ? 'Cancelada' : 'Expirada') + '</span>';
-    let btns = '';
-    if(st==='pago' && s.pro_whatsapp){
-      const msg = `Olá ${s.pro_nome}! Reservei uma aula de ${r.mod} ${fmtLong(d)} às ${hh(r.hour)} (${r.acad}). Meu nome é ${r.nome}.`;
-      btns += `<a class="sbtn pri" style="text-decoration:none" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msg)}">Falar com o profissional</a>`;
-    } else if(st==='aguardando'){
-      btns += `<button class="sbtn pri" data-a="pix" data-i="${i}">Ver Pix</button>`;
-    } else {
-      btns += `<button class="sbtn" data-a="rm" data-i="${i}">Remover</button>`;
-    }
-    return `<div class="mr"><div class="bh"><b>${esc(r.mod)} com ${esc(r.proNome)}</b>${badge}</div>
-      <div>${fmtLong(d)} · ${hh(r.hour)} · ${esc(r.acad)}</div><div class="btns">${btns}</div></div>`;
-  }).join('');
-  $('minhas').querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
-    const r = lista[+b.dataset.i];
-    if(b.dataset.a === 'pix') showPix(r); else removerRes(r.id);
+const acabou = (data, hora) => { const t = new Date(data + 'T00:00:00'); t.setHours(hora + 1, 0, 0, 0); return t.getTime() <= Date.now(); };
+
+const CONQ = [
+  { id:'primeira',   ic:'🥋', nome:'Primeira aula',      desc:'Você começou!',          ok:a => a.n >= 1 },
+  { id:'semanas',    ic:'🔥', nome:'2 semanas seguidas', desc:'Constância',             ok:a => a.streak >= 2 },
+  { id:'madruga',    ic:'🌅', nome:'Madrugador',         desc:'Aula às 7h ou antes',    ok:a => a.madruga },
+  { id:'noturno',    ic:'🌙', nome:'Noturno',            desc:'Aula às 20h ou depois',  ok:a => a.noite },
+  { id:'explorador', ic:'🧭', nome:'Explorador',         desc:'2 modalidades',          ok:a => a.mods >= 2 },
+  { id:'cinco',      ic:'💪', nome:'5 aulas',            desc:'Quinta aula feita',      ok:a => a.n >= 5 },
+  { id:'fiel',       ic:'🤝', nome:'Fiel',               desc:'3 aulas com o mesmo pro',ok:a => a.fiel >= 3 },
+  { id:'fds',        ic:'☀️', nome:'Fim de semana raiz', desc:'Aula no sáb ou dom',     ok:a => a.fds },
+  { id:'dez',        ic:'🏆', nome:'10 aulas',           desc:'Décima aula feita',      ok:a => a.n >= 10 }
+];
+const semanaIdx = d => { const [y,m,dd] = d.split('-').map(Number); return Math.floor((Date.UTC(y,m-1,dd)/86400000 + 3) / 7); };
+function agregar(l){
+  const ws = [...new Set(l.map(x => semanaIdx(x.data)))].sort((a,b) => a-b);
+  let best = 0, c = 0, prev = null;
+  ws.forEach(w => { c = (prev !== null && w === prev+1) ? c+1 : 1; best = Math.max(best, c); prev = w; });
+  const byPro = {}; l.forEach(x => byPro[x.pro_id] = (byPro[x.pro_id] || 0) + 1);
+  return { n:l.length, streak:best, madruga:l.some(x => x.hora <= 7), noite:l.some(x => x.hora >= 20),
+    mods:new Set(l.map(x => x.modalidade)).size, fiel:Math.max(0, ...Object.values(byPro)),
+    fds:l.some(x => { const w = dataObj(x.data).getDay(); return w===0 || w===6; }) };
+}
+/* real: aulas realizadas em ordem; devolve o que cada aula desbloqueou */
+function calcularConquistas(real){
+  const desb = {}; let antes = new Set();
+  real.forEach((x,i) => {
+    const ag = agregar(real.slice(0, i+1));
+    const agora = new Set(CONQ.filter(c => c.ok(ag)).map(c => c.id));
+    desb[x.id] = { n:i+1, novas:[...agora].filter(id => !antes.has(id)) };
+    antes = agora;
   });
+  return { desb, todas:antes };
+}
+
+let MIN = { cards:[], real:[], desb:{}, todas:new Set() };
+async function renderMinhas(){
+  const guardadas = store.get(RES_KEY, []);
+  if(!guardadas.length){ $('minhas').innerHTML = ''; return; }
+  const { data, error } = await sb.rpc('ta_resumo_reservas', { p_ids: guardadas.map(r => r.id) });
+  if(error){ return; }
+  const resumo = Object.fromEntries((data || []).map(x => [x.id, x]));
+  const itens = guardadas.filter(r => resumo[r.id]).map(r => ({ rec:r, s:resumo[r.id] }));
+  const pagas = itens.filter(x => x.s.status === 'pago').sort((a,b) => (a.s.data + pad(a.s.hora)).localeCompare(b.s.data + pad(b.s.hora)));
+  const real = pagas.filter(x => acabou(x.s.data, x.s.hora)).map(x => ({ ...x.s }));
+  const { desb, todas } = calcularConquistas(real);
+  MIN = { cards:[], real, desb, todas, itens };
+  const hojeK = key(hoje), limite = key(new Date(hoje.getTime() - 14*86400000));
+  const mostrar = itens.filter(x => {
+    if(x.s.status === 'pago') return !acabou(x.s.data, x.s.hora) || x.s.data >= limite;
+    return x.s.data >= hojeK;
+  }).sort((a,b) => (a.s.data + pad(a.s.hora)).localeCompare(b.s.data + pad(b.s.hora)));
+  MIN.cards = mostrar;
+  let h = '';
+  if(mostrar.length){
+    h += '<h2 style="margin-top:6px">Suas reservas</h2>' + mostrar.map((x,i) => {
+      const s = x.s, r = x.rec, d = dataObj(s.data), feita = s.status === 'pago' && acabou(s.data, s.hora);
+      const badge = s.status === 'pago' ? `<span class="badge st-pg">${feita ? 'Aula realizada' : 'Aula confirmada'}</span>`
+                  : s.status === 'aguardando' ? '<span class="badge st-ag">Aguardando pagamento</span>'
+                  : `<span class="badge st-rp">${s.status === 'cancelada' ? 'Cancelada' : 'Expirada'}</span>`;
+      let btns = '';
+      if(s.status === 'pago' && feita) btns = `<button class="sbtn pri" data-a="share" data-i="${i}">📸 Compartilhar treino</button><button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
+      else if(s.status === 'pago') btns = `<button class="sbtn pri" data-a="cal" data-i="${i}">📅 Calendário</button><a class="sbtn" style="text-decoration:none;color:var(--txt)" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msgAula(r, s.pro_nome))}">💬 Combinar detalhes</a>`;
+      else if(s.status === 'aguardando') btns = `<button class="sbtn pri" data-a="pix" data-i="${i}">Ver Pix</button>`;
+      else btns = `<button class="sbtn" data-a="rm" data-i="${i}">Remover</button>`;
+      return `<div class="mr"><div class="bh"><b>${esc(s.modalidade)} com ${esc(s.pro_nome)}</b>${badge}</div>
+        <div class="when"><div class="dt"><small>${DIAS[d.getDay()]}</small><b>${pad(d.getDate())}</b><small>${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]}</small></div>
+        <div class="wx"><b>${hh(s.hora)}</b><br><span>${esc(s.local)}</span></div></div><div class="btns">${btns}</div></div>`;
+    }).join('');
+  }
+  if(pagas.length){
+    const n = real.length, metas = [1,5,10], prox = metas.find(m => m > n);
+    h += `<h2 style="margin-top:18px">Minhas conquistas</h2>
+      <div class="lvl"><div class="r"><b>${n} ${n===1?'aula feita':'aulas feitas'}</b><span>${todas.size} de ${CONQ.length} conquistas</span></div>
+      <div class="pbar"><i style="width:${prox ? Math.min(100, Math.round(n / prox * 100)) : 100}%"></i></div>
+      <span>${prox ? `Falta${prox-n>1?'m':''} ${prox-n} ${prox-n===1?'aula':'aulas'} para ${prox===1?'a primeira conquista':prox+' aulas'}` : 'Você já tem as conquistas de volume. Continue!'}</span></div>
+      <div class="cgrid">${CONQ.map(c => `<div class="bd ${todas.has(c.id)?'':'off'}"><div class="ic">${c.ic}</div><b>${c.nome}</b><small>${c.desc}</small></div>`).join('')}</div>`;
+  }
+  $('minhas').innerHTML = h;
+  $('minhas').querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+    const x = MIN.cards[+b.dataset.i], a = b.dataset.a; if(!x) return;
+    if(a === 'pix') showPix(x.rec);
+    else if(a === 'rm') removerRes(x.rec.id);
+    else if(a === 'cal') baixarIcs(x.rec, x.s.pro_nome);
+    else if(a === 'share') compartilharSheet(x.s.id);
+    else if(a === 'again'){ const p = pros.find(q => q.id === x.s.pro_id); if(p) openPro(p.id); else toast('Este profissional não está disponível agora.'); }
+  });
+  avisarNovas();
+}
+
+/* popup de conquista nova */
+function avisarNovas(){
+  if($('ov').classList.contains('show')) return;
+  const vistas = new Set(store.get(CONQ_KEY, []));
+  const novas = [...MIN.todas].filter(id => !vistas.has(id));
+  if(!novas.length) return;
+  store.set(CONQ_KEY, [...MIN.todas]);
+  const c = CONQ.find(x => x.id === novas[0]);
+  const aula = MIN.real.find(x => (MIN.desb[x.id] || { novas:[] }).novas.includes(c.id));
+  openSheet(`<div class="center"><div class="ok">${c.ic}</div><h3>Conquista desbloqueada!</h3>
+    <div class="sub"><b style="color:var(--txt)">${c.nome}</b> · ${c.desc}${novas.length > 1 ? `<br>e mais ${novas.length-1} ${novas.length-1===1?'conquista':'conquistas'} nova${novas.length-1===1?'':'s'}!` : ''}</div></div>
+    <div class="row"><button class="btn2" id="cq_dep">Depois</button><button class="btn1" id="cq_sh">📸 Compartilhar</button></div>`);
+  $('cq_dep').onclick = closeSheet;
+  $('cq_sh').onclick = () => aula ? compartilharSheet(aula.id) : closeSheet();
+}
+
+/* ---------- imagem para compartilhar ---------- */
+function desenharShare(cv, est, img, d){
+  const W = 1080, H = 1920, c = cv.getContext('2d'), F = 'system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif';
+  c.clearRect(0,0,W,H); c.shadowColor = 'transparent'; c.shadowBlur = 0;
+  if(est !== 'B'){
+    if(img){ const k = Math.max(W/img.width, H/img.height), w = img.width*k, h = img.height*k; c.drawImage(img, (W-w)/2, (H-h)/2, w, h); }
+    else { const g = c.createLinearGradient(0,0,W,H); g.addColorStop(0,'#2b3340'); g.addColorStop(1,'#0d0f12'); c.fillStyle = g; c.fillRect(0,0,W,H); }
+  }
+  const card = est === 'C', x = card ? 130 : 90, maxW = card ? 820 : 900;
+  let y = card ? H - 800 : H - 720;
+  if(card){ c.fillStyle = '#fff'; c.beginPath(); c.roundRect(70, y - 70, 940, 740, 48); c.fill(); }
+  else if(est === 'A'){ const g = c.createLinearGradient(0, H-1000, 0, H); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.7)'); c.fillStyle = g; c.fillRect(0, H-1000, W, 1000); }
+  const cor = card ? '#111' : '#fff', mudo = card ? '#777' : 'rgba(255,255,255,.8)';
+  if(!card){ c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = 18; }
+  const txt = (t, size, peso, col, ls) => { c.font = peso + ' ' + size + 'px ' + F; c.fillStyle = col; c.letterSpacing = ls || '0px';
+    let s = size; while(c.measureText(t).width > maxW && s > 20){ s -= 2; c.font = peso + ' ' + s + 'px ' + F; } c.fillText(t, x, y); };
+  c.textBaseline = 'alphabetic';
+  txt('AULA REALIZADA', 32, 700, mudo, '6px'); y += 125;
+  txt(d.mod, 128, 800, cor, '-2px'); y += 70;
+  txt('com ' + d.pro, 48, 500, cor); y += 62;
+  txt(d.local + ' · ' + d.data, 42, 400, mudo); y += 100;
+  [['DURAÇÃO','1h'],['HORÁRIO',d.hora],['AULA Nº',String(d.n)]].forEach((p,i) => {
+    const xx = x + i*250; c.letterSpacing = '4px'; c.font = '600 24px ' + F; c.fillStyle = mudo; c.fillText(p[0], xx, y);
+    c.letterSpacing = '0px'; c.font = '800 62px ' + F; c.fillStyle = cor; c.fillText(p[1], xx, y + 68); });
+  y += 180;
+  if(d.badge){
+    c.font = '700 38px ' + F; const tw = c.measureText(d.badge.nome).width, w = tw + 110;
+    c.lineWidth = 3; c.strokeStyle = card ? '#9bc21b' : '#fff'; if(card){ c.fillStyle = '#f1f9d6'; c.beginPath(); c.roundRect(x, y - 52, w, 76, 38); c.fill(); }
+    c.beginPath(); c.roundRect(x, y - 52, w, 76, 38); c.stroke();
+    c.font = '40px ' + F; c.fillStyle = cor; c.fillText(d.badge.ic, x + 20, y + 2);
+    c.font = '700 38px ' + F; c.fillText(d.badge.nome, x + 80, y + 2); y += 110;
+  }
+  c.letterSpacing = '8px'; c.font = '800 32px ' + F; c.fillStyle = cor; c.fillText('TREINA AÍ', x + 40, y);
+  c.shadowColor = 'transparent'; c.fillStyle = card ? '#9bc21b' : '#c6f432'; c.beginPath(); c.arc(x + 12, y - 11, 11, 0, 7); c.fill();
+  c.letterSpacing = '0px';
+}
+function compartilharSheet(id){
+  const i = MIN.real.findIndex(x => x.id === id); if(i < 0) return;
+  const x = MIN.real[i], rec = (MIN.itens.find(q => q.rec.id === id) || {}).rec || {};
+  const dsc = MIN.desb[id] || { n:i+1, novas:[] };
+  const bid = ['dez','cinco','fiel','semanas','explorador','madruga','noturno','fds','primeira'].find(k => dsc.novas.includes(k));
+  const b = bid ? CONQ.find(c => c.id === bid) : null;
+  const d = { mod:x.modalidade, pro:x.pro_nome, local:x.local, data:fmtLong(dataObj(x.data)), hora:hh(x.hora), n:dsc.n, badge:b };
+  let est = 'A', img = null;
+  openSheet(`<h3>Compartilhar treino</h3><div class="sub">Escolha uma foto e o estilo.</div>
+    <div class="chips" id="sh_est"><button class="chip on" data-e="A">A · Sobre a foto</button><button class="chip" data-e="B">B · Transparente</button><button class="chip" data-e="C">C · Cartão branco</button></div>
+    <input type="file" id="sh_foto" accept="image/*" style="display:none">
+    <div class="btns"><button class="sbtn" id="sh_pick">📷 Escolher foto</button></div>
+    <canvas id="sh_cv" class="shcv" width="1080" height="1920"></canvas>
+    <div class="row"><button class="btn2" id="sh_fechar">Fechar</button><button class="btn1" id="sh_ok">Compartilhar</button></div>`);
+  const cv = $('sh_cv'), redes = () => desenharShare(cv, est, img, d);
+  redes();
+  $('sh_est').querySelectorAll('.chip').forEach(bt => bt.onclick = () => { est = bt.dataset.e; $('sh_est').querySelectorAll('.chip').forEach(z => z.classList.toggle('on', z === bt)); redes(); });
+  $('sh_pick').onclick = () => $('sh_foto').click();
+  $('sh_foto').onchange = e => { const f = e.target.files[0]; if(!f) return; const im = new Image(); im.onload = () => { img = im; redes(); }; im.src = URL.createObjectURL(f); };
+  $('sh_fechar').onclick = closeSheet;
+  $('sh_ok').onclick = () => cv.toBlob(async blob => {
+    const file = new File([blob], 'treino-treina-ai.png', { type:'image/png' });
+    try{
+      if(navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], text:'Treinei com o Treina Aí 💪' }); return; }
+    }catch(e){ if(e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+    toast('Imagem salva. Poste nos Stories!');
+  }, 'image/png');
 }
 
 /* ============================================================
