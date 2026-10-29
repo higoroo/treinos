@@ -1184,11 +1184,21 @@ function renderAdmin(){
   else if(atab==='pros') adminPros(); else if(atab==='ctt') adminContatos(); else adminCfg();
 }
 
+const msgPro = (b, pr) => `Oi, ${primeiroNome(pr.nome)}! Nova aula paga no Treina Aí: ${fmtLong(dataObj(b.data))} às ${hh(b.hora)} (${b.local}). Aluno: ${b.aluno_nome} (${b.aluno_zap}). Você recebe ${brl2(b.preco)}. Veja na Área do profissional: ${urlVolta() || ''}`;
+function avisarProSheet(b, pr, depois){
+  openSheet(`<div class="center"><div class="ok">✓</div><h3>Pagamento confirmado</h3>
+    <div class="sub">Avise ${esc(pr ? primeiroNome(pr.nome) : 'o profissional')} agora, para ele saber da aula.</div></div>
+    ${pr ? `<a class="btnw pri" id="nt_zap" target="_blank" rel="noopener" href="${wa(pr.whatsapp, msgPro(b, pr))}">📲 Avisar no WhatsApp</a>` : ''}
+    <button class="btnw ghost" id="nt_dep">Depois</button>`);
+  if($('nt_zap')) $('nt_zap').onclick = async () => { await sb.from('ta_reservas').update({ pro_avisado:true }).eq('id', b.id); setTimeout(() => { closeSheet(); depois(); }, 300); };
+  $('nt_dep').onclick = () => { closeSheet(); depois(); };
+}
+
 async function adminAulas(silent){
   if(!silent) $('atab').innerHTML = '<div class="empty">Carregando…</div>';
   const [r, p, c] = await Promise.all([
     sb.from('ta_reservas').select('*').order('data').order('hora'),
-    sb.from('ta_profissionais').select('id,nome,modalidade'),
+    sb.from('ta_profissionais').select('id,nome,modalidade,whatsapp'),
     sb.from('ta_config').select('hold_min').eq('id',1).maybeSingle()
   ]);
   if(!$('atab')) return;
@@ -1228,12 +1238,15 @@ async function adminAulas(silent){
       else if(b.status === 'aguardando') btns += `<button class="sbtn pri" data-a="pago" data-id="${b.id}">Confirmar pagamento</button>`;
       else if(b.status === 'pago' && !b.conclusao) btns += `<button class="sbtn pri" data-a="concluir" data-id="${b.id}">Concluir aula</button><button class="sbtn" data-a="faltou" data-id="${b.id}">Aluno faltou</button>`;
       else if(b.status === 'pago' && !b.repasse) btns += `<button class="sbtn pri" data-a="repasse" data-id="${b.id}">Marcar repasse feito</button>`;
+      if(b.status === 'pago' && pr && !b.conclusao){
+        btns = `<a class="sbtn ${b.pro_avisado ? '' : 'pri'}" data-a="avisou" data-id="${b.id}" style="text-decoration:none;${b.pro_avisado ? 'color:var(--txt)' : ''}" target="_blank" rel="noopener" href="${wa(pr.whatsapp, msgPro(b, pr))}">${b.pro_avisado ? '📲 Avisar de novo' : '📲 Avisar profissional'}</a>` + btns;
+      }
       btns += `<a class="sbtn" style="text-decoration:none;color:var(--txt)" target="_blank" rel="noopener" href="${wa(b.aluno_zap)}">Zap do aluno</a>`;
       if((b.status === 'pago' && !b.conclusao) || b.status === 'aguardando') btns += `<button class="sbtn del" data-a="cancelar" data-id="${b.id}" data-pago="${b.status === 'pago' ? 1 : 0}">Cancelar</button>`;
       return `<div class="bk">
         <div class="bh"><b>${fmtLong(d)} · ${hh(b.hora)}</b><span class="badge ${st[0]}">${st[1]}</span></div>
         <div>${esc(b.aluno_nome)} → ${pr ? esc(pr.nome) : '(profissional removido)'}<br><span style="color:var(--mut)">${esc(b.local)}</span></div>
-        <div class="bm">Total ${brl2(b.total)} · repassar ${brl2(b.preco)} · comissão ${brl2(b.taxa)}</div>
+        <div class="bm">Total ${brl2(b.total)} · repassar ${brl2(b.preco)} · comissão ${brl2(b.taxa)}${b.status === 'pago' && !b.conclusao ? (b.pro_avisado ? ' · profissional avisado ✓' : ' · <b style="color:#ffb86b">profissional ainda não avisado</b>') : ''}</div>
         <div class="btns">${btns}</div>
       </div>`;
     }).join('') : '<div class="empty">Nenhuma aula reservada ainda.</div>');
@@ -1242,7 +1255,14 @@ async function adminAulas(silent){
   $('atab').querySelectorAll('[data-a]').forEach(btn => btn.onclick = async () => {
     const id = btn.dataset.id, a = btn.dataset.a;
     let q;
-    if(a === 'pago') q = sb.from('ta_reservas').update({ status:'pago' }).eq('id', id);
+    if(a === 'pago'){
+      const { error: e1 } = await sb.from('ta_reservas').update({ status:'pago' }).eq('id', id);
+      if(e1){ toast(msgErro(e1)); return; }
+      const b = todas.find(z => z.id === id), pr = b && nomes[b.pro_id];
+      if(b) return avisarProSheet(b, pr, () => adminAulas());
+      return adminAulas();
+    }
+    if(a === 'avisou'){ await sb.from('ta_reservas').update({ pro_avisado:true }).eq('id', id); setTimeout(() => adminAulas(), 400); return; }
     else if(a === 'repasse') q = sb.from('ta_reservas').update({ repasse:true }).eq('id', id);
     else if(a === 'concluir') q = sb.from('ta_reservas').update({ conclusao:'concluida' }).eq('id', id);
     else if(a === 'faltou'){ if(!confirm('Marcar que o aluno faltou? O profissional recebe mesmo assim.')) return; q = sb.from('ta_reservas').update({ conclusao:'aluno_faltou' }).eq('id', id); }
