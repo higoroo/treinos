@@ -174,6 +174,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-colo
 .sbtn.del{color:var(--danger)}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--card2);border:1px solid var(--line);padding:12px 16px;border-radius:12px;z-index:60;font-size:14px;max-width:90vw;text-align:center}
 
+img.avatar{object-fit:cover;background:var(--card2);display:block}
 /* confirmação / ingresso */
 .tkt{background:var(--card2);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:4px}
 .tkt .h{display:flex;gap:12px;align-items:center;padding:14px}
@@ -373,8 +374,11 @@ let filtro = 'Todos';
 const mapPro = r => ({
   id:r.id, nome:r.nome, mod:r.modalidade, bio:r.bio, exp:r.anos_exp, cred:r.credencial,
   preco:+r.preco, precoFds: r.preco_fds==null ? null : +r.preco_fds,
-  locais:r.locais || [], horarios:r.horarios || {}, ver:r.verificado
+  locais:r.locais || [], horarios:r.horarios || {}, ver:r.verificado, foto:r.foto_url || null
 });
+const avatarHtml = (nome, foto, big) => foto
+  ? `<img class="avatar ${big?'big':''}" src="${esc(foto)}" alt="${esc(nome)}" loading="lazy">`
+  : `<div class="avatar ${big?'big':''}" style="--h:${(String(nome).charCodeAt(0)*7) % 360}">${esc(String(nome).trim().charAt(0).toUpperCase())}</div>`;
 const taxaDe  = preco => r2(Math.max(preco * (+CFGPUB.comissao_pct) / 100, +CFGPUB.comissao_min));
 const totalDe = preco => r2(preco + taxaDe(preco));
 const ehFds = d => d.getDay()===0 || d.getDay()===6;
@@ -401,7 +405,7 @@ function renderHome(){
   const lista = pros.filter(p => filtro==='Todos' || p.mod===filtro);
   $('plist').innerHTML = lista.map(p => `
     <button class="pro" data-id="${p.id}">
-      <div class="avatar" style="--h:${(p.nome.charCodeAt(0)*7) % 360}">${esc(p.nome.trim().charAt(0).toUpperCase())}</div>
+      ${avatarHtml(p.nome, p.foto)}
       <div class="pinfo">
         <div class="pn">${esc(p.nome)}${p.ver?'<span class="tick" title="Verificado">✓</span>':''}</div>
         <div class="pm">${esc(p.mod)}${p.cred ? ' · ' + esc(p.cred) : ''}</div>
@@ -447,7 +451,7 @@ function slotsDe(p, d){
 function renderPerfilPublico(){
   const p = cur;
   $('phero').innerHTML = `
-    <div class="avatar big" style="--h:${(p.nome.charCodeAt(0)*7) % 360}">${esc(p.nome.trim().charAt(0).toUpperCase())}</div>
+    ${avatarHtml(p.nome, p.foto, true)}
     <h1>${esc(p.nome)}${p.ver?'<span class="tick" title="Verificado">✓</span>':''}</h1>
     <div class="sub2">${esc(p.mod)}</div>
     ${p.ver ? '' : '<div class="pr" style="justify-content:center;margin-top:8px"><span class="tag pend">Em verificação</span></div>'}`;
@@ -812,9 +816,14 @@ function desenharShare(cv, est, img, d){
     else { const g = c.createLinearGradient(0,0,W,H); g.addColorStop(0,'#2b3340'); g.addColorStop(1,'#0d0f12'); c.fillStyle = g; c.fillRect(0,0,W,H); }
   }
   const card = est === 'C', x = card ? 130 : 90, maxW = card ? 820 : 900;
-  let y = card ? H - 800 : H - 720;
-  if(card){ c.fillStyle = '#fff'; c.beginPath(); c.roundRect(70, y - 70, 940, 740, 48); c.fill(); }
+  let y = card ? H - 800 : H - 720; const y0 = y;
+  if(card){ c.fillStyle = '#fff'; c.beginPath(); if(d.fotoImg) c.roundRect(70, y - 270, 940, 975, 48); else c.roundRect(70, y - 70, 940, 740, 48); c.fill(); }
   else if(est === 'A'){ const g = c.createLinearGradient(0, H-1000, 0, H); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.7)'); c.fillStyle = g; c.fillRect(0, H-1000, W, 1000); }
+  if(d.fotoImg){
+    const im = d.fotoImg, cx = x + 70, cy = y0 - 135, k = Math.max(140/im.width, 140/im.height);
+    c.save(); c.beginPath(); c.arc(cx, cy, 70, 0, 7); c.clip(); c.drawImage(im, cx - im.width*k/2, cy - im.height*k/2, im.width*k, im.height*k); c.restore();
+    c.lineWidth = 5; c.strokeStyle = card ? '#9bc21b' : '#fff'; c.beginPath(); c.arc(cx, cy, 70, 0, 7); c.stroke();
+  }
   const cor = card ? '#111' : '#fff', mudo = card ? '#777' : 'rgba(255,255,255,.8)';
   if(!card){ c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = 18; }
   const txt = (t, size, peso, col, ls) => { c.font = peso + ' ' + size + 'px ' + F; c.fillStyle = col; c.letterSpacing = ls || '0px';
@@ -855,6 +864,8 @@ function compartilharSheet(id){
     <div class="row"><button class="btn2" id="sh_fechar">Fechar</button><button class="btn1" id="sh_ok">Compartilhar</button></div>`);
   const cv = $('sh_cv'), redes = () => desenharShare(cv, est, img, d);
   redes();
+  const fp = (pros.find(q => q.id === x.pro_id) || {}).foto;
+  if(fp){ const fi = new Image(); fi.crossOrigin = 'anonymous'; fi.onload = () => { d.fotoImg = fi; redes(); }; fi.src = fp; }
   $('sh_est').querySelectorAll('.chip').forEach(bt => bt.onclick = () => { est = bt.dataset.e; $('sh_est').querySelectorAll('.chip').forEach(z => z.classList.toggle('on', z === bt)); redes(); });
   $('sh_pick').onclick = () => $('sh_foto').click();
   $('sh_foto').onchange = e => { const f = e.target.files[0]; if(!f) return; const im = new Image(); im.onload = () => { img = im; redes(); }; im.src = URL.createObjectURL(f); };
@@ -947,6 +958,38 @@ function abrirRecuperacao(){
 }
 async function sair(){ await sb.auth.signOut(); SESSION = null; ISADMIN = false; MYPRO = null; renderPro(); renderAdmin(); }
 $('pSair').onclick = sair; $('aSair').onclick = sair;
+
+/* ---------- fotos dos profissionais ---------- */
+function prepararFoto(file){
+  return new Promise((res, rej) => {
+    const im = new Image(), u = URL.createObjectURL(file);
+    im.onload = () => {
+      const S = 480, c = document.createElement('canvas'); c.width = c.height = S;
+      const x = c.getContext('2d'), k = Math.max(S/im.width, S/im.height), w = im.width*k, h = im.height*k;
+      x.fillStyle = '#fff'; x.fillRect(0,0,S,S); x.drawImage(im, (S-w)/2, (S-h)/2, w, h);
+      URL.revokeObjectURL(u); c.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/jpeg', 0.85);
+    };
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('img')); };
+    im.src = u;
+  });
+}
+const caminhoFoto = url => { const i = (url || '').indexOf('/ta-fotos/'); return i >= 0 ? decodeURIComponent(url.slice(i + 10)) : null; };
+async function enviarFoto(proId, file, antiga){
+  const blob = await prepararFoto(file), path = proId + '/' + Date.now() + '.jpg';
+  const up = await sb.storage.from('ta-fotos').upload(path, blob, { contentType:'image/jpeg', cacheControl:'31536000' });
+  if(up.error) throw up.error;
+  const url = sb.storage.from('ta-fotos').getPublicUrl(path).data.publicUrl;
+  const { error } = await sb.from('ta_profissionais').update({ foto_url:url }).eq('id', proId);
+  if(error) throw error;
+  const old = caminhoFoto(antiga); if(old) sb.storage.from('ta-fotos').remove([old]).catch(() => {});
+  return url;
+}
+async function removerFoto(proId, antiga){
+  const { error } = await sb.from('ta_profissionais').update({ foto_url:null }).eq('id', proId);
+  if(error) throw error;
+  const old = caminhoFoto(antiga); if(old) sb.storage.from('ta-fotos').remove([old]).catch(() => {});
+}
+const escolherArquivo = cb => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.onchange = () => i.files[0] && cb(i.files[0]); i.click(); };
 
 /* ============================================================
    ÁREA DO PROFISSIONAL
@@ -1050,6 +1093,7 @@ function renderPanelPro(){
 function renderPerfilEditor(){
   const p = MYPRO, h = p.horarios || {};
   $('perfil').innerHTML = `
+    <label>Foto de perfil</label><div id="e_fotobox"></div>
     <label>Nome</label><input id="e_nome" value="${esc(p.nome)}">
     <label>Modalidade</label><select id="e_mod">${MODS.map(m => `<option ${m===p.modalidade?'selected':''}>${m}</option>`).join('')}</select>
     <label>Credencial (CREF, faixa, equipe...)</label><input id="e_cred" value="${esc(p.credencial)}">
@@ -1076,6 +1120,22 @@ function renderPerfilEditor(){
   };
   $('e_preco').oninput = hint; $('e_fds').oninput = hint; hint();
   $('e_save').onclick = salvarPerfil;
+  desenharFotoBox();
+}
+function desenharFotoBox(){
+  const p = MYPRO, box = $('e_fotobox'); if(!box) return;
+  box.innerHTML = `<div style="display:flex;gap:14px;align-items:center">${avatarHtml(p.nome, p.foto_url, true)}
+    <div class="btns" style="margin:0"><button class="sbtn pri" id="e_foto">📷 ${p.foto_url ? 'Trocar foto' : 'Enviar foto'}</button>${p.foto_url ? '<button class="sbtn" id="e_fotorm">Remover</button>' : ''}</div></div>
+    <div class="hint" style="margin:8px 0 0" id="e_fotomsg">Use uma foto sua, de rosto, com boa luz. Ela aparece na vitrine.</div>`;
+  const msg = t => { $('e_fotomsg').textContent = t; };
+  $('e_foto').onclick = () => escolherArquivo(async f => {
+    msg('Enviando…');
+    try{ MYPRO.foto_url = await enviarFoto(p.id, f, p.foto_url); desenharFotoBox(); $('e_fotomsg').textContent = 'Foto salva ✓'; }
+    catch(e){ msg('Não foi possível enviar a foto. Tente outra imagem.'); }
+  });
+  if($('e_fotorm')) $('e_fotorm').onclick = async () => {
+    try{ await removerFoto(p.id, p.foto_url); MYPRO.foto_url = null; desenharFotoBox(); }catch(e){ msg('Não foi possível remover.'); }
+  };
 }
 async function salvarPerfil(){
   const err = m => { $('e_err').style.color = 'var(--danger)'; $('e_err').textContent = m; };
@@ -1200,13 +1260,14 @@ async function adminPros(){
   if(error){ $('atab').innerHTML = '<div class="warn">Não foi possível carregar os profissionais.</div>'; return; }
   $('atab').innerHTML = (data.length ? data.map(p => `
     <div class="bk">
-      <div class="bh"><b>${esc(p.nome)}</b><span>${p.teste ? '<span class="tag pend">TESTE</span>' : ''}</span></div>
+      <div class="bh"><div style="display:flex;gap:10px;align-items:center">${avatarHtml(p.nome, p.foto_url)}<b>${esc(p.nome)}</b></div><span>${p.teste ? '<span class="tag pend">TESTE</span>' : ''}</span></div>
       <div style="color:var(--mut)">${esc(p.modalidade)} · ${esc(p.credencial || '—')} · ${brl(+p.preco)}/h${p.preco_fds>0 ? ' · fds ' + brl(+p.preco_fds) : ''}</div>
       <div class="bm">${p.user_id ? 'Conta vinculada ✓' : 'Sem conta vinculada'}</div>
       <div class="btns">
         <button class="sbtn ${p.verificado?'pri':''}" data-a="ver" data-id="${p.id}">${p.verificado?'✓ Verificado':'Marcar verificado'}</button>
         <button class="sbtn ${p.oculto?'':'pri'}" data-a="vis" data-id="${p.id}">${p.oculto?'Oculto da vitrine':'Na vitrine'}</button>
         ${p.user_id ? '' : `<button class="sbtn" data-a="conv" data-id="${p.id}">Gerar convite</button>`}
+        <button class="sbtn" data-a="foto" data-id="${p.id}">📷 Foto</button>
         <button class="sbtn del" data-a="del" data-id="${p.id}">Apagar</button>
       </div>
     </div>`).join('') : '<div class="empty">Nenhum profissional cadastrado.</div>') +
@@ -1216,6 +1277,7 @@ async function adminPros(){
     const p = data.find(x => x.id === btn.dataset.id); if(!p) return;
     const a = btn.dataset.a;
     if(a === 'conv') return convidar(p);
+    if(a === 'foto') return escolherArquivo(async f => { try{ await enviarFoto(p.id, f, p.foto_url); toast('Foto atualizada ✓'); adminPros(); }catch(e){ toast('Não foi possível enviar a foto.'); } });
     let q;
     if(a === 'ver') q = sb.from('ta_profissionais').update({ verificado:!p.verificado }).eq('id', p.id);
     else if(a === 'vis') q = sb.from('ta_profissionais').update({ oculto:!p.oculto }).eq('id', p.id);
