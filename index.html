@@ -37,6 +37,19 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
 .hhero h1{font-size:28px;line-height:1.15;margin:10px 0 6px;letter-spacing:-.02em}
 .hhero p{color:var(--mut);font-size:15px;margin:0;line-height:1.45}
 .fchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:16px 0 12px;padding-bottom:2px}
+.inst{display:flex;align-items:center;gap:11px;background:linear-gradient(135deg,#232d0a,#161a20);border:1px solid #3d4d12;border-radius:16px;padding:12px;margin:14px 0 4px;position:relative}
+.inst .ic{width:42px;height:42px;border-radius:10px;background:var(--acc);display:grid;place-items:center;flex:none}
+.inst .tx b{font-size:14px;display:block}.inst .tx span{font-size:11.5px;color:var(--mut);line-height:1.3;display:block}
+.inst .go{margin-left:auto;background:var(--acc);color:var(--acc-ink);font-weight:800;font-size:12px;border:0;border-radius:10px;padding:9px 11px;white-space:nowrap;font-family:inherit;cursor:pointer}
+.inst .x{position:absolute;top:-8px;right:-4px;width:24px;height:24px;border-radius:50%;background:var(--card2);border:1px solid var(--line);color:var(--mut);font-size:13px;line-height:1;cursor:pointer}
+.itabs{display:flex;background:var(--card2);border-radius:12px;padding:3px;margin:10px 0}.itabs button{flex:1;border:0;background:none;color:var(--mut);font:inherit;font-size:13px;padding:8px;border-radius:9px;cursor:pointer}.itabs .on{background:var(--acc);color:var(--acc-ink);font-weight:800}
+.iwarn{background:#2c240a;border:1px solid #5a4710;color:#f5c542;border-radius:12px;padding:9px 11px;font-size:12.5px;line-height:1.4;margin-bottom:10px}
+.ist{display:flex;gap:11px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:11px;margin-bottom:9px}
+.ist .n{width:26px;height:26px;border-radius:50%;background:var(--acc);color:var(--acc-ink);font-weight:900;font-size:13px;display:grid;place-items:center;flex:none}
+.ist b{font-size:14px;display:block}.ist span.d{font-size:12px;color:var(--mut);line-height:1.4;display:block;margin-top:2px}
+.ill{margin-top:8px;border-radius:10px;background:var(--bg);border:1px solid var(--line);padding:8px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:12px}
+.safbar{display:flex;justify-content:space-around;align-items:center;width:100%;color:var(--mut)}.hl{outline:2px solid var(--acc);outline-offset:3px;border-radius:7px;color:var(--acc)}
+.imenu{width:100%;background:var(--card);border-radius:10px;padding:2px 0}.imenu div{padding:8px 10px;font-size:12px;display:flex;justify-content:space-between;color:#c9ced6}.imenu .hl{margin:0 4px;outline-offset:-2px;padding:7px 8px}
 .cstrip{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:6px;color:var(--txt);font:inherit;cursor:pointer}
 .cstrip .m{width:38px;height:38px;border-radius:50%;background:#1a2108;border:2px solid var(--acc);display:grid;place-items:center;font-size:18px;flex:none}
 .cstrip .x{flex:1;min-width:0}.cstrip .x b{font-size:14px;display:block}.cstrip .pbar{margin:7px 0 0;height:6px}.cstrip .ch{color:var(--mut);font-size:22px}
@@ -223,13 +236,14 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
     <h1>Aula avulsa com quem entende.</h1>
     <p>Escolha o profissional, o local e o horário. Sem mensalidade, sem plano.</p>
   </div>
+  <div id="instcard"></div>
   <div class="mres" id="minhas"></div>
   <div class="fchips" id="filtros"></div>
   <div class="plist" id="plist"></div>
   <div id="vconq"></div>
   <div id="acct" class="hint" style="text-align:center;margin:16px 0 0"></div>
   <div class="soon"><b>Em breve:</b> Futevôlei, Corrida e Beach Tênis.<div class="btns"><button class="sbtn pri" id="avisarMod">🔔 Avisar quando chegar</button></div></div>
-  <div class="foot"><button id="openPanel">Área do profissional</button><button id="openAdmin">Gerenciador</button></div>
+  <div class="foot"><button id="openInst" style="display:none">Instalar app</button><button id="openPanel">Área do profissional</button><button id="openAdmin">Gerenciador</button></div>
 </div>
 
 <!-- PERFIL DO PROFISSIONAL -->
@@ -1536,7 +1550,61 @@ async function adminCfg(){
 }
 
 /* ---------- início ---------- */
-(async function init(){ await carregarVitrine(); await carregarPapeis(); await sincronizarAluno(); renderMinhas(); })();
+
+
+/* ---------- instalar na tela inicial ---------- */
+const UA = navigator.userAgent;
+const ehIOS = /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const ehMobile = ehIOS || /Android/i.test(UA);
+const instalado = () => window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+const emAppSocial = /Instagram|FBAN|FBAV|WhatsApp|TikTok|Snapchat|Line\//i.test(UA);
+let pedidoInstalar = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); pedidoInstalar = e; });
+window.addEventListener('appinstalled', () => { pedidoInstalar = null; store.set('ta_inst_ok', 1); renderInstalar(); });
+const ISVG = {
+  bolt:'<svg width="30" height="30" viewBox="0 0 1024 1024"><path d="M560 120 L260 560 L470 560 L400 900 L760 420 L540 420 Z" fill="#11140a" stroke="#11140a" stroke-width="30" stroke-linejoin="round"/></svg>',
+  share:'<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  plus:'<svg width="14" height="14" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+};
+function renderInstalar(){
+  const box = $('instcard'), btn = $('openInst'); if(!box) return;
+  const ok = ehMobile && !instalado() && !store.get('ta_inst_ok', 0);
+  btn.style.display = ok ? '' : 'none';
+  const visitas = store.get('ta_visitas', 0), dism = store.get('ta_inst_dism', 0);
+  const mostrar = ok && (visitas >= 2 || store.get(RES_KEY, []).length) && (!dism || Date.now() - dism > 14*86400000);
+  if(!mostrar){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="inst"><button class="x" id="instX" aria-label="Dispensar">×</button><div class="ic">${ISVG.bolt}</div>
+    <div class="tx"><b>Instale o app</b><span>Fica na tela inicial, sem baixar nada</span></div><button class="go" id="instGo">Ver como</button></div>`;
+  $('instGo').onclick = () => abrirInstalar();
+  $('instX').onclick = () => { store.set('ta_inst_dism', Date.now()); renderInstalar(); };
+}
+function abrirInstalar(aba){
+  aba = aba || (ehIOS ? 'ios' : 'and');
+  const ios = aba === 'ios';
+  openSheet(`<h3>Instalar o Treino Now</h3><div class="sub">Em 30 segundos o app fica na sua tela inicial, como qualquer outro.</div>
+    <div class="itabs"><button data-t="ios" class="${ios?'on':''}">iPhone</button><button data-t="and" class="${ios?'':'on'}">Android</button></div>
+    ${ios ? `
+    <div class="iwarn">⚠️ ${emAppSocial ? '<b>Você está dentro de outro app.</b> ' : ''}No iPhone, só dá para instalar pelo <b>Safari</b>. Se abriu pelo Instagram ou WhatsApp, toque em <b>⋯</b> e escolha <b>Abrir no Safari</b> antes de começar.</div>
+    <div class="ist"><div class="n">1</div><div style="flex:1"><b>Toque em Compartilhar</b><span class="d">O ícone do quadrado com a seta, na barra de baixo do Safari.</span>
+      <div class="ill"><div class="safbar"><span>‹</span><span>›</span><span class="hl">${ISVG.share}</span><span>▢</span><span>⧉</span></div></div></div></div>
+    <div class="ist"><div class="n">2</div><div style="flex:1"><b>"Adicionar à Tela de Início"</b><span class="d">Role a lista para baixo até achar essa opção.</span>
+      <div class="ill"><div class="imenu"><div>Copiar <span>⧉</span></div><div>Adicionar aos Favoritos <span>★</span></div><div class="hl">Adicionar à Tela de Início <span>${ISVG.plus}</span></div><div>Imprimir <span>⎙</span></div></div></div></div></div>
+    <div class="ist"><div class="n">3</div><div style="flex:1"><b>Toque em Adicionar</b><span class="d">Pronto: o ícone do raio aparece na tela inicial.</span></div></div>
+    <div class="row"><button class="btn1" id="inst_ok">Entendi</button></div>`
+    : `
+    <div class="ist"><div class="n">1</div><div style="flex:1"><b>Toque nos três pontos ⋮</b><span class="d">No canto de cima do Chrome.</span></div></div>
+    <div class="ist"><div class="n">2</div><div style="flex:1"><b>"Instalar app" ou "Adicionar à tela inicial"</b><span class="d">Confirme em Instalar. O ícone aparece na tela inicial.</span>
+      <div class="ill"><div class="imenu"><div>Nova guia <span>＋</span></div><div class="hl">Instalar app <span>⬇</span></div><div>Compartilhar <span>↗</span></div></div></div></div></div>
+    <div class="row">${pedidoInstalar ? '<button class="btn1" id="inst_now">Instalar agora</button>' : '<button class="btn1" id="inst_ok">Entendi</button>'}</div>
+    ${pedidoInstalar ? '<div class="hint" style="margin-top:8px;text-align:center">Seu navegador liberou a instalação direta.</div>' : ''}`}`);
+  $('sheet').querySelectorAll('.itabs button').forEach(b => b.onclick = () => abrirInstalar(b.dataset.t));
+  if($('inst_ok')) $('inst_ok').onclick = closeSheet;
+  if($('inst_now')) $('inst_now').onclick = async () => { const p = pedidoInstalar; pedidoInstalar = null; closeSheet(); try{ p.prompt(); await p.userChoice; }catch(e){} renderInstalar(); };
+}
+$('openInst').onclick = () => abrirInstalar();
+(function(){ try{ if(!sessionStorage.getItem('ta_vis_s')){ sessionStorage.setItem('ta_vis_s','1'); store.set('ta_visitas', store.get('ta_visitas', 0) + 1); } }catch(e){} })();
+
+(async function init(){ await carregarVitrine(); await carregarPapeis(); await sincronizarAluno(); renderMinhas(); renderInstalar(); })();
 </script>
 </body>
 </html>
