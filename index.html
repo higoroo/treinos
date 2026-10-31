@@ -36,7 +36,11 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
 .hhero{padding:28px 0 6px}
 .hhero h1{font-size:28px;line-height:1.15;margin:10px 0 6px;letter-spacing:-.02em}
 .hhero p{color:var(--mut);font-size:15px;margin:0;line-height:1.45}
-.fchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-top:18px;padding-bottom:2px}
+.fchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:16px 0 12px;padding-bottom:2px}
+.cstrip{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:6px;color:var(--txt);font:inherit;cursor:pointer}
+.cstrip .m{width:38px;height:38px;border-radius:50%;background:#1a2108;border:2px solid var(--acc);display:grid;place-items:center;font-size:18px;flex:none}
+.cstrip .x{flex:1;min-width:0}.cstrip .x b{font-size:14px;display:block}.cstrip .pbar{margin:7px 0 0;height:6px}.cstrip .ch{color:var(--mut);font-size:22px}
+.hrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:13px}.hrow small{color:var(--mut);display:block;margin-top:2px}
 .fchips::-webkit-scrollbar{display:none}
 .chip{flex:none;padding:10px 16px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:14px;white-space:nowrap}
 .chip.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:700}
@@ -218,9 +222,9 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
     <div class="brand">Treino Now</div>
     <h1>Aula avulsa com quem entende.</h1>
     <p>Escolha o profissional, o local e o horário. Sem mensalidade, sem plano.</p>
-    <div class="fchips" id="filtros"></div>
   </div>
   <div class="mres" id="minhas"></div>
+  <div class="fchips" id="filtros"></div>
   <div class="plist" id="plist"></div>
   <div id="vconq"></div>
   <div id="acct" class="hint" style="text-align:center;margin:16px 0 0"></div>
@@ -809,29 +813,29 @@ async function renderMinhas(){
     if(x.s.status === 'cancelada' && x.s.foi_paga) return x.s.data >= limite;
     return x.s.data >= hojeK;
   }).sort((a,b) => (a.s.data + pad(a.s.hora)).localeCompare(b.s.data + pad(b.s.hora)));
-  MIN.cards = mostrar;
+  const atencao = mostrar.filter(x => {
+    const st = x.s.status, c = x.s.conclusao;
+    if(st === 'aguardando') return true;
+    if(st === 'pago') return !c;
+    if(st === 'cancelada' && x.s.foi_paga) return !x.s.reembolsada;
+    return false;
+  });
+  MIN.cards = atencao;
   let h = '';
-  if(mostrar.length){
-    h += '<h2 style="margin-top:6px">Suas reservas</h2>' + mostrar.map((x,i) => {
+  if(atencao.length){
+    h += '<h2 style="margin-top:6px">Suas reservas</h2>' + atencao.map((x,i) => {
       const s = x.s, r = x.rec, d = dataObj(s.data);
-      const feita = s.status === 'pago' && s.conclusao === 'concluida', faltou = s.status === 'pago' && s.conclusao === 'aluno_faltou';
       const aguardaFim = s.status === 'pago' && !s.conclusao && acabou(s.data, s.hora);
-      const badge = feita ? '<span class="badge st-pg">Aula realizada</span>'
-                  : faltou ? '<span class="badge st-rp">Falta registrada</span>'
-                  : aguardaFim ? '<span class="badge st-ag">Aguardando o profissional finalizar</span>'
+      const badge = aguardaFim ? '<span class="badge st-ag">Aguardando o profissional finalizar</span>'
                   : s.status === 'pago' ? '<span class="badge st-pg">Aula confirmada</span>'
                   : s.status === 'aguardando' ? '<span class="badge st-ag">Aguardando pagamento</span>'
-                  : `<span class="badge st-rp">${s.status === 'cancelada' ? 'Cancelada' : 'Expirada'}</span>`;
+                  : '<span class="badge st-rp">Cancelada</span>';
       let btns = '', nota = '';
-      if(s.status === 'cancelada' && s.foi_paga) nota = s.reembolsada ? 'Pix devolvido.' : 'O profissional cancelou a aula. Seu Pix será devolvido.';
+      if(s.status === 'cancelada' && s.foi_paga) nota = 'O profissional cancelou a aula. Seu Pix será devolvido.';
       if(aguardaFim) nota = 'O profissional confirma a aula no app. Assim você libera a conquista e o compartilhar.';
       if(aguardaFim) btns = `<a class="sbtn pri" style="text-decoration:none" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, `Oi, ${primeiroNome(s.pro_nome)}! Pode finalizar a minha aula de ${fmtLong(d)} no Treino Now? Assim eu libero minha conquista 😄`)}">🔔 Lembrar o profissional</a>`;
-      else if(faltou) btns = `<button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
-      else if(s.status === 'pago' && feita) btns = `<button class="sbtn pri" data-a="share" data-i="${i}">📸 Compartilhar treino</button><button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
       else if(s.status === 'pago') btns = `<button class="sbtn pri" data-a="cal" data-i="${i}">📅 Calendário</button><a class="sbtn" style="text-decoration:none;color:var(--txt)" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msgAula(r, s.pro_nome))}">💬 Combinar detalhes</a>`;
-      else if(s.status === 'aguardando') btns = r.stub ? '' : `<button class="sbtn pri" data-a="pix" data-i="${i}">Ver Pix</button>`;
-      else btns = r.stub ? '' : `<button class="sbtn" data-a="rm" data-i="${i}">Remover</button>`;
-      if(s.status === 'aguardando' && r.stub) nota = 'Reservada em outro aparelho. Abra o Pix por lá ou reserve de novo.';
+      else if(s.status === 'aguardando'){ btns = r.stub ? '' : `<button class="sbtn pri" data-a="pix" data-i="${i}">Ver Pix</button>`; if(r.stub) nota = 'Reservada em outro aparelho. Abra o Pix por lá ou reserve de novo.'; }
       return `<div class="mr"><div class="bh"><b>${esc(s.modalidade)} com ${esc(s.pro_nome)}</b>${badge}</div>
         ${nota ? `<div class="bm" style="margin:2px 0 0">${nota}</div>` : ''}
         <div class="when"><div class="dt"><small>${DIAS[d.getDay()]}</small><b>${pad(d.getDate())}</b><small>${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]}</small></div>
@@ -839,14 +843,13 @@ async function renderMinhas(){
     }).join('');
   }
   if(pagas.length){
-    const n = real.length, metas = [1,5,10], prox = metas.find(m => m > n);
-    h += `<h2 style="margin-top:18px">Minhas conquistas</h2>
-      <div class="lvl"><div class="r"><b>${n} ${n===1?'aula feita':'aulas feitas'}</b><span>${todas.size} de ${CONQ.length} conquistas</span></div>
-      <div class="pbar"><i style="width:${prox ? Math.min(100, Math.round(n / prox * 100)) : 100}%"></i></div>
-      <span>${prox ? `Falta${prox-n>1?'m':''} ${prox-n} ${prox-n===1?'aula':'aulas'} para ${prox===1?'a primeira conquista':prox+' aulas'}` : 'Você já tem as conquistas de volume. Continue!'}</span></div>
-      <div class="cgrid">${CONQ.map(c => `<div class="bd ${todas.has(c.id)?'':'off'}"><div class="ic">${c.ic}</div><b>${c.nome}</b><small>${c.desc}</small></div>`).join('')}</div>`;
+    const n = real.length;
+    const prox = [1,5,10].find(m => m > n);
+    h += `<button class="cstrip" id="abrirConq"><div class="m">🏅</div><div class="x"><b>${n} ${n===1?'aula feita':'aulas feitas'} · ${todas.size} de ${CONQ.length} medalhas</b>
+      <div class="pbar"><i style="width:${prox ? Math.min(100, Math.round(n / prox * 100)) : 100}%"></i></div></div><div class="ch">›</div></button>`;
   }
   $('minhas').innerHTML = h;
+  if($('abrirConq')) $('abrirConq').onclick = abrirConquistas;
   $('minhas').querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
     const x = MIN.cards[+b.dataset.i], a = b.dataset.a; if(!x) return;
     if(a === 'pix') showPix(x.rec);
@@ -856,6 +859,26 @@ async function renderMinhas(){
     else if(a === 'again'){ const p = pros.find(q => q.id === x.s.pro_id); if(p) openPro(p.id); else toast('Este profissional não está disponível agora.'); }
   });
   avisarNovas();
+}
+
+
+/* painel de conquistas (grade completa + histórico) */
+function abrirConquistas(){
+  const { real, todas, itens } = MIN, n = real.length, prox = [1,5,10].find(m => m > n);
+  const ult = real.length ? real[real.length-1] : null;
+  const hist = itens.filter(x => (x.s.status === 'pago' && x.s.conclusao) || (x.s.status === 'cancelada' && x.s.foi_paga))
+    .sort((a,b) => (b.s.data + pad(b.s.hora)).localeCompare(a.s.data + pad(a.s.hora))).slice(0, 12);
+  const rot = x => x.s.conclusao === 'concluida' ? 'Aula realizada' : x.s.conclusao === 'aluno_faltou' ? 'Falta registrada' : 'Cancelada pelo profissional';
+  openSheet(`<h3>Minhas conquistas</h3>
+    <div class="lvl" style="margin-top:10px"><div class="r"><b>${n} ${n===1?'aula feita':'aulas feitas'}</b><span>${todas.size} de ${CONQ.length} conquistas</span></div>
+    <div class="pbar"><i style="width:${prox ? Math.min(100, Math.round(n / prox * 100)) : 100}%"></i></div>
+    <span>${prox ? `Falta${prox-n>1?'m':''} ${prox-n} ${prox-n===1?'aula':'aulas'} para ${prox===1?'a primeira conquista':prox+' aulas'}` : 'Você já tem as conquistas de volume. Continue!'}</span></div>
+    <div class="cgrid">${CONQ.map(c => `<div class="bd ${todas.has(c.id)?'':'off'}"><div class="ic">${c.ic}</div><b>${c.nome}</b><small>${c.desc}</small></div>`).join('')}</div>
+    ${hist.length ? '<h2 style="margin-top:20px">Histórico</h2>' + hist.map(x => { const d = dataObj(x.s.data); return `<div class="hrow"><div><b>${esc(x.s.modalidade)} com ${esc(x.s.pro_nome)}</b><small>${fmtLong(d)} · ${hh(x.s.hora)} · ${rot(x)}</small></div>${x.s.conclusao === 'concluida' ? `<button class="sbtn" data-share="${x.s.id}">📸</button>` : ''}</div>`; }).join('') : ''}
+    <div class="row" style="margin-top:16px">${ult ? '<button class="btn1" id="cq_ult">📸 Compartilhar</button>' : ''}<button class="btn2" id="cq_fechar">Fechar</button></div>`);
+  $('cq_fechar').onclick = closeSheet;
+  if($('cq_ult')) $('cq_ult').onclick = () => compartilharSheet(ult.id);
+  $('sheet').querySelectorAll('[data-share]').forEach(b => b.onclick = () => compartilharSheet(b.dataset.share));
 }
 
 /* popup de conquista nova */
