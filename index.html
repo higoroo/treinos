@@ -41,7 +41,7 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
 .inst .ic{width:42px;height:42px;border-radius:10px;background:var(--acc);display:grid;place-items:center;flex:none}
 .inst .tx b{font-size:14px;display:block}.inst .tx span{font-size:11.5px;color:var(--mut);line-height:1.3;display:block}
 .inst .go{margin-left:auto;background:var(--acc);color:var(--acc-ink);font-weight:800;font-size:12px;border:0;border-radius:10px;padding:9px 11px;white-space:nowrap;font-family:inherit;cursor:pointer}
-.inst .x{position:absolute;top:-8px;right:-4px;width:24px;height:24px;border-radius:50%;background:var(--card2);border:1px solid var(--line);color:var(--mut);font-size:13px;line-height:1;cursor:pointer}
+.inst .x{position:absolute;top:-9px;right:-5px;width:26px;height:26px;border-radius:50%;background:var(--card2);border:1px solid var(--line);color:var(--mut);padding:0;display:grid;place-items:center;cursor:pointer}.inst .x svg{display:block}
 .itabs{display:flex;background:var(--card2);border-radius:12px;padding:3px;margin:10px 0}.itabs button{flex:1;border:0;background:none;color:var(--mut);font:inherit;font-size:13px;padding:8px;border-radius:9px;cursor:pointer}.itabs .on{background:var(--acc);color:var(--acc-ink);font-weight:800}
 .iwarn{background:#2c240a;border:1px solid #5a4710;color:#f5c542;border-radius:12px;padding:9px 11px;font-size:12.5px;line-height:1.4;margin-bottom:10px}
 .ist{display:flex;gap:11px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:11px;margin-bottom:9px}
@@ -1573,7 +1573,7 @@ function renderInstalar(){
   const visitas = store.get('ta_visitas', 0), dism = store.get('ta_inst_dism', 0);
   const mostrar = ok && (visitas >= 2 || store.get(RES_KEY, []).length) && (!dism || Date.now() - dism > 14*86400000);
   if(!mostrar){ box.innerHTML = ''; return; }
-  box.innerHTML = `<div class="inst"><button class="x" id="instX" aria-label="Dispensar">×</button><div class="ic">${ISVG.bolt}</div>
+  box.innerHTML = `<div class="inst"><button class="x" id="instX" aria-label="Dispensar"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><div class="ic">${ISVG.bolt}</div>
     <div class="tx"><b>Instale o app</b><span>Fica na tela inicial, sem baixar nada</span></div><button class="go" id="instGo">Ver como</button></div>`;
   $('instGo').onclick = () => abrirInstalar();
   $('instX').onclick = () => { store.set('ta_inst_dism', Date.now()); renderInstalar(); };
