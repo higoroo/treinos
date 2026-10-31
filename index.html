@@ -4,11 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0d0f12">
+<link rel="icon" type="image/png" sizes="192x192" href="icone-now-192.png">
+<link rel="apple-touch-icon" href="icone-now-180.png">
+<link rel="manifest" href="manifest-now.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Treina Aí">
-<title>Treina Aí</title>
+<meta name="apple-mobile-web-app-title" content="Treino Now">
+<title>Treino Now</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" onerror="void 0"></script>
 <style>
@@ -212,7 +215,7 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
 <!-- HOME / VITRINE -->
 <div class="wrap" id="home">
   <div class="hhero">
-    <div class="brand">Treina Aí</div>
+    <div class="brand">Treino Now</div>
     <h1>Aula avulsa com quem entende.</h1>
     <p>Escolha o profissional, o local e o horário. Sem mensalidade, sem plano.</p>
     <div class="fchips" id="filtros"></div>
@@ -527,7 +530,7 @@ $('cta').onclick = () => {
     ${SESSION ? '<div class="hint" style="margin:10px 0 0">Você está logado. Suas conquistas e aulas ficam salvas na sua conta.</div>' : `
     <label>Crie uma senha</label><input id="fsenha" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
     <div class="hint" style="margin:6px 0 0">Sua conta guarda suas aulas e conquistas, mesmo se trocar de celular. <a href="#" id="fjatenho" style="color:var(--acc)">Já tenho conta</a></div>`}
-    <div class="hint" style="margin:10px 0 0">Ao reservar, você aceita receber contato por WhatsApp e e-mail sobre esta aula e novidades do Treina Aí. Usamos seus dados só para isso.</div>
+    <div class="hint" style="margin:10px 0 0">Ao reservar, você aceita receber contato por WhatsApp e e-mail sobre esta aula e novidades do Treino Now. Usamos seus dados só para isso.</div>
     <div class="err" id="ferr"></div>
     <div class="row"><button class="btn2" id="fcancel">Voltar</button><button class="btn1" id="fok">Reservar e pagar</button></div>
   `);
@@ -632,7 +635,7 @@ const primeiroNome = n => String(n || '').trim().split(/\s+/)[0] || '';
 const msgAula = (rec, proNome) => `Oi, ${primeiroNome(proNome)}! Aula confirmada para ${fmtLong(dataObj(rec.date))} às ${hh(rec.hour)} (${rec.acad}). Sou o ${primeiroNome(rec.nome)}, até lá! 💪`;
 function baixarIcs(rec, proNome){
   const d = rec.date.replace(/-/g,''), fim = rec.hour >= 23 ? '235900' : pad(rec.hour+1) + '0000';
-  const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Treina Ai//PT','BEGIN:VEVENT','UID:' + rec.id + '@treinaai',
+  const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Treino Now//PT','BEGIN:VEVENT','UID:' + rec.id + '@treinonow',
     'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),
     'DTSTART;TZID=America/Sao_Paulo:' + d + 'T' + pad(rec.hour) + '0000',
     'DTEND;TZID=America/Sao_Paulo:' + d + 'T' + fim,
@@ -690,7 +693,7 @@ function avisarSheet(pro){
     <div class="sub">${pro ? 'Quando ' + esc(pro.nome) + ' liberar novos horários, avisamos você.' : 'Avisamos você quando entrarem novas modalidades.'}</div>
     ${pro ? '' : `<label>Modalidade</label><select id="av_mod">${['Futevôlei','Corrida','Beach Tênis','Outra'].map(m => `<option>${m}</option>`).join('')}</select>`}
     <label>Seu WhatsApp (com DDD) ou e-mail</label><input id="av_c" autocomplete="email" placeholder="(19) 99999-9999 ou voce@email.com">
-    <div class="hint" style="margin:10px 0 0">Usamos o contato só para este aviso e novidades do Treina Aí.</div>
+    <div class="hint" style="margin:10px 0 0">Usamos o contato só para este aviso e novidades do Treino Now.</div>
     <div class="err" id="av_err"></div>
     <div class="row"><button class="btn2" id="av_cancel">Cancelar</button><button class="btn1" id="av_ok">Quero ser avisado</button></div>`);
   $('av_cancel').onclick = closeSheet;
@@ -822,7 +825,7 @@ async function renderMinhas(){
       let btns = '', nota = '';
       if(s.status === 'cancelada' && s.foi_paga) nota = s.reembolsada ? 'Pix devolvido.' : 'O profissional cancelou a aula. Seu Pix será devolvido.';
       if(aguardaFim) nota = 'O profissional confirma a aula no app. Assim você libera a conquista e o compartilhar.';
-      if(aguardaFim) btns = `<a class="sbtn pri" style="text-decoration:none" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, `Oi, ${primeiroNome(s.pro_nome)}! Pode finalizar a minha aula de ${fmtLong(d)} no Treina Aí? Assim eu libero minha conquista 😄`)}">🔔 Lembrar o profissional</a>`;
+      if(aguardaFim) btns = `<a class="sbtn pri" style="text-decoration:none" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, `Oi, ${primeiroNome(s.pro_nome)}! Pode finalizar a minha aula de ${fmtLong(d)} no Treino Now? Assim eu libero minha conquista 😄`)}">🔔 Lembrar o profissional</a>`;
       else if(faltou) btns = `<button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
       else if(s.status === 'pago' && feita) btns = `<button class="sbtn pri" data-a="share" data-i="${i}">📸 Compartilhar treino</button><button class="sbtn" data-a="again" data-i="${i}">Reservar de novo</button>`;
       else if(s.status === 'pago') btns = `<button class="sbtn pri" data-a="cal" data-i="${i}">📅 Calendário</button><a class="sbtn" style="text-decoration:none;color:var(--txt)" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msgAula(r, s.pro_nome))}">💬 Combinar detalhes</a>`;
@@ -908,7 +911,7 @@ function desenharShare(cv, est, img, d){
     c.font = '40px ' + F; c.fillStyle = cor; c.fillText(d.badge.ic, x + 20, y + 2);
     c.font = '700 38px ' + F; c.fillText(d.badge.nome, x + 80, y + 2); y += 110;
   }
-  c.letterSpacing = '8px'; c.font = '800 32px ' + F; c.fillStyle = cor; c.fillText('TREINA AÍ', x + 40, y);
+  c.letterSpacing = '8px'; c.font = '800 32px ' + F; c.fillStyle = cor; c.fillText('TREINO NOW', x + 40, y);
   c.shadowColor = 'transparent'; c.fillStyle = card ? '#9bc21b' : '#c6f432'; c.beginPath(); c.arc(x + 12, y - 11, 11, 0, 7); c.fill();
   c.letterSpacing = '0px';
 }
@@ -937,7 +940,7 @@ function compartilharSheet(id){
   $('sh_ok').onclick = () => cv.toBlob(async blob => {
     const file = new File([blob], 'treino-treina-ai.png', { type:'image/png' });
     try{
-      if(navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], text:'Treinei com o Treina Aí 💪' }); return; }
+      if(navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], text:'Treinei com o Treino Now 💪' }); return; }
     }catch(e){ if(e && e.name === 'AbortError') return; }
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
     toast('Imagem salva. Poste nos Stories!');
@@ -1282,7 +1285,7 @@ function renderAdmin(){
   else if(atab==='pros') adminPros(); else if(atab==='ctt') adminContatos(); else adminCfg();
 }
 
-const msgPro = (b, pr) => `Oi, ${primeiroNome(pr.nome)}! Nova aula paga no Treina Aí: ${fmtLong(dataObj(b.data))} às ${hh(b.hora)} (${b.local}). Aluno: ${b.aluno_nome} (${b.aluno_zap}). Você recebe ${brl2(b.preco)}. Veja na Área do profissional: ${urlVolta() || ''}`;
+const msgPro = (b, pr) => `Oi, ${primeiroNome(pr.nome)}! Nova aula paga no Treino Now: ${fmtLong(dataObj(b.data))} às ${hh(b.hora)} (${b.local}). Aluno: ${b.aluno_nome} (${b.aluno_zap}). Você recebe ${brl2(b.preco)}. Veja na Área do profissional: ${urlVolta() || ''}`;
 function avisarProSheet(b, pr, depois){
   openSheet(`<div class="center"><div class="ok">✓</div><h3>Pagamento confirmado</h3>
     <div class="sub">Avise ${esc(pr ? primeiroNome(pr.nome) : 'o profissional')} agora, para ele saber da aula.</div></div>
@@ -1410,7 +1413,7 @@ async function convidar(p){
   const { data, error } = await sb.rpc('ta_convidar_pro', { p_pro:p.id });
   if(error){ toast(msgErro(error)); return; }
   const link = urlVolta() || 'o endereço do app';
-  const msg = `Oi ${p.nome.split(' ')[0]}! Seu cadastro no Treina Aí está pronto. Abra ${link}, toque em "Área do profissional", crie sua conta (ou entre) e informe o código: ${data}`;
+  const msg = `Oi ${p.nome.split(' ')[0]}! Seu cadastro no Treino Now está pronto. Abra ${link}, toque em "Área do profissional" e digite o código ${data} em "Primeiro acesso" para criar seu acesso.`;
   openSheet(`
     <h3>Convite gerado</h3>
     <div class="sub">Envie este código para ${esc(p.nome)}. Ele vale uma vez só.</div>
