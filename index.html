@@ -1042,6 +1042,40 @@ function desenharShare(cv, est, img, d){
   c.shadowColor = 'transparent'; c.fillStyle = card ? '#9bc21b' : '#c6f432'; c.beginPath(); c.arc(x + 12, y - 11, 11, 0, 7); c.fill();
   c.letterSpacing = '0px';
 }
+/* ---------- imagem do convite (profissional / parceiro) ---------- */
+function desenharConvite(cv, d){
+  const W = 1080, H = 1350, c = cv.getContext('2d'), F = 'system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif', V = '#c6f432';
+  c.clearRect(0,0,W,H); c.letterSpacing = '0px'; c.textBaseline = 'alphabetic';
+  c.fillStyle = '#0d0f12'; c.fillRect(0,0,W,H);
+  let g = c.createRadialGradient(W,0,0,W,0,700); g.addColorStop(0,'rgba(198,244,50,.16)'); g.addColorStop(1,'rgba(198,244,50,0)'); c.fillStyle = g; c.fillRect(0,0,W,H);
+  g = c.createRadialGradient(0,H,0,0,H,650); g.addColorStop(0,'rgba(198,244,50,.12)'); g.addColorStop(1,'rgba(198,244,50,0)'); c.fillStyle = g; c.fillRect(0,0,W,H);
+  c.font = '800 46px ' + F; c.fillStyle = '#fff'; c.fillText('Treino', 80, 125);
+  const tw = c.measureText('Treino ').width; c.fillStyle = V; c.fillText('Now', 80 + tw, 125);
+  c.lineWidth = 3; c.strokeStyle = V; c.beginPath(); c.roundRect(820, 84, 180, 50, 25); c.stroke();
+  c.font = '700 24px ' + F; c.letterSpacing = '6px'; c.fillStyle = V; c.textAlign = 'center'; c.fillText('CONVITE', 913, 118); c.textAlign = 'left'; c.letterSpacing = '0px';
+  const nome = String(d.nome || '').trim().split(/\s+/)[0] || '';
+  const fit = (t, size) => { c.font = '800 ' + size + 'px ' + F; while(c.measureText(t).width > 900 && size > 60){ size -= 4; c.font = '800 ' + size + 'px ' + F; } return size; };
+  c.letterSpacing = '-3px'; c.fillStyle = '#fff';
+  fit(nome + ',', 116); c.fillText(nome + ',', 80, 285);
+  c.font = '800 116px ' + F; c.fillText('seu lugar', 80, 398);
+  c.fillText('está ', 80, 498); const w1 = c.measureText('está ').width; c.fillStyle = V; c.fillText('reservado.', 80 + w1, 498);
+  c.letterSpacing = '0px'; c.font = '400 34px ' + F; c.fillStyle = '#8b94a3';
+  d.sub.forEach((t, i) => c.fillText(t, 80, 566 + i * 44));
+  d.passos.forEach((p, i) => {
+    const y = 636 + i * 108;
+    c.fillStyle = '#161a20'; c.strokeStyle = '#262c36'; c.lineWidth = 2; c.beginPath(); c.roundRect(80, y, 920, 94, 47); c.fill(); c.stroke();
+    c.fillStyle = V; c.beginPath(); c.arc(137, y + 47, 27, 0, 7); c.fill();
+    c.fillStyle = '#11140a'; c.font = '800 30px ' + F; c.textAlign = 'center'; c.fillText(String(i + 1), 137, y + 58); c.textAlign = 'left';
+    c.font = '700 33px ' + F; c.fillStyle = '#fff'; c.fillText(p[0], 190, y + 58);
+    const bw = c.measureText(p[0] + ' ').width; c.font = '400 33px ' + F; c.fillStyle = '#8b94a3'; c.fillText(p[1], 190 + bw, y + 58);
+  });
+  c.fillStyle = V; c.beginPath(); c.roundRect(80, 1090, 920, 190, 36); c.fill();
+  c.fillStyle = '#0d0f12'; c.beginPath(); c.arc(80, 1185, 24, 0, 7); c.fill(); c.beginPath(); c.arc(1000, 1185, 24, 0, 7); c.fill();
+  c.font = '700 26px ' + F; c.letterSpacing = '8px'; c.fillStyle = '#4a5a10'; c.fillText('SEU CÓDIGO', 135, 1135);
+  c.font = '800 100px ui-monospace,Menlo,Consolas,monospace'; c.letterSpacing = '6px'; c.fillStyle = '#11140a'; c.fillText(String(d.codigo || ''), 135, 1240);
+  c.letterSpacing = '0px'; c.strokeStyle = '#6b7f1c'; c.lineWidth = 3; c.setLineDash([8,8]); c.beginPath(); c.moveTo(735, 1125); c.lineTo(735, 1245); c.stroke(); c.setLineDash([]);
+  c.font = '700 30px ' + F; c.fillStyle = '#11140a'; c.fillText('Válido só', 810, 1176); c.fillText('para você', 810, 1212);
+}
 function compartilharSheet(id){
   const i = MIN.real.findIndex(x => x.id === id); if(i < 0) return;
   const x = MIN.real[i], rec = (MIN.itens.find(q => q.rec.id === id) || {}).rec || {};
@@ -1547,12 +1581,29 @@ async function convidar(p){
   if(error){ toast(msgErro(error)); return; }
   const link = urlVolta() || 'o endereço do app';
   const msg = `Oi ${p.nome.split(' ')[0]}! Seu cadastro no Treino Now está pronto. Abra ${link}, toque em "Área do profissional" e digite o código ${data} em "Primeiro acesso" para criar seu acesso.`;
+  const par = p.categoria === 'parceiro';
+  const dc = { nome:p.nome, codigo:data,
+    sub: par ? ['Seu perfil de parceiro de treino já está pronto.','Receba treinos em dupla, pagos antes de você chegar.']
+             : ['Seu perfil no Treino Now já está pronto. Receba aulas','avulsas, pagas antes de você chegar.'],
+    passos: [['Abra o link','que enviei no zap'], ['Área do profissional','→ Primeiro acesso'], ['Digite o código','e crie sua senha']] };
   openSheet(`
     <h3>Convite gerado</h3>
-    <div class="sub">Envie este código para ${esc(p.nome)}. Ele vale uma vez só.</div>
+    <div class="sub">Envie a imagem e a mensagem para ${esc(p.nome)}. O código vale uma vez só.</div>
     <div class="code">${esc(data)}</div>
-    <div class="row"><button class="btn2" id="cv_fechar">Fechar</button><a class="btn1" style="text-align:center;text-decoration:none;color:var(--acc-ink)" target="_blank" rel="noopener" href="${wa(p.whatsapp, msg)}">Enviar no WhatsApp</a></div>`);
+    <canvas id="cv_img" class="shcv" width="1080" height="1350"></canvas>
+    <button class="btnw pri" id="cv_img_ok">📤 Enviar imagem + mensagem</button>
+    <div class="hint" style="margin:8px 0 0">Escolha o WhatsApp e o contato. Se o aparelho não abrir o menu, a imagem é salva para você anexar.</div>
+    <div class="row"><button class="btn2" id="cv_fechar">Fechar</button><a class="btn1" style="text-align:center;text-decoration:none;color:var(--acc-ink)" target="_blank" rel="noopener" href="${wa(p.whatsapp, msg)}">Só a mensagem</a></div>`);
   $('cv_fechar').onclick = closeSheet;
+  desenharConvite($('cv_img'), dc);
+  $('cv_img_ok').onclick = () => $('cv_img').toBlob(async blob => {
+    const file = new File([blob], 'convite-treino-now.png', { type:'image/png' });
+    try{
+      if(navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], text:msg }); return; }
+    }catch(e){ if(e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+    try{ await navigator.clipboard.writeText(msg); toast('Imagem salva e mensagem copiada. Cole no WhatsApp.'); }catch(e){ toast('Imagem salva. Anexe no WhatsApp.'); }
+  }, 'image/png');
 }
 function novoProSheet(){
   openSheet(`
