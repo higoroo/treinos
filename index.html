@@ -225,6 +225,18 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
 .bd.new{border-color:var(--acc)}
 .ntag{display:inline-block;font-size:9.5px;background:var(--acc);color:var(--acc-ink);border-radius:99px;padding:2px 7px;font-weight:800;margin-top:4px}
 .shcv{width:100%;height:auto;border-radius:14px;margin-top:12px;background:conic-gradient(#2a2e36 25%,#1c1f26 0 50%,#2a2e36 0 75%,#1c1f26 0) 0 0/24px 24px;display:block}
+#filtros{margin:12px 0 4px}
+.cattog{display:flex;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin:16px 0 10px}
+.cattog button{flex:1;padding:11px 0;border-radius:10px;color:var(--mut);font-weight:700;font-size:14px}
+.cattog button.on{background:var(--acc);color:var(--acc-ink);font-weight:800}
+.cnota{font-size:12.5px;color:var(--mut);line-height:1.45;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;margin-bottom:6px}
+.cnota:empty{display:none}
+.tag.par{color:var(--acc);border-color:#3a4a14;background:#1a2208}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;padding:12px 0;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:14px;color:var(--txt)}
+.seg button.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:800}
+.chk{display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-size:13.5px;line-height:1.4;color:var(--txt)}
+.chk input{width:20px;height:20px;margin-top:1px;flex:none;accent-color:var(--acc)}
 </style>
 </head>
 <body>
@@ -238,7 +250,9 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
   </div>
   <div id="instcard"></div>
   <div class="mres" id="minhas"></div>
-  <div class="fchips" id="filtros"></div>
+  <div class="cattog" id="cattog"></div>
+  <div class="cnota" id="cnota"></div>
+  <div id="filtros"></div>
   <div class="plist" id="plist"></div>
   <div id="vconq"></div>
   <div id="acct" class="hint" style="text-align:center;margin:16px 0 0"></div>
@@ -254,8 +268,9 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
 
   <h2>Sobre</h2>
   <p class="about" id="about"></p>
+  <div id="pnota"></div>
 
-  <h2>Onde você quer treinar</h2>
+  <h2 id="hAcad">Onde você quer treinar</h2>
   <div class="chips" id="acad"></div>
 
   <h2>Escolha o dia</h2>
@@ -303,7 +318,11 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 const DIAS = ['dom','seg','ter','qua','qui','sex','sáb'];
 const DIAS_LONGO = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const MODS = ['Musculação','Jiu-Jitsu','Futevôlei','Corrida','Beach Tênis'];
+const MODS = ['Musculação','Jiu-Jitsu','Futevôlei','Corrida','Beach Tênis','Calistenia','Pedal','Padel'];
+const CATROT = { personal:'Personal', parceiro:'Parceiro de treino' };
+const NOTA_PARC = 'Parceiro de treino faz companhia e motiva. Não é personal e não prescreve treino.';
+const ehParc = p => p.cat === 'parceiro';
+const rotAula = (mod, cat, nome) => cat === 'parceiro' ? `Treino em dupla com ${nome}` : `${mod} com ${nome}`;
 const HORAS = Array.from({length:18}, (_,i) => i+5);
 const pad = n => String(n).padStart(2,'0');
 const hh = h => pad(h)+':00';
@@ -353,7 +372,8 @@ const ERROS = {
   aula_ja_concluida: 'Esta aula já foi concluída e não pode ser cancelada.',
   codigo_invalido: 'Código inválido ou já usado.',
   repasse_sem_pagamento: 'Esta aula já teve repasse. Resolva o reembolso manualmente.',
-  reserva_imutavel: 'Os valores de uma reserva não podem ser alterados.'
+  reserva_imutavel: 'Os valores de uma reserva não podem ser alterados.',
+  plano_obrigatorio: 'Diga se você tem plano nessa academia.'
 };
 const msgErro = e => {
   if(!e) return 'Erro desconhecido.';
@@ -392,12 +412,13 @@ let CFGPUB = { comissao_pct:10, comissao_min:5, hold_min:30 };
 let cur = null;
 let ocup = new Set();
 const state = { acad:null, date:null, hour:null };
-let filtro = 'Todos';
+let filtro = 'Todos', catSel = 'personal', fAcad = 'Todas', fPer = 'Qualquer hora', fDia = 'Qualquer dia', planoSel = null;
 
 const mapPro = r => ({
   id:r.id, nome:r.nome, mod:r.modalidade, bio:r.bio, exp:r.anos_exp, cred:r.credencial,
   preco:+r.preco, precoFds: r.preco_fds==null ? null : +r.preco_fds,
-  locais:r.locais || [], horarios:r.horarios || {}, ver:r.verificado, foto:r.foto_url || null
+  locais:r.locais || [], horarios:r.horarios || {}, ver:r.verificado, foto:r.foto_url || null,
+  cat:r.categoria || 'personal', foco:r.foco || '', acadLocal:r.local_academia !== false
 });
 const avatarHtml = (nome, foto, big) => foto
   ? `<img class="avatar ${big?'big':''}" src="${esc(foto)}" alt="${esc(nome)}" loading="lazy">`
@@ -420,22 +441,73 @@ async function carregarVitrine(){
   renderHome();
 }
 
+const PERIODOS = { 'Manhã':[5,11], 'Tarde':[12,17], 'Noite':[18,23] };
+function parcTemHorario(p){
+  const dl = fDia === 'Hoje' ? [new Date()] : fDia === 'Amanhã' ? [new Date(Date.now() + 864e5)] : null;
+  let hs = dl ? dl.flatMap(d => slotsDe(p, d)) : Object.values(p.horarios).flat();
+  if(fPer !== 'Qualquer hora'){ const [a,b] = PERIODOS[fPer]; hs = hs.filter(h => h >= a && h <= b); }
+  return hs.length > 0;
+}
+const chipRow = (arr, sel, k) => '<div class="fchips" style="margin:0 0 8px">' +
+  arr.map(x => `<button class="chip ${sel===x?'on':''}" data-k="${k}" data-v="${esc(x)}" data-m="${esc(x)}">${esc(x)}</button>`).join('') + '</div>';
 function renderHome(){
-  const mods = ['Todos', ...MODS.filter(m => pros.some(p => p.mod===m))];
-  if(!mods.includes(filtro)) filtro = 'Todos';
-  $('filtros').innerHTML = mods.map(m => `<button class="chip ${filtro===m?'on':''}" data-m="${m}">${m}</button>`).join('');
-  $('filtros').querySelectorAll('.chip').forEach(b => b.onclick = () => { filtro = b.dataset.m; renderHome(); });
-  const lista = pros.filter(p => filtro==='Todos' || p.mod===filtro);
-  $('plist').innerHTML = lista.map(p => `
+  const temParc = pros.some(ehParc);
+  if(!temParc) catSel = 'personal';
+  const parc = catSel === 'parceiro';
+  $('cattog').style.display = temParc ? 'flex' : 'none';
+  $('cattog').innerHTML = temParc ? ['personal','parceiro'].map(c => `<button class="${catSel===c?'on':''}" data-c="${c}">${CATROT[c]}</button>`).join('') : '';
+  $('cattog').querySelectorAll('button').forEach(b => b.onclick = () => { catSel = b.dataset.c; renderHome(); });
+  $('cnota').textContent = parc ? NOTA_PARC : '';
+  const base = pros.filter(p => ehParc(p) === parc);
+  let lista;
+  if(parc){
+    const acads = ['Todas', ...new Set(base.flatMap(p => p.locais))];
+    if(!acads.includes(fAcad)) fAcad = 'Todas';
+    $('filtros').innerHTML = chipRow(acads, fAcad, 'a') + chipRow(['Qualquer hora', ...Object.keys(PERIODOS)], fPer, 'p') + chipRow(['Qualquer dia','Hoje','Amanhã'], fDia, 'd');
+    $('filtros').querySelectorAll('.chip').forEach(b => b.onclick = () => {
+      const k = b.dataset.k, v = b.dataset.v;
+      if(k==='a') fAcad = v; else if(k==='p') fPer = v; else fDia = v;
+      renderHome();
+    });
+    lista = base.filter(p => (fAcad==='Todas' || p.locais.includes(fAcad)) && parcTemHorario(p));
+  } else {
+    const mods = ['Todos', ...MODS.filter(m => base.some(p => p.mod===m))];
+    if(!mods.includes(filtro)) filtro = 'Todos';
+    $('filtros').innerHTML = chipRow(mods, filtro, 'm');
+    $('filtros').querySelectorAll('.chip').forEach(b => b.onclick = () => { filtro = b.dataset.m; renderHome(); });
+    lista = base.filter(p => filtro==='Todos' || p.mod===filtro);
+  }
+  $('plist').innerHTML = lista.map(p => {
+    const selo = p.ver ? `<span class="tick" title="${ehParc(p)?'Identidade verificada':'Verificado'}">✓</span>` : '';
+    const pend = p.ver ? '' : '<div class="pr"><span class="tag pend">Em verificação</span></div>';
+    const preco = brl(Math.min(p.preco, p.precoFds>0 ? p.precoFds : p.preco));
+    const apartir = p.precoFds>0 && p.precoFds!==p.preco;
+    if(ehParc(p)){
+      const ac = (fAcad!=='Todas' && p.locais.includes(fAcad)) ? fAcad : p.locais[0];
+      const mais = p.locais.length > 1 && !(fAcad!=='Todas') ? ` +${p.locais.length-1}` : '';
+      return `<button class="pro" data-id="${p.id}">
+        ${avatarHtml(p.nome, p.foto)}
+        <div class="pinfo">
+          <div class="pn">${esc(p.nome)}${selo}</div>
+          <div class="pm">${esc(ac)}${mais}</div>
+          <div class="pm">${p.foco ? 'Foco: ' + esc(p.foco) : esc(p.mod)}</div>
+          <div class="pr"><span class="tag par">Dupla</span><span class="tag">${esc(p.mod)}</span></div>
+          ${pend}
+        </div>
+        <div class="price"><b>${preco}</b><span>${apartir ? 'a partir de' : 'por treino'}</span></div>
+      </button>`;
+    }
+    return `
     <button class="pro" data-id="${p.id}">
       ${avatarHtml(p.nome, p.foto)}
       <div class="pinfo">
-        <div class="pn">${esc(p.nome)}${p.ver?'<span class="tick" title="Verificado">✓</span>':''}</div>
+        <div class="pn">${esc(p.nome)}${selo}</div>
         <div class="pm">${esc(p.mod)}${p.cred ? ' · ' + esc(p.cred) : ''}</div>
-        ${p.ver ? '' : '<div class="pr"><span class="tag pend">Em verificação</span></div>'}
+        ${pend}
       </div>
-      <div class="price"><b>${brl(Math.min(p.preco, p.precoFds>0 ? p.precoFds : p.preco))}</b><span>${p.precoFds>0 && p.precoFds!==p.preco ? 'a partir de' : 'hora-aula'}</span></div>
-    </button>`).join('') || '<div class="empty">Os primeiros profissionais chegam em breve.</div>';
+      <div class="price"><b>${preco}</b><span>${apartir ? 'a partir de' : 'hora-aula'}</span></div>
+    </button>`;
+  }).join('') || (parc ? '<div class="empty">Nenhum parceiro com esses filtros. Tente outra academia ou outro horário.</div>' : '<div class="empty">Os primeiros profissionais chegam em breve.</div>');
   renderVconq();
   $('plist').querySelectorAll('.pro').forEach(b => b.onclick = () => openPro(b.dataset.id));
 }
@@ -477,13 +549,16 @@ function renderPerfilPublico(){
   $('phero').innerHTML = `
     ${avatarHtml(p.nome, p.foto, true)}
     <h1>${esc(p.nome)}${p.ver?'<span class="tick" title="Verificado">✓</span>':''}</h1>
-    <div class="sub2">${esc(p.mod)}</div>
+    <div class="sub2">${ehParc(p) ? 'Parceiro de treino · ' : ''}${esc(p.mod)}</div>
     ${p.ver ? '' : '<div class="pr" style="justify-content:center;margin-top:8px"><span class="tag pend">Em verificação</span></div>'}`;
+  const par = ehParc(p), un = par ? 'por treino' : 'hora-aula';
   $('stats').innerHTML = `
-    <div class="stat"><b>${p.exp} ${p.exp===1?'ano':'anos'}</b><span>de experiência</span></div>
-    <div class="stat"><b>${esc(p.cred || '—')}</b><span>credencial</span></div>
-    <div class="stat"><b>${brl(p.preco)}</b><span>${p.precoFds>0 ? 'hora-aula<br>sáb/dom ' + brl(p.precoFds) : 'hora-aula'}</span></div>`;
+    <div class="stat"><b>${p.exp} ${p.exp===1?'ano':'anos'}</b><span>${par ? 'treinando' : 'de experiência'}</span></div>
+    <div class="stat"><b style="${par ? 'font-size:14px;line-height:1.25' : ''}">${esc(par ? (p.foco || '—') : (p.cred || '—'))}</b><span>${par ? 'foco' : 'credencial'}</span></div>
+    <div class="stat"><b>${brl(p.preco)}</b><span>${p.precoFds>0 ? un + '<br>sáb/dom ' + brl(p.precoFds) : un}</span></div>`;
   $('about').textContent = p.bio || '';
+  $('pnota').innerHTML = par ? '<div class="warn" style="margin-top:12px">ℹ️ Parceiro de treino não é personal e não monta nem corrige treino. Ele treina junto com você.</div>' : '';
+  $('hAcad').textContent = par ? (p.acadLocal ? 'Academia' : 'Local do treino') : 'Onde você quer treinar';
   renderAcad(); renderDays(); renderSlots(); updateCta();
 }
 function renderAcad(){
@@ -529,19 +604,23 @@ $('ov').onclick = e => { if(e.target===$('ov')) closeSheet(); };
 /* ---------- reserva ---------- */
 $('cta').onclick = () => {
   const d = dataObj(state.date), preco = precoSel(), taxa = taxaDe(preco), total = totalDe(preco);
+  const par = ehParc(cur), pedePlano = par && cur.acadLocal; planoSel = null;
   openSheet(`
     <h3>Confirmar reserva</h3>
     <div class="sub">Preencha seus dados para segurar o horário.</div>
     <div class="resumo">
       <b>${fmtLong(d)} às ${hh(state.hour)}</b><br>
       ${esc(state.acad)}<br>
-      ${esc(cur.mod)} com ${esc(cur.nome)}
+      ${par ? 'Treino em dupla com ' + esc(cur.nome) + ' · ' + esc(cur.mod) : esc(cur.mod) + ' com ' + esc(cur.nome)}
     </div>
     <div class="resumo" style="margin-top:8px">
-      <div class="fee"><span>Aula (1h)</span><span>${brl2(preco)}</span></div>
+      <div class="fee"><span>${par ? 'Treino (1h)' : 'Aula (1h)'}</span><span>${brl2(preco)}</span></div>
       <div class="fee"><span>Taxa do app</span><span>${brl2(taxa)}</span></div>
       <div class="fee tot"><span>Total</span><span>${brl2(total)}</span></div>
     </div>
+    ${pedePlano ? `<label>Você tem plano nessa academia?</label>
+    <div class="seg" id="fplano"><button type="button" data-v="1">Tenho plano</button><button type="button" data-v="0">Não tenho</button></div>
+    <div class="warn" id="fplanoaviso" style="display:none;margin-top:8px">💡 Sem plano, a diária é paga direto na recepção da academia. Esse valor não está no app.</div>` : ''}
     <label>Seu nome</label><input id="fnome" autocomplete="name" placeholder="Como te chamam">
     <label>Seu WhatsApp</label><input id="fzap" inputmode="tel" autocomplete="tel" placeholder="(19) 99999-9999">
     <label>Seu e-mail</label><input id="femail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="${esc(SESSION?.user?.email || '')}">
@@ -554,10 +633,17 @@ $('cta').onclick = () => {
   `);
   $('fcancel').onclick = closeSheet;
   $('fok').onclick = confirmar;
+  if($('fplano')) $('fplano').querySelectorAll('button').forEach(b => b.onclick = () => {
+    planoSel = b.dataset.v === '1';
+    $('fplano').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    $('fplanoaviso').style.display = planoSel ? 'none' : 'block';
+  });
   if($('fjatenho')) $('fjatenho').onclick = e => { e.preventDefault(); entrarAluno(() => $('cta').onclick()); };
 };
 
 async function confirmar(){
+  const pedePlano = ehParc(cur) && cur.acadLocal;
+  if(pedePlano && planoSel === null){ $('ferr').textContent = 'Diga se você tem plano nessa academia.'; return; }
   const nome = $('fnome').value.trim(), zap = digits($('fzap').value);
   if(nome.length < 2){ $('ferr').textContent = 'Informe seu nome.'; return; }
   if(zap.length < 10){ $('ferr').textContent = 'Informe um WhatsApp válido com DDD.'; return; }
@@ -579,7 +665,7 @@ async function confirmar(){
     if(r.data.session){ SESSION = r.data.session; } else semSessao = true;
   }
   const { data, error } = await sb.rpc('ta_criar_reserva', {
-    p_pro:cur.id, p_data:state.date, p_hora:state.hour, p_local:state.acad, p_nome:nome, p_zap:zap, p_email:email
+    p_pro:cur.id, p_data:state.date, p_hora:state.hour, p_local:state.acad, p_nome:nome, p_zap:zap, p_email:email, p_plano:pedePlano ? planoSel : null
   });
   if(error || !data || !data[0]){
     $('ferr').textContent = msgErro(error);
@@ -594,7 +680,8 @@ async function confirmar(){
     ? pixPayload(r.pix_chave, r.pix_nome, r.pix_cidade, +r.valor_total, 'TA' + String(r.reserva_id).replace(/-/g,'').slice(0,10).toUpperCase())
     : '';
   const rec = { id:r.reserva_id, proId:cur.id, proNome:cur.nome, mod:cur.mod, date:state.date, hour:state.hour, acad:state.acad,
-                total:+r.valor_total, payload, adminZap:r.admin_zap, nome, criada:Date.now() };
+                total:+r.valor_total, payload, adminZap:r.admin_zap, nome, criada:Date.now(),
+                cat:cur.cat, plano:pedePlano ? planoSel : null };
   salvarRes(rec);
   if(SESSION) sb.rpc('ta_vincular_reservas', { p_ids:[r.reserva_id] }).then(() => atualizarConta());
   if(semSessao) toast('Conta criada! Confirme seu e-mail para salvar suas conquistas.');
@@ -628,7 +715,7 @@ function showPix(rec){
   $('fechar').onclick = async () => { closeSheet(); if(cur){ await carregarOcupados(); state.hour = null; renderDays(); renderSlots(); updateCta(); } renderMinhas(); };
   $('jaPaguei').onclick = () => {
     if(rec.adminZap){
-      const msg = `Paguei a aula de ${rec.mod} com ${rec.proNome} (${fmtLong(d)} às ${hh(rec.hour)}) · ${brl2(rec.total)}. Nome: ${rec.nome}.`;
+      const msg = `Paguei ${rec.cat==='parceiro' ? 'o treino em dupla' : 'a aula de ' + rec.mod} com ${rec.proNome} (${fmtLong(d)} às ${hh(rec.hour)}) · ${brl2(rec.total)}. Nome: ${rec.nome}.`;
       window.open(wa(rec.adminZap, msg), '_blank', 'noopener');
     }
     showAguardando(rec);
@@ -650,14 +737,14 @@ function showAguardando(rec){
   iniciarPoll(rec);
 }
 const primeiroNome = n => String(n || '').trim().split(/\s+/)[0] || '';
-const msgAula = (rec, proNome) => `Oi, ${primeiroNome(proNome)}! Aula confirmada para ${fmtLong(dataObj(rec.date))} às ${hh(rec.hour)} (${rec.acad}). Sou o ${primeiroNome(rec.nome)}, até lá! 💪`;
+const msgAula = (rec, proNome) => `Oi, ${primeiroNome(proNome)}! ${rec.cat==='parceiro' ? 'Treino confirmado' : 'Aula confirmada'} para ${fmtLong(dataObj(rec.date))} às ${hh(rec.hour)} (${rec.acad}). Sou o ${primeiroNome(rec.nome)}, até lá! 💪`;
 function baixarIcs(rec, proNome){
   const d = rec.date.replace(/-/g,''), fim = rec.hour >= 23 ? '235900' : pad(rec.hour+1) + '0000';
   const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Treino Now//PT','BEGIN:VEVENT','UID:' + rec.id + '@treinonow',
     'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),
     'DTSTART;TZID=America/Sao_Paulo:' + d + 'T' + pad(rec.hour) + '0000',
     'DTEND;TZID=America/Sao_Paulo:' + d + 'T' + fim,
-    'SUMMARY:' + rec.mod + ' com ' + proNome, 'LOCATION:' + String(rec.acad).replace(/[,;]/g,' '),
+    'SUMMARY:' + rotAula(rec.mod, rec.cat, proNome), 'LOCATION:' + String(rec.acad).replace(/[,;]/g,' '),
     'END:VEVENT','END:VCALENDAR'].join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([ics], { type:'text/calendar' }));
@@ -667,8 +754,9 @@ function baixarIcs(rec, proNome){
 function showPago(rec, s){
   const d = dataObj(rec.date), pn = primeiroNome(s.pro_nome);
   openSheet(`
-    <div class="center"><div class="ok">✓</div><h3>Aula confirmada!</h3>
+    <div class="center"><div class="ok">✓</div><h3>${rec.cat==='parceiro' ? 'Treino confirmado!' : 'Aula confirmada!'}</h3>
     <div class="sub">Sua vaga está garantida. Chegue uns 5 min antes.</div></div>
+    ${rec.plano === false ? '<div class="warn" style="margin-bottom:12px">💡 Você não tem plano nessa academia. Pague a diária direto na recepção ao chegar.</div>' : ''}
     <div class="tkt">
       <div class="h"><div class="avatar" style="--h:${(String(s.pro_nome).charCodeAt(0)*7) % 360}">${esc(String(s.pro_nome).trim().charAt(0).toUpperCase())}</div>
         <div><div class="n">${esc(s.pro_nome)}</div><div class="m">${esc(rec.mod)}</div></div></div>
@@ -678,7 +766,7 @@ function showPago(rec, s){
     </div>
     <button class="btnw pri" id="p_cal">📅 Adicionar ao calendário</button>
     <a class="btnw sec" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msgAula(rec, s.pro_nome))}">💬 Combinar detalhes com ${esc(pn)}</a>
-    <div class="hint" style="text-align:center;margin:10px 0 0">Use o WhatsApp para alinhar o ponto de encontro ou o que levar.</div>
+    <div class="hint" style="text-align:center;margin:10px 0 0">${rec.cat==='parceiro' ? 'Use o WhatsApp para combinar onde se encontrar na academia.' : 'Use o WhatsApp para alinhar o ponto de encontro ou o que levar.'}</div>
     <button class="btnw ghost" id="fechar3">Fechar</button>`);
   $('p_cal').onclick = () => baixarIcs(rec, s.pro_nome);
   $('fechar3').onclick = async () => { closeSheet(); if(cur){ await carregarOcupados(); state.hour = null; renderDays(); renderSlots(); updateCta(); } renderMinhas(); };
@@ -814,7 +902,8 @@ async function renderMinhas(){
   if(error){ return; }
   const resumo = Object.fromEntries((data || []).map(x => [x.id, x]));
   const nomeConta = SESSION?.user?.user_metadata?.nome || '';
-  const stubRec = s => ({ id:s.id, stub:true, proId:s.pro_id, proNome:s.pro_nome, mod:s.modalidade, date:s.data, hour:s.hora, acad:s.local, nome:nomeConta });
+  const stubRec = s => ({ id:s.id, stub:true, proId:s.pro_id, proNome:s.pro_nome, mod:s.modalidade, date:s.data, hour:s.hora, acad:s.local, nome:nomeConta,
+    cat:s.categoria, plano:s.tem_plano });
   const itens = guardadas.filter(r => resumo[r.id]).map(r => ({ rec: r.stub ? stubRec(resumo[r.id]) : r, s:resumo[r.id] }));
   const pagas = itens.filter(x => x.s.status === 'pago').sort((a,b) => (a.s.data + pad(a.s.hora)).localeCompare(b.s.data + pad(b.s.hora)));
   TEMPAGA = pagas.length > 0; renderVconq();
@@ -850,7 +939,8 @@ async function renderMinhas(){
       if(aguardaFim) btns = `<a class="sbtn pri" style="text-decoration:none" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, `Oi, ${primeiroNome(s.pro_nome)}! Pode finalizar a minha aula de ${fmtLong(d)} no Treino Now? Assim eu libero minha conquista 😄`)}">🔔 Lembrar o profissional</a>`;
       else if(s.status === 'pago') btns = `<button class="sbtn pri" data-a="cal" data-i="${i}">📅 Calendário</button><a class="sbtn" style="text-decoration:none;color:var(--txt)" target="_blank" rel="noopener" href="${wa(s.pro_whatsapp, msgAula(r, s.pro_nome))}">💬 Combinar detalhes</a>`;
       else if(s.status === 'aguardando'){ btns = r.stub ? '' : `<button class="sbtn pri" data-a="pix" data-i="${i}">Ver Pix</button>`; if(r.stub) nota = 'Reservada em outro aparelho. Abra o Pix por lá ou reserve de novo.'; }
-      return `<div class="mr"><div class="bh"><b>${esc(s.modalidade)} com ${esc(s.pro_nome)}</b>${badge}</div>
+      if(s.status === 'pago' && s.tem_plano === false && !nota) nota = 'Sem plano nessa academia: pague a diária na recepção.';
+      return `<div class="mr"><div class="bh"><b>${esc(rotAula(s.modalidade, s.categoria, s.pro_nome))}</b>${badge}</div>
         ${nota ? `<div class="bm" style="margin:2px 0 0">${nota}</div>` : ''}
         <div class="when"><div class="dt"><small>${DIAS[d.getDay()]}</small><b>${pad(d.getDate())}</b><small>${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]}</small></div>
         <div class="wx"><b>${hh(s.hora)}</b><br><span>${esc(s.local)}</span></div></div><div class="btns">${btns}</div></div>`;
@@ -888,7 +978,7 @@ function abrirConquistas(){
     <div class="pbar"><i style="width:${prox ? Math.min(100, Math.round(n / prox * 100)) : 100}%"></i></div>
     <span>${prox ? `Falta${prox-n>1?'m':''} ${prox-n} ${prox-n===1?'aula':'aulas'} para ${prox===1?'a primeira conquista':prox+' aulas'}` : 'Você já tem as conquistas de volume. Continue!'}</span></div>
     <div class="cgrid">${CONQ.map(c => `<div class="bd ${todas.has(c.id)?'':'off'}"><div class="ic">${c.ic}</div><b>${c.nome}</b><small>${c.desc}</small></div>`).join('')}</div>
-    ${hist.length ? '<h2 style="margin-top:20px">Histórico</h2>' + hist.map(x => { const d = dataObj(x.s.data); return `<div class="hrow"><div><b>${esc(x.s.modalidade)} com ${esc(x.s.pro_nome)}</b><small>${fmtLong(d)} · ${hh(x.s.hora)} · ${rot(x)}</small></div>${x.s.conclusao === 'concluida' ? `<button class="sbtn" data-share="${x.s.id}">📸</button>` : ''}</div>`; }).join('') : ''}
+    ${hist.length ? '<h2 style="margin-top:20px">Histórico</h2>' + hist.map(x => { const d = dataObj(x.s.data); return `<div class="hrow"><div><b>${esc(rotAula(x.s.modalidade, x.s.categoria, x.s.pro_nome))}</b><small>${fmtLong(d)} · ${hh(x.s.hora)} · ${rot(x)}</small></div>${x.s.conclusao === 'concluida' ? `<button class="sbtn" data-share="${x.s.id}">📸</button>` : ''}</div>`; }).join('') : ''}
     <div class="row" style="margin-top:16px">${ult ? '<button class="btn1" id="cq_ult">📸 Compartilhar</button>' : ''}<button class="btn2" id="cq_fechar">Fechar</button></div>`);
   $('cq_fechar').onclick = closeSheet;
   if($('cq_ult')) $('cq_ult').onclick = () => compartilharSheet(ult.id);
@@ -1191,7 +1281,7 @@ function renderPanelPro(){
              : `<span class="badge st-pg">Pago · você recebe ${brl2(b.valor_aula)}</span>`;
     return `<div class="book" style="flex-wrap:wrap;${pend ? 'border-color:var(--acc)' : ''}">
       <div class="when"><b>${hh(b.hora)}</b><small>${fmtLong(d)}</small></div>
-      <div class="info">${esc(b.aluno_nome)}<br><span>${esc(b.local)}</span><br>${st}</div>
+      <div class="info">${esc(b.aluno_nome)}<br><span>${esc(b.local)}</span>${b.tem_plano === false ? '<br><span class="tag pend">Sem plano · paga a diária</span>' : ''}<br>${st}</div>
       ${pago && b.aluno_zap ? `<a class="mini" target="_blank" rel="noopener" href="${wa(b.aluno_zap)}" style="text-decoration:none;color:var(--txt)">Zap</a>` : ''}
       ${pend ? `<div class="btns" style="width:100%"><button class="sbtn pri" data-a="concluir" data-id="${b.id}">✅ Aula concluída</button><button class="sbtn" data-a="faltou" data-id="${b.id}">Aluno faltou</button></div>` : ''}
       ${futura ? `<div class="btns" style="width:100%"><button class="sbtn del" data-a="cancelar" data-id="${b.id}">Cancelar aula</button></div>` : ''}
@@ -1229,21 +1319,24 @@ function renderPanelPro(){
 }
 
 function renderPerfilEditor(){
-  const p = MYPRO, h = p.horarios || {};
+  const p = MYPRO, h = p.horarios || {}, par = p.categoria === 'parceiro';
   $('perfil').innerHTML = `
+    ${par ? '<div class="warn" style="margin-bottom:10px">Você é <b>parceiro de treino</b>: companhia e motivação. Não monte nem corrija treino e não se apresente como personal.</div>' : ''}
     <label>Foto de perfil</label><div id="e_fotobox"></div>
     <label>Nome</label><input id="e_nome" value="${esc(p.nome)}">
     <label>Modalidade</label><select id="e_mod">${MODS.map(m => `<option ${m===p.modalidade?'selected':''}>${m}</option>`).join('')}</select>
-    <label>Credencial (CREF, faixa, equipe...)</label><input id="e_cred" value="${esc(p.credencial)}">
-    <label>Anos de experiência</label><input id="e_exp" inputmode="numeric" value="${p.anos_exp}">
+    ${par ? `<label>Foco do treino (ex.: peito e costas)</label><input id="e_foco" maxlength="80" value="${esc(p.foco || '')}">`
+          : `<label>Credencial (CREF, faixa, equipe...)</label><input id="e_cred" value="${esc(p.credencial)}">`}
+    <label>${par ? 'Há quantos anos você treina' : 'Anos de experiência'}</label><input id="e_exp" inputmode="numeric" value="${p.anos_exp}">
     <label>Sobre você</label><textarea id="e_bio" rows="4" maxlength="600">${esc(p.bio)}</textarea>
     <label>WhatsApp (com DDD)</label><input id="e_zap" inputmode="tel" value="${esc(p.whatsapp.replace(/^55/,''))}">
-    <label>Valor da hora-aula (R$) — você recebe esse valor</label><input id="e_preco" inputmode="decimal" value="${p.preco}">
+    <label>${par ? 'Valor do treino (R$)' : 'Valor da hora-aula (R$)'} — você recebe esse valor</label><input id="e_preco" inputmode="decimal" value="${p.preco}">
     <label>Valor no sábado e domingo (R$) — opcional</label><input id="e_fds" inputmode="decimal" value="${p.preco_fds>0 ? p.preco_fds : ''}" placeholder="deixe vazio para o mesmo valor">
     <div class="hint" id="e_feehint" style="margin-top:6px"></div>
-    <label>Locais onde atende (um por linha)</label><textarea id="e_acad" rows="3">${esc((p.locais||[]).join('\n'))}</textarea>
-    <label style="margin-top:20px">Horários de atendimento</label>
-    <div class="hint">Toque nas horas em que você começa uma aula, em cada dia.</div>
+    <label>${par ? 'Academias onde você treina (uma por linha)' : 'Locais onde atende (um por linha)'}</label><textarea id="e_acad" rows="3">${esc((p.locais||[]).join('\n'))}</textarea>
+    ${par ? `<label class="chk"><input type="checkbox" id="e_acadl" ${p.local_academia !== false ? 'checked' : ''}><span>Esses locais são academias. O aluno sem plano paga a diária na recepção.</span></label>` : ''}
+    <label style="margin-top:20px">${par ? 'Horários em que você treina' : 'Horários de atendimento'}</label>
+    <div class="hint">Toque nas horas em que você começa ${par ? 'o treino' : 'uma aula'}, em cada dia.</div>
     ${[1,2,3,4,5,6,0].map(d => `
       <div class="dl">${DIAS_LONGO[d]}</div>
       <div class="hgrid" data-d="${d}">${HORAS.map(x => `<button type="button" class="hb ${(h[d]||[]).includes(x)?'on':''}" data-h="${x}">${pad(x)}h</button>`).join('')}</div>`).join('')}
@@ -1277,7 +1370,9 @@ function desenharFotoBox(){
 }
 async function salvarPerfil(){
   const err = m => { $('e_err').style.color = 'var(--danger)'; $('e_err').textContent = m; };
-  const nome = $('e_nome').value.trim(), cred = $('e_cred').value.trim(), bio = $('e_bio').value.trim();
+  const par = MYPRO.categoria === 'parceiro';
+  const nome = $('e_nome').value.trim(), cred = $('e_cred') ? $('e_cred').value.trim() : MYPRO.credencial, bio = $('e_bio').value.trim();
+  const foco = $('e_foco') ? $('e_foco').value.trim() : (MYPRO.foco || '');
   const exp = parseInt($('e_exp').value, 10);
   let zap = digits($('e_zap').value);
   const preco = parseFloat($('e_preco').value.replace(',','.'));
@@ -1294,7 +1389,8 @@ async function salvarPerfil(){
   $('perfil').querySelectorAll('.hgrid').forEach(g => { horarios[g.dataset.d] = [...g.querySelectorAll('.hb.on')].map(b => +b.dataset.h); });
   const btn = $('e_save'); btn.disabled = true; err('');
   const { data, error } = await sb.from('ta_profissionais').update({
-    nome, modalidade:$('e_mod').value, credencial:cred, anos_exp:exp, bio, whatsapp:zap, preco, preco_fds:precoFds, locais, horarios
+    nome, modalidade:$('e_mod').value, credencial:cred, foco, anos_exp:exp, bio, whatsapp:zap, preco, preco_fds:precoFds, locais, horarios,
+    local_academia: $('e_acadl') ? $('e_acadl').checked : MYPRO.local_academia
   }).eq('id', MYPRO.id).select().single();
   btn.disabled = false;
   if(error) return err('Não foi possível salvar: confira os campos.');
@@ -1383,7 +1479,7 @@ async function adminAulas(silent){
       if((b.status === 'pago' && !b.conclusao) || b.status === 'aguardando') btns += `<button class="sbtn del" data-a="cancelar" data-id="${b.id}" data-pago="${b.status === 'pago' ? 1 : 0}">Cancelar</button>`;
       return `<div class="bk">
         <div class="bh"><b>${fmtLong(d)} · ${hh(b.hora)}</b><span class="badge ${st[0]}">${st[1]}</span></div>
-        <div>${esc(b.aluno_nome)} → ${pr ? esc(pr.nome) : '(profissional removido)'}<br><span style="color:var(--mut)">${esc(b.local)}</span></div>
+        <div>${esc(b.aluno_nome)} → ${pr ? esc(pr.nome) : '(profissional removido)'}<br><span style="color:var(--mut)">${esc(b.local)}</span>${b.tem_plano === false ? '<br><span class="tag pend">Sem plano · diária na academia</span>' : ''}</div>
         <div class="bm">Total ${brl2(b.total)} · repassar ${brl2(b.preco)} · comissão ${brl2(b.taxa)}${b.status === 'pago' && !b.conclusao ? (b.pro_avisado ? ' · profissional avisado ✓' : ' · <b style="color:#ffb86b">profissional ainda não avisado</b>') : ''}</div>
         <div class="btns">${btns}</div>
       </div>`;
@@ -1419,7 +1515,7 @@ async function adminPros(){
   $('atab').innerHTML = (data.length ? data.map(p => `
     <div class="bk">
       <div class="bh"><div style="display:flex;gap:10px;align-items:center">${avatarHtml(p.nome, p.foto_url)}<b>${esc(p.nome)}</b></div><span>${p.teste ? '<span class="tag pend">TESTE</span>' : ''}</span></div>
-      <div style="color:var(--mut)">${esc(p.modalidade)} · ${esc(p.credencial || '—')} · ${brl(+p.preco)}/h${p.preco_fds>0 ? ' · fds ' + brl(+p.preco_fds) : ''}</div>
+      <div style="color:var(--mut)">${p.categoria==='parceiro' ? 'Parceiro de treino · ' : ''}${esc(p.modalidade)} · ${esc(p.categoria==='parceiro' ? (p.foco || '—') : (p.credencial || '—'))} · ${brl(+p.preco)}/h${p.preco_fds>0 ? ' · fds ' + brl(+p.preco_fds) : ''}</div>
       <div class="bm">${p.user_id ? 'Conta vinculada ✓' : 'Sem conta vinculada'}</div>
       <div class="btns">
         <button class="sbtn ${p.verificado?'pri':''}" data-a="ver" data-id="${p.id}">${p.verificado?'✓ Verificado':'Marcar verificado'}</button>
@@ -1462,6 +1558,7 @@ function novoProSheet(){
   openSheet(`
     <h3>Novo profissional</h3>
     <label>Nome</label><input id="n_nome">
+    <label>Categoria</label><select id="n_cat"><option value="personal">Personal</option><option value="parceiro">Parceiro de treino</option></select>
     <label>Modalidade</label><select id="n_mod">${MODS.map(m => `<option>${m}</option>`).join('')}</select>
     <label>WhatsApp dele (com DDD)</label><input id="n_zap" inputmode="tel">
     <label>Valor da hora-aula (R$)</label><input id="n_preco" inputmode="decimal">
@@ -1474,7 +1571,7 @@ function novoProSheet(){
     if(zap.length < 10){ $('n_err').textContent = 'Informe um WhatsApp válido com DDD.'; return; }
     if(!(preco > 0)){ $('n_err').textContent = 'Informe o valor da aula.'; return; }
     if(zap.length <= 11) zap = '55' + zap;
-    const { error } = await sb.from('ta_profissionais').insert({ nome, modalidade:$('n_mod').value, whatsapp:zap, preco });
+    const { error } = await sb.from('ta_profissionais').insert({ nome, modalidade:$('n_mod').value, categoria:$('n_cat').value, whatsapp:zap, preco });
     if(error){ $('n_err').textContent = msgErro(error); return; }
     closeSheet(); adminPros();
   };
