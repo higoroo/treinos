@@ -226,6 +226,11 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
 .ntag{display:inline-block;font-size:9.5px;background:var(--acc);color:var(--acc-ink);border-radius:99px;padding:2px 7px;font-weight:800;margin-top:4px}
 .shcv{width:100%;height:auto;border-radius:14px;margin-top:12px;background:conic-gradient(#2a2e36 25%,#1c1f26 0 50%,#2a2e36 0 75%,#1c1f26 0) 0 0/24px 24px;display:block}
 #filtros{margin:12px 0 4px}
+.ban{background:var(--card2);border:1px solid #3a4a14;border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.35;display:flex;gap:10px;align-items:center;margin:2px 0 12px}
+.ban b{color:var(--acc)}
+.more{display:block;width:100%;text-align:center;color:var(--mut);font-size:13px;margin:16px 0 0;text-decoration:underline;padding:8px}
+.lk{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:6px 0 4px}
+.lk .u{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:12.5px;color:var(--acc);word-break:break-all;line-height:1.4;margin:10px 0}
 .cattog{display:flex;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin:16px 0 10px}
 .cattog button{flex:1;padding:11px 0;border-radius:10px;color:var(--mut);font-weight:700;font-size:14px}
 .cattog button.on{background:var(--acc);color:var(--acc-ink);font-weight:800}
@@ -263,6 +268,7 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
 <!-- PERFIL DO PROFISSIONAL -->
 <div class="wrap" id="prof" style="display:none">
   <button class="back" id="back">← Voltar</button>
+  <div id="viaLink"></div>
   <div class="phero" id="phero"></div>
   <div class="stats" id="stats"></div>
 
@@ -280,6 +286,7 @@ img.avatar{object-fit:cover;background:var(--card2);display:block}
   <div class="hint" id="precoDia" style="margin:-4px 0 10px"></div>
   <div class="slots" id="slots"></div>
   <button class="sbtn" id="avisarPro" style="margin-top:14px;width:100%;padding:13px">🔔 Não achou horário? Avise-me quando abrir agenda</button>
+  <button class="more" id="vermais" style="display:none">Ver outros profissionais</button>
 </div>
 
 <div class="bar" id="bar"><button class="cta" id="cta" disabled>Escolha local, dia e horário</button></div>
@@ -408,6 +415,14 @@ function pixPayload(chave, nome, cidade, valor, txid){
    ALUNO
    ============================================================ */
 let pros = [];
+/* link do profissional (?p=nome): vale 7 dias neste aparelho */
+const ORIGEM_PARAM = (() => { try{ return (new URLSearchParams(location.search).get('p') || '').toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,60); }catch(e){ return ''; } })();
+const ORIGEM = (() => {
+  if(ORIGEM_PARAM){ store.set('ta_origem', { slug:ORIGEM_PARAM, t:Date.now() }); return ORIGEM_PARAM; }
+  const o = store.get('ta_origem', null);
+  return (o && o.slug && Date.now() - o.t < 7*864e5) ? o.slug : '';
+})();
+let VIA = null, viaAberto = false;
 let CFGPUB = { comissao_pct:10, comissao_min:5, hold_min:30 };
 let cur = null;
 let ocup = new Set();
@@ -418,7 +433,7 @@ const mapPro = r => ({
   id:r.id, nome:r.nome, mod:r.modalidade, bio:r.bio, exp:r.anos_exp, cred:r.credencial,
   preco:+r.preco, precoFds: r.preco_fds==null ? null : +r.preco_fds,
   locais:r.locais || [], horarios:r.horarios || {}, ver:r.verificado, foto:r.foto_url || null,
-  cat:r.categoria || 'personal', foco:r.foco || '', acadLocal:r.local_academia !== false
+  cat:r.categoria || 'personal', foco:r.foco || '', acadLocal:r.local_academia !== false, slug:r.slug || ''
 });
 const avatarHtml = (nome, foto, big) => foto
   ? `<img class="avatar ${big?'big':''}" src="${esc(foto)}" alt="${esc(nome)}" loading="lazy">`
@@ -439,6 +454,12 @@ async function carregarVitrine(){
   pros = (v.data || []).map(mapPro);
   if(c.data && c.data[0]) CFGPUB = c.data[0];
   renderHome();
+  if(ORIGEM_PARAM && !viaAberto){
+    viaAberto = true;
+    const alvo = pros.find(x => x.slug === ORIGEM_PARAM);
+    if(alvo){ VIA = { id:alvo.id, nome:alvo.nome }; openPro(alvo.id); }
+    else toast('Esse profissional não está disponível agora. Veja os outros.');
+  }
 }
 
 const PERIODOS = { 'Manhã':[5,11], 'Tarde':[12,17], 'Noite':[18,23] };
@@ -559,6 +580,10 @@ function renderPerfilPublico(){
   $('about').textContent = p.bio || '';
   $('pnota').innerHTML = par ? '<div class="warn" style="margin-top:12px">ℹ️ Parceiro de treino não é personal e não monta nem corrige treino. Ele treina junto com você.</div>' : '';
   $('hAcad').textContent = par ? (p.acadLocal ? 'Academia' : 'Local do treino') : 'Onde você quer treinar';
+  const via = VIA && VIA.id === p.id;
+  $('viaLink').innerHTML = via ? `<div class="ban">${avatarHtml(p.nome, p.foto)}<div><b>${esc(primeiroNome(p.nome))}</b> te mandou este link<br><span style="color:var(--mut);font-size:12px">Reserve ${par ? 'seu treino' : 'sua aula'} em poucos toques.</span></div></div>` : '';
+  $('vermais').style.display = via ? 'block' : 'none';
+  $('vermais').onclick = () => { VIA = null; closePro(); };
   renderAcad(); renderDays(); renderSlots(); updateCta();
 }
 function renderAcad(){
@@ -665,7 +690,7 @@ async function confirmar(){
     if(r.data.session){ SESSION = r.data.session; } else semSessao = true;
   }
   const { data, error } = await sb.rpc('ta_criar_reserva', {
-    p_pro:cur.id, p_data:state.date, p_hora:state.hour, p_local:state.acad, p_nome:nome, p_zap:zap, p_email:email, p_plano:pedePlano ? planoSel : null
+    p_pro:cur.id, p_data:state.date, p_hora:state.hour, p_local:state.acad, p_nome:nome, p_zap:zap, p_email:email, p_plano:pedePlano ? planoSel : null, p_origem:ORIGEM || null
   });
   if(error || !data || !data[0]){
     $('ferr').textContent = msgErro(error);
@@ -1043,6 +1068,91 @@ function desenharShare(cv, est, img, d){
   c.letterSpacing = '0px';
 }
 /* ---------- imagem do convite (profissional / parceiro) ---------- */
+/* ---------- link do profissional ---------- */
+const linkDe = p => { const b = urlVolta(); return (b && p.slug) ? b + '?p=' + p.slug : ''; };
+const msgLink = (p, link) => `Bora treinar? Clique aqui e agende ${p.categoria === 'parceiro' ? 'seu treino em dupla' : 'sua aula avulsa'} comigo: ${link}`;
+async function renderMeuLink(){
+  const el = $('meulink'); if(!el || !MYPRO) return;
+  const link = linkDe(MYPRO);
+  if(!link){ el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="lk">
+    <div style="font-weight:800;font-size:15px">🔗 Seu link de reservas</div>
+    <div class="hint" style="margin:4px 0 0">Mande para seus alunos. Eles reservam e pagam direto no seu perfil.</div>
+    <div class="u">${esc(link.replace(/^https?:\/\//,''))}</div>
+    ${MYPRO.oculto ? '<div class="warn" style="margin-bottom:10px">Seu perfil ainda não aparece na vitrine. O link passa a funcionar quando for liberado.</div>' : ''}
+    <button class="btnw pri" id="lk_copiar">📋 Copiar link</button>
+    <a class="btnw sec" id="lk_zap" target="_blank" rel="noopener" href="${wa('', msgLink(MYPRO, link))}">💬 Enviar para um aluno no WhatsApp</a>
+    <button class="btnw sec" id="lk_img">🖼️ Imagem para Stories e status</button>
+    <h2>Vieram pelo seu link</h2>
+    <div class="stats" id="lk_stats"><div class="stat"><b>–</b><span>alunos</span></div><div class="stat"><b>–</b><span>reservas</span></div><div class="stat"><b>–</b><span>aulas feitas</span></div></div>
+    <div class="hint" style="margin:8px 0 0">Conta só reservas pagas feitas com você pelo seu link.</div></div>`;
+  $('lk_copiar').onclick = async () => {
+    try{ await navigator.clipboard.writeText(link); }
+    catch(e){ const t = document.createElement('textarea'); t.value = link; document.body.appendChild(t); t.select(); try{ document.execCommand('copy'); }catch(_){} t.remove(); }
+    $('lk_copiar').textContent = 'Link copiado ✓';
+  };
+  $('lk_img').onclick = () => imagemLinkSheet(MYPRO, link);
+  const { data } = await sb.rpc('ta_meu_link_stats');
+  const st = data && data[0];
+  if(st && $('lk_stats')) $('lk_stats').innerHTML = [[st.alunos,'alunos'],[st.reservas,'reservas'],[st.aulas_feitas,'aulas feitas']].map(x => `<div class="stat"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
+}
+function desenharLink(cv, d){
+  const W = 1080, H = 1350, c = cv.getContext('2d'), F = 'system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif', V = '#c6f432';
+  c.clearRect(0,0,W,H); c.letterSpacing = '0px'; c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+  c.fillStyle = '#0d0f12'; c.fillRect(0,0,W,H);
+  let g = c.createRadialGradient(W,0,0,W,0,760); g.addColorStop(0,'rgba(198,244,50,.18)'); g.addColorStop(1,'rgba(198,244,50,0)'); c.fillStyle = g; c.fillRect(0,0,W,H);
+  g = c.createRadialGradient(0,H,0,0,H,620); g.addColorStop(0,'rgba(198,244,50,.1)'); g.addColorStop(1,'rgba(198,244,50,0)'); c.fillStyle = g; c.fillRect(0,0,W,H);
+  c.font = '800 46px ' + F; c.fillStyle = '#fff'; c.fillText('Treino', 80, 125);
+  const tw = c.measureText('Treino ').width; c.fillStyle = V; c.fillText('Now', 80 + tw, 125);
+  c.letterSpacing = '-6px'; c.font = '800 190px ' + F; c.fillStyle = '#fff'; c.fillText('Bora', 74, 330);
+  c.fillStyle = V; c.fillText('treinar?', 74, 500);
+  c.letterSpacing = '0px'; c.font = '500 44px ' + F; c.fillStyle = '#cfd5de'; c.fillText(d.sub, 80, 580);
+  // quem é
+  const cx = 140, cy = 705;
+  if(d.fotoImg){ const im = d.fotoImg, k = Math.max(120/im.width, 120/im.height); c.save(); c.beginPath(); c.arc(cx, cy, 60, 0, 7); c.clip(); c.drawImage(im, cx - im.width*k/2, cy - im.height*k/2, im.width*k, im.height*k); c.restore(); }
+  else { c.fillStyle = 'hsl(' + ((String(d.nome).charCodeAt(0) * 7) % 360) + ',45%,40%)'; c.beginPath(); c.arc(cx, cy, 60, 0, 7); c.fill(); c.fillStyle = '#fff'; c.font = '800 54px ' + F; c.textAlign = 'center'; c.fillText(String(d.nome).trim().charAt(0).toUpperCase(), cx, cy + 19); c.textAlign = 'left'; }
+  c.lineWidth = 4; c.strokeStyle = V; c.beginPath(); c.arc(cx, cy, 60, 0, 7); c.stroke();
+  let fs = 54; c.font = '800 ' + fs + 'px ' + F; while(c.measureText(d.nome).width > 780 && fs > 30){ fs -= 2; c.font = '800 ' + fs + 'px ' + F; }
+  c.fillStyle = '#fff'; c.fillText(d.nome, 230, 700);
+  fs = 32; c.font = '400 ' + fs + 'px ' + F; while(c.measureText(d.linha2).width > 780 && fs > 20){ fs -= 2; c.font = '400 ' + fs + 'px ' + F; }
+  c.fillStyle = '#8b94a3'; c.fillText(d.linha2, 230, 748);
+  // vantagens
+  d.itens.forEach((t, i) => { const y = 860 + i * 66; c.font = '800 40px ' + F; c.fillStyle = V; c.fillText('✓', 84, y); c.font = '500 40px ' + F; c.fillStyle = '#e6e9ee'; c.fillText(t, 140, y); });
+  // faixa verde com QR
+  c.fillStyle = V; c.beginPath(); c.roundRect(80, 1085, 920, 215, 36); c.fill();
+  c.fillStyle = '#11140a'; c.font = '800 40px ' + F; c.fillText('Reserve pelo link', 120, 1155); c.fillText('ou pelo QR code', 120, 1205);
+  if(d.linkTxt){ let f2 = 26; c.font = '600 ' + f2 + 'px ui-monospace,Menlo,Consolas,monospace'; while(c.measureText(d.linkTxt).width > 560 && f2 > 14){ f2 -= 1; c.font = '600 ' + f2 + 'px ui-monospace,Menlo,Consolas,monospace'; } c.fillStyle = '#3d4a0c'; c.fillText(d.linkTxt, 120, 1260); }
+  if(d.qr){ c.fillStyle = '#fff'; c.beginPath(); c.roundRect(785, 1105, 175, 175, 20); c.fill(); c.drawImage(d.qr, 797, 1117, 151, 151); }
+}
+function qrCanvas(texto){
+  try{
+    const tmp = document.createElement('div');
+    new QRCode(tmp, { text:texto, width:420, height:420, correctLevel:QRCode.CorrectLevel.M });
+    return tmp.querySelector('canvas') || tmp.querySelector('img');
+  }catch(e){ return null; }
+}
+function imagemLinkSheet(p, link){
+  const par = p.categoria === 'parceiro';
+  const d = { nome:p.nome, sub: par ? 'Agende seu treino em dupla comigo.' : 'Agende sua aula avulsa comigo.',
+    linha2: par ? [p.modalidade, p.foco].filter(Boolean).join(' · ') : [p.modalidade, p.credencial].filter(Boolean).join(' · '),
+    itens:['Escolha o dia e o horário','Pague no Pix e garanta a vaga', par ? 'Treino avulso, sem compromisso' : 'Aula avulsa, sem compromisso'],
+    linkTxt: link.replace(/^https?:\/\//,''), qr:qrCanvas(link) };
+  openSheet(`<h3>Imagem para compartilhar</h3><div class="sub">Posta nos Stories ou manda no status. O QR code abre o seu link.</div>
+    <canvas id="lk_cv" class="shcv" width="1080" height="1350"></canvas>
+    <button class="btnw pri" id="lk_ok">📤 Compartilhar imagem</button>
+    <button class="btnw ghost" id="lk_fechar">Fechar</button>`);
+  const cv = $('lk_cv'); desenharLink(cv, d);
+  if(p.foto_url){ const fi = new Image(); fi.crossOrigin = 'anonymous'; fi.onload = () => { d.fotoImg = fi; desenharLink(cv, d); }; fi.src = p.foto_url; }
+  $('lk_fechar').onclick = closeSheet;
+  $('lk_ok').onclick = () => cv.toBlob(async blob => {
+    const file = new File([blob], 'meu-link-treino-now.png', { type:'image/png' });
+    try{
+      if(navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], text:msgLink(p, link) }); return; }
+    }catch(e){ if(e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+    toast('Imagem salva. Poste nos Stories!');
+  }, 'image/png');
+}
 function desenharConvite(cv, d){
   const W = 1080, H = 1350, c = cv.getContext('2d'), F = 'system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif', V = '#c6f432';
   c.clearRect(0,0,W,H); c.letterSpacing = '0px'; c.textBaseline = 'alphabetic';
@@ -1292,6 +1402,7 @@ async function renderProDash(){
   $('pbox').innerHTML = `
     ${MYPRO.oculto ? '<div class="warn" style="margin-bottom:6px">Seu perfil ainda não aparece na vitrine. Quando estiver tudo certo, o gerenciador libera.</div>' : ''}
     ${(!MYPRO.oculto && !MYPRO.verificado) ? '<div class="warn" style="margin-bottom:6px">Seu perfil está na vitrine, em verificação.</div>' : ''}
+    <div id="meulink"></div>
     <h2 style="margin-top:14px">Aulas marcadas</h2>
     <div id="blist"></div>
     <h2>Bloquear horários</h2>
@@ -1300,7 +1411,7 @@ async function renderProDash(){
     <div class="slots" id="pslots" style="margin-top:12px"></div>
     <h2>Meu perfil</h2>
     <div id="perfil"></div>`;
-  renderPanelPro(); renderPerfilEditor();
+  renderPanelPro(); renderPerfilEditor(); renderMeuLink();
 }
 
 function renderPanelPro(){
@@ -1513,7 +1624,7 @@ async function adminAulas(silent){
       if((b.status === 'pago' && !b.conclusao) || b.status === 'aguardando') btns += `<button class="sbtn del" data-a="cancelar" data-id="${b.id}" data-pago="${b.status === 'pago' ? 1 : 0}">Cancelar</button>`;
       return `<div class="bk">
         <div class="bh"><b>${fmtLong(d)} · ${hh(b.hora)}</b><span class="badge ${st[0]}">${st[1]}</span></div>
-        <div>${esc(b.aluno_nome)} → ${pr ? esc(pr.nome) : '(profissional removido)'}<br><span style="color:var(--mut)">${esc(b.local)}</span>${b.tem_plano === false ? '<br><span class="tag pend">Sem plano · diária na academia</span>' : ''}</div>
+        <div>${esc(b.aluno_nome)} → ${pr ? esc(pr.nome) : '(profissional removido)'}<br><span style="color:var(--mut)">${esc(b.local)}</span>${b.tem_plano === false ? '<br><span class="tag pend">Sem plano · diária na academia</span>' : ''}${b.origem_pro && nomes[b.origem_pro] ? `<br><span class="tag">via link de ${esc(nomes[b.origem_pro].nome)}</span>` : ''}</div>
         <div class="bm">Total ${brl2(b.total)} · repassar ${brl2(b.preco)} · comissão ${brl2(b.taxa)}${b.status === 'pago' && !b.conclusao ? (b.pro_avisado ? ' · profissional avisado ✓' : ' · <b style="color:#ffb86b">profissional ainda não avisado</b>') : ''}</div>
         <div class="btns">${btns}</div>
       </div>`;
@@ -1550,7 +1661,7 @@ async function adminPros(){
     <div class="bk">
       <div class="bh"><div style="display:flex;gap:10px;align-items:center">${avatarHtml(p.nome, p.foto_url)}<b>${esc(p.nome)}</b></div><span>${p.teste ? '<span class="tag pend">TESTE</span>' : ''}</span></div>
       <div style="color:var(--mut)">${p.categoria==='parceiro' ? 'Parceiro de treino · ' : ''}${esc(p.modalidade)} · ${esc(p.categoria==='parceiro' ? (p.foco || '—') : (p.credencial || '—'))} · ${brl(+p.preco)}/h${p.preco_fds>0 ? ' · fds ' + brl(+p.preco_fds) : ''}</div>
-      <div class="bm">${p.user_id ? 'Conta vinculada ✓' : 'Sem conta vinculada'}</div>
+      <div class="bm">${p.user_id ? 'Conta vinculada ✓' : 'Sem conta vinculada'}${p.slug ? ' · link ?p=' + esc(p.slug) : ''}</div>
       <div class="btns">
         <button class="sbtn ${p.verificado?'pri':''}" data-a="ver" data-id="${p.id}">${p.verificado?'✓ Verificado':'Marcar verificado'}</button>
         <button class="sbtn ${p.oculto?'':'pri'}" data-a="vis" data-id="${p.id}">${p.oculto?'Oculto da vitrine':'Na vitrine'}</button>
