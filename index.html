@@ -501,7 +501,7 @@ function renderHome(){
   $('plist').innerHTML = lista.map(p => {
     const selo = p.ver ? `<span class="tick" title="${ehParc(p)?'Identidade verificada':'Verificado'}">✓</span>` : '';
     const pend = p.ver ? '' : '<div class="pr"><span class="tag pend">Em verificação</span></div>';
-    const preco = brl(Math.min(p.preco, p.precoFds>0 ? p.precoFds : p.preco));
+    const preco = brl(totalDe(Math.min(p.preco, p.precoFds>0 ? p.precoFds : p.preco)));
     const apartir = p.precoFds>0 && p.precoFds!==p.preco;
     if(ehParc(p)){
       const ac = (fAcad!=='Todas' && p.locais.includes(fAcad)) ? fAcad : p.locais[0];
@@ -576,7 +576,7 @@ function renderPerfilPublico(){
   $('stats').innerHTML = `
     <div class="stat"><b>${p.exp} ${p.exp===1?'ano':'anos'}</b><span>${par ? 'treinando' : 'de experiência'}</span></div>
     <div class="stat"><b style="${par ? 'font-size:14px;line-height:1.25' : ''}">${esc(par ? (p.foco || '—') : (p.cred || '—'))}</b><span>${par ? 'foco' : 'credencial'}</span></div>
-    <div class="stat"><b>${brl(p.preco)}</b><span>${p.precoFds>0 ? un + '<br>sáb/dom ' + brl(p.precoFds) : un}</span></div>`;
+    <div class="stat"><b>${brl(totalDe(p.preco))}</b><span>${p.precoFds>0 ? un + '<br>sáb/dom ' + brl(totalDe(p.precoFds)) : un}</span></div>`;
   $('about').textContent = p.bio || '';
   $('pnota').innerHTML = par ? '<div class="warn" style="margin-top:12px">ℹ️ Parceiro de treino não é personal e não monta nem corrige treino. Ele treina junto com você.</div>' : '';
   $('hAcad').textContent = par ? (p.acadLocal ? 'Academia' : 'Local do treino') : 'Onde você quer treinar';
@@ -602,7 +602,7 @@ function renderDays(){
 function renderSlots(){
   const el = $('slots');
   $('precoDia').textContent = state.date
-    ? `Valor neste dia: ${brl(precoSel())}${ehFds(dataObj(state.date)) && cur.precoFds > 0 ? ' (fim de semana)' : ''} + taxa do app`
+    ? `Valor neste dia: ${brl(totalDe(precoSel()))}${ehFds(dataObj(state.date)) && cur.precoFds > 0 ? ' (fim de semana)' : ''}`
     : '';
   if(!state.date){ el.innerHTML = '<div class="empty" style="grid-column:1/-1">Escolha um dia para ver os horários.</div>'; return; }
   const lista = slotsDe(cur, dataObj(state.date));
@@ -639,9 +639,8 @@ $('cta').onclick = () => {
       ${par ? 'Treino em dupla com ' + esc(cur.nome) + ' · ' + esc(cur.mod) : esc(cur.mod) + ' com ' + esc(cur.nome)}
     </div>
     <div class="resumo" style="margin-top:8px">
-      <div class="fee"><span>${par ? 'Treino (1h)' : 'Aula (1h)'}</span><span>${brl2(preco)}</span></div>
-      <div class="fee"><span>Taxa do app</span><span>${brl2(taxa)}</span></div>
-      <div class="fee tot"><span>Total</span><span>${brl2(total)}</span></div>
+      <div class="fee tot"><span>${par ? 'Treino (1h)' : 'Aula (1h)'} · Total</span><span>${brl2(total)}</span></div>
+      <div class="hint" style="margin:6px 0 0;font-size:12px">Inclui a taxa de serviço do app (Pix seguro, vaga garantida e suporte).</div>
     </div>
     ${pedePlano ? `<label>Você tem plano nessa academia?</label>
     <div class="seg" id="fplano"><button type="button" data-v="1">Tenho plano</button><button type="button" data-v="0">Não tenho</button></div>
@@ -1490,8 +1489,8 @@ function renderPerfilEditor(){
   $('perfil').querySelectorAll('.hb').forEach(b => b.onclick = () => b.classList.toggle('on'));
   const hint = () => {
     const v = parseFloat($('e_preco').value.replace(',','.')), f = parseFloat($('e_fds').value.replace(',','.'));
-    let t = v>0 ? `Dia de semana: o aluno paga ${brl2(totalDe(v))} (taxa ${brl2(taxaDe(v))}).` : '';
-    if(f>0) t += ` Fim de semana: o aluno paga ${brl2(totalDe(f))} (taxa ${brl2(taxaDe(f))}).`;
+    let t = v>0 ? `Dia de semana: o aluno paga ${brl2(totalDe(v))}; você recebe ${brl2(v)} inteiros (a taxa de ${brl2(taxaDe(v))} é do app).` : '';
+    if(f>0) t += ` Fim de semana: o aluno paga ${brl2(totalDe(f))}; você recebe ${brl2(f)}.`;
     $('e_feehint').textContent = t;
   };
   $('e_preco').oninput = hint; $('e_fds').oninput = hint; hint();
